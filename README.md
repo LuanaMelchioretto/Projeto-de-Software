@@ -22,15 +22,16 @@
 
 | Nome completo | Papel / principais frentes no projeto |
 |---|---|
-| CAMILA LORENZETTI | A definir conforme divisão interna da equipe |
-| GUILHERME FRANCIEL MEIRING | A definir conforme divisão interna da equipe |
-| LUAN FERREIRA DO AMARAL | A definir conforme divisão interna da equipe |
-| LUANA MELCHIORETTO | A definir conforme divisão interna da equipe |
-| MATHEUS RECK SCHÄFFER | A definir conforme divisão interna da equipe |
+| CAMILA LORENZETTI | Tela de login, layout base e tela inicial/painel |
+| GUILHERME FRANCIEL MEIRING | Configuração inicial, README v1, estrutura do projeto e preparação para deploy |
+| LUAN FERREIRA DO AMARAL | Telas de criação de avaliação e geração de prova/folha de respostas |
+| LUANA MELCHIORETTO | Telas de correção, resultados e relatórios com dados mock |
+| MATHEUS RECK SCHÄFFER | Banco de questões, navegação entre telas e apoio na integração final |
 
 ## Sumário
 
 - [1. Visão Geral](#1-visão-geral)
+  - [1.1 Escopo da N1](#11-escopo-da-n1)
 - [2. Requisitos](#2-requisitos)
   - [2.1 Funcionais (RF)](#21-funcionais-rf)
   - [2.2 Não Funcionais (RNF)](#22-não-funcionais-rnf)
@@ -56,6 +57,27 @@ O projeto atende a necessidade de professores que corrigem um grande volume de p
 O sistema proposto tem como objetivo automatizar a geração, identificação, correção e análise de provas objetivas. A solução deve permitir que o professor crie ou importe questões, gere versões de provas com questões e alternativas embaralhadas, leia folhas de resposta identificadas por QR code ou identificador equivalente, calcule as notas e exporte os resultados em planilha.
 
 A partir da entrevista com o cliente, o ponto mais importante é tornar a correção automatizada simples, rápida e confiável. Como melhorias desejadas, o cliente também citou estatísticas por questão, geração de relatórios de notas, prova individualizada por aluno e maior controle sobre o layout da prova gerada.
+
+### 1.1 Escopo da N1
+
+Na N1, o foco é entregar a primeira versão navegável do sistema, com telas principais construídas e conectadas entre si por navegação. A aplicação deve permitir que o cliente visualize o fluxo do sistema tomando forma, mesmo sem conexão real com banco de dados.
+
+Para esta fase, fazem parte do escopo:
+
+- criação das telas principais do sistema;
+- navegação entre as telas;
+- uso de dados estáticos/mock;
+- README v1 conforme o modelo da disciplina;
+- estrutura inicial do repositório;
+- publicação do sistema em serviço de hospedagem gratuito.
+
+Não fazem parte do escopo da N1:
+
+- conexão real com banco de dados;
+- autenticação real;
+- API completa;
+- correção automática real por leitura de imagem;
+- geração definitiva de arquivos de prova ou planilhas.
 
 ## 2. Requisitos
 
@@ -105,18 +127,20 @@ Os diagramas serão salvos em `docs/uml/` e inseridos nesta seção conforme for
 
 ## 4. Telas do Sistema
 
-As telas ainda serão prototipadas e adicionadas em `docs/telas/`. Com base na entrevista, o fluxo inicial previsto é:
+As telas da N1 devem ser navegáveis e usar dados estáticos/mock. Com base na entrevista, o fluxo inicial previsto é:
 
-| Tela | Objetivo |
-|---|---|
-| Login | Permitir acesso seguro do professor ao sistema. |
-| Painel de avaliações | Listar avaliações criadas e permitir iniciar criação, geração, correção ou análise. |
-| Banco de questões | Cadastrar, editar e consultar questões objetivas. |
-| Criação de avaliação | Selecionar questões, definir gabarito e configurar embaralhamento. |
-| Geração de prova | Gerar prova, folha de respostas e identificador da avaliação. |
-| Correção de respostas | Ler ou registrar respostas do aluno e calcular a nota automaticamente. |
-| Relatórios | Visualizar notas, acertos, erros e estatísticas por questão. |
-| Exportação | Gerar planilha com notas e dados de correção. |
+| Tela | Rota prevista | Objetivo | Responsável |
+|---|---|---|---|
+| Login | `/login` | Permitir acesso visual ao sistema como professor, usando autenticação mock. | Camila |
+| Painel inicial | `/dashboard` | Listar avaliações mock e permitir acessar criação, correção e relatórios. | Camila |
+| Banco de questões | `/questoes` | Cadastrar, editar e consultar questões objetivas usando dados estáticos. | Matheus |
+| Criação de avaliação | `/avaliacoes/nova` | Selecionar questões, definir gabarito e configurar embaralhamento. | Luan |
+| Geração de prova | `/avaliacoes/:id/gerar` | Exibir opções de geração de prova e folha de respostas. | Luan |
+| Correção de respostas | `/correcoes` | Simular leitura ou lançamento de respostas e cálculo de nota. | Luana |
+| Relatórios | `/relatorios` | Visualizar notas, acertos, erros e estatísticas por questão com dados mock. | Luana |
+| Exportação | `/relatorios/exportar` | Simular a exportação de notas e dados de correção para planilha. | Guilherme |
+
+Os prints das telas serão adicionados em `docs/telas/` conforme a interface for implementada.
 
 ## 5. Arquitetura de Software
 
@@ -172,6 +196,11 @@ Stack inicial prevista para o desenvolvimento, conforme padrão da disciplina:
 - **MySQL**: banco de dados relacional para armazenar usuários, alunos, questões, provas, respostas e correções.
 - **Git e GitHub**: versionamento do código e colaboração entre os integrantes da equipe.
 
+Versões identificadas para a N1:
+
+- **Node.js**: v22.12.0
+- **npm**: 10.9.0
+
 Outras bibliotecas poderão ser adicionadas conforme o projeto evoluir, como autenticação, geração de arquivos, leitura de QR code e exportação de planilhas.
 
 ## 9. Estrutura de Pastas
@@ -196,17 +225,27 @@ docs/
 
 ## 10. Como Executar o Projeto
 
-O projeto ainda está na fase inicial de documentação e definição de requisitos. Quando a aplicação for implementada, esta seção será atualizada com o passo a passo completo.
+O projeto da N1 será executado como uma aplicação com telas navegáveis e dados mock, sem conexão com banco de dados.
 
-Fluxo previsto:
+Versões utilizadas:
+
+```text
+Node.js: v22.12.0
+npm: 10.9.0
+```
+
+Passo a passo previsto para execução local:
 
 ```text
 1. git clone <link-do-repositorio>
 2. cd Projeto-de-Software
 3. npm install
-4. copiar .env.example para .env e configurar as variáveis
-5. npm run dev
+4. npm run dev
 ```
+
+Após executar o comando de desenvolvimento, acessar o endereço informado no terminal, normalmente `http://localhost:5173` ou `http://localhost:3000`, dependendo da configuração final do projeto.
+
+Como a N1 não possui banco de dados, não é necessário configurar MySQL nem arquivo `.env` para visualizar as telas navegáveis.
 
 ## 11. Especificação da API
 
@@ -258,11 +297,11 @@ O manual do usuário será produzido em `docs/manual-usuario.md` e deverá expli
 
 As contribuições individuais serão detalhadas conforme a divisão de tarefas da equipe avançar ao longo das entregas.
 
-- **CAMILA LORENZETTI**: contribuições a definir.
-- **GUILHERME FRANCIEL MEIRING**: contribuições a definir.
-- **LUAN FERREIRA DO AMARAL**: contribuições a definir.
-- **LUANA MELCHIORETTO**: contribuições a definir.
-- **MATHEUS RECK SCHÄFFER**: contribuições a definir.
+- **CAMILA LORENZETTI**: tela de login, layout base, tela inicial/painel e apoio na identidade visual.
+- **GUILHERME FRANCIEL MEIRING**: configuração inicial do projeto, README v1, estrutura de pastas, instruções de execução, preparação para hospedagem e apoio na integração final.
+- **LUAN FERREIRA DO AMARAL**: telas de criação de avaliação, configuração de embaralhamento e geração de prova/folha de respostas.
+- **LUANA MELCHIORETTO**: telas de correção, resultados, relatórios e visualização de estatísticas com dados mock.
+- **MATHEUS RECK SCHÄFFER**: banco de questões, navegação entre telas e apoio na organização dos fluxos principais.
 
 ---
 
