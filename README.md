@@ -22,15 +22,16 @@
 
 | Nome completo | Papel / principais frentes no projeto |
 |---|---|
-| CAMILA LORENZETTI | A definir conforme divisão interna da equipe |
-| GUILHERME FRANCIEL MEIRING | A definir conforme divisão interna da equipe |
-| LUAN FERREIRA DO AMARAL | A definir conforme divisão interna da equipe |
-| LUANA MELCHIORETTO | A definir conforme divisão interna da equipe |
-| MATHEUS RECK SCHÄFFER | A definir conforme divisão interna da equipe |
+| CAMILA LORENZETTI | Tela de login, layout base e tela inicial/painel |
+| GUILHERME FRANCIEL MEIRING | Configuração inicial, README v1, estrutura do projeto e preparação para deploy |
+| LUAN FERREIRA DO AMARAL | Telas de criação de avaliação e geração de prova/folha de respostas |
+| LUANA MELCHIORETTO | Telas de correção, resultados e relatórios com dados mock |
+| MATHEUS RECK SCHÄFFER | Banco de questões, navegação entre telas e apoio na integração final |
 
 ## Sumário
 
 - [1. Visão Geral](#1-visão-geral)
+  - [1.1 Escopo da N1](#11-escopo-da-n1)
 - [2. Requisitos](#2-requisitos)
   - [2.1 Funcionais (RF)](#21-funcionais-rf)
   - [2.2 Não Funcionais (RNF)](#22-não-funcionais-rnf)
@@ -56,6 +57,27 @@ O projeto atende a necessidade de professores que corrigem um grande volume de p
 O sistema proposto tem como objetivo automatizar a geração, identificação, correção e análise de provas objetivas. A solução deve permitir que o professor crie ou importe questões, gere versões de provas com questões e alternativas embaralhadas, leia folhas de resposta identificadas por QR code ou identificador equivalente, calcule as notas e exporte os resultados em planilha.
 
 A partir da entrevista com o cliente, o ponto mais importante é tornar a correção automatizada simples, rápida e confiável. Como melhorias desejadas, o cliente também citou estatísticas por questão, geração de relatórios de notas, prova individualizada por aluno e maior controle sobre o layout da prova gerada.
+
+### 1.1 Escopo da N1
+
+Na N1, o foco é entregar a primeira versão navegável do sistema, com telas principais construídas e conectadas entre si por navegação. A aplicação deve permitir que o cliente visualize o fluxo do sistema tomando forma, mesmo sem conexão real com banco de dados.
+
+Para esta fase, fazem parte do escopo:
+
+- criação das telas principais do sistema;
+- navegação entre as telas;
+- uso de dados estáticos/mock;
+- README v1 conforme o modelo da disciplina;
+- estrutura inicial do repositório;
+- publicação do sistema em serviço de hospedagem gratuito.
+
+Não fazem parte do escopo da N1:
+
+- conexão real com banco de dados;
+- autenticação real;
+- API completa;
+- correção automática real por leitura de imagem;
+- geração definitiva de arquivos de prova ou planilhas.
 
 ## 2. Requisitos
 
@@ -258,11 +280,11 @@ O manual do usuário será produzido em `docs/manual-usuario.md` e deverá expli
 
 As contribuições individuais serão detalhadas conforme a divisão de tarefas da equipe avançar ao longo das entregas.
 
-- **CAMILA LORENZETTI**: contribuições a definir.
-- **GUILHERME FRANCIEL MEIRING**: contribuições a definir.
-- **LUAN FERREIRA DO AMARAL**: contribuições a definir.
-- **LUANA MELCHIORETTO**: contribuições a definir.
-- **MATHEUS RECK SCHÄFFER**: contribuições a definir.
+- **CAMILA LORENZETTI**: tela de login, layout base, tela inicial/painel e apoio na identidade visual.
+- **GUILHERME FRANCIEL MEIRING**: configuração inicial do projeto, README v1, estrutura de pastas, instruções de execução, preparação para hospedagem e apoio na integração final.
+- **LUAN FERREIRA DO AMARAL**: telas de criação de avaliação, configuração de embaralhamento e geração de prova/folha de respostas.
+- **LUANA MELCHIORETTO**: telas de correção, resultados, relatórios e visualização de estatísticas com dados mock.
+- **MATHEUS RECK SCHÄFFER**: banco de questões, navegação entre telas e apoio na organização dos fluxos principais.
 
 ---
 
