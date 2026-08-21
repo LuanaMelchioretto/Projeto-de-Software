@@ -31,7 +31,8 @@
 ## Sumário
 
 - [1. Visão Geral](#1-visão-geral)
-  - [1.1 Escopo da N1](#11-escopo-da-n1)
+  - [1.1 Objetivo do Projeto](#11-objetivo-do-projeto)
+  - [1.2 Escopo da N1](#12-escopo-da-n1)
 - [2. Requisitos](#2-requisitos)
   - [2.1 Funcionais (RF)](#21-funcionais-rf)
   - [2.2 Não Funcionais (RNF)](#22-não-funcionais-rnf)
@@ -54,11 +55,13 @@
 
 O projeto atende a necessidade de professores que corrigem um grande volume de provas objetivas, especialmente em semanas de avaliação, quando podem existir centenas de provas para corrigir em pouco tempo. Hoje, esse processo consome muitas horas de trabalho e atrasa a devolução dos resultados aos alunos.
 
-O sistema proposto tem como objetivo automatizar a geração, identificação, correção e análise de provas objetivas. A solução deve permitir que o professor crie ou importe questões, gere versões de provas com questões e alternativas embaralhadas, leia folhas de resposta identificadas por QR code ou identificador equivalente, calcule as notas e exporte os resultados em planilha.
+### 1.1 Objetivo do Projeto
+
+O objetivo do projeto é automatizar a geração, identificação, correção e análise de provas objetivas. A solução deve permitir que o professor crie ou importe questões, gere versões de provas com questões e alternativas embaralhadas, leia folhas de resposta identificadas por QR code ou identificador equivalente, calcule as notas e exporte os resultados em planilha.
 
 A partir da entrevista com o cliente, o ponto mais importante é tornar a correção automatizada simples, rápida e confiável. Como melhorias desejadas, o cliente também citou estatísticas por questão, geração de relatórios de notas, prova individualizada por aluno e maior controle sobre o layout da prova gerada.
 
-### 1.1 Escopo da N1
+### 1.2 Escopo da N1
 
 Na N1, o foco é entregar a primeira versão navegável do sistema, com telas principais construídas e conectadas entre si por navegação. A aplicação deve permitir que o cliente visualize o fluxo do sistema tomando forma, mesmo sem conexão real com banco de dados.
 
@@ -201,12 +204,21 @@ Outras bibliotecas poderão ser adicionadas conforme o projeto evoluir, como aut
 Estrutura prevista para o projeto:
 
 ```text
-src/
-  routes/          # endpoints da aplicação
-  controllers/     # entrada das requisições e validações iniciais
-  services/        # regras de negócio
-  repositories/    # acesso ao banco de dados
-  models/          # representação das entidades
+front-end/
+  public/          # arquivos públicos da aplicação
+  src/
+    assets/        # imagens, ícones e arquivos visuais
+    components/    # componentes reutilizáveis da interface
+    pages/         # telas principais do sistema
+    routes/        # configuração de navegação entre telas
+    mocks/         # dados estáticos usados na N1
+back-end/
+  src/
+    routes/        # endpoints da aplicação
+    controllers/   # entrada das requisições e validações iniciais
+    services/      # regras de negócio
+    repositories/  # acesso ao banco de dados
+    models/        # representação das entidades
 docs/
   uml/             # diagramas UML
   telas/           # protótipos e prints das telas
