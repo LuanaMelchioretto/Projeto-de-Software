@@ -186,7 +186,9 @@ O modelo entidade-relacionamento será salvo em `docs/modelo-dados/`. A modelage
 
 ## 8. Stack Tecnológica
 
-Stack inicial prevista para o desenvolvimento, conforme padrão da disciplina:
+O front-end implementado utiliza React, React Router, Vite e Lucide React para os ícones.
+
+Stack prevista para o back-end, conforme padrão da disciplina:
 
 ![Node.js](https://img.shields.io/badge/Node.js-339933?style=flat-square&logo=nodedotjs&logoColor=white)
 ![Express](https://img.shields.io/badge/Express-000000?style=flat-square&logo=express&logoColor=white)
@@ -201,24 +203,19 @@ Outras bibliotecas poderão ser adicionadas conforme o projeto evoluir, como aut
 
 ## 9. Estrutura de Pastas
 
-Estrutura prevista para o projeto:
+Estrutura atual do projeto:
 
 ```text
 front-end/
-  public/          # arquivos públicos da aplicação
+  .gitignore       # dependências, build e variáveis locais ignorados pelo Git
+  index.html       # ponto de entrada HTML do Vite
+  package.json     # dependências e scripts do front-end
+  package-lock.json # versões fixadas das dependências
   src/
-    assets/        # imagens, ícones e arquivos visuais
-    components/    # componentes reutilizáveis da interface
-    pages/         # telas principais do sistema
-    routes/        # configuração de navegação entre telas
-    mocks/         # dados estáticos usados na N1
-back-end/
-  src/
-    routes/        # endpoints da aplicação
-    controllers/   # entrada das requisições e validações iniciais
-    services/      # regras de negócio
-    repositories/  # acesso ao banco de dados
-    models/        # representação das entidades
+    App.jsx        # telas, rotas e dados mock da N1
+    main.jsx       # inicialização do React e do roteador
+    styles.css     # estilos da aplicação
+back-end/          # reservado para a implementação da API
 docs/
   uml/             # diagramas UML
   telas/           # protótipos e prints das telas
@@ -226,21 +223,35 @@ docs/
   adr/             # registros de decisões arquiteturais
   modelo-dados/    # MER/DER e dicionário de dados
   api/             # documentação ou coleções da API
+README.md
 ```
+
+Conforme o projeto evoluir, o front-end poderá ser separado em `components/`, `pages/`, `routes/`, `mocks/` e `assets/`. A organização prevista para o back-end continua sendo `src/routes/`, `controllers/`, `services/`, `repositories/` e `models/`.
 
 ## 10. Como Executar o Projeto
 
-O projeto ainda está na fase inicial de documentação e definição de requisitos. Quando a aplicação for implementada, esta seção será atualizada com o passo a passo completo.
+Pré-requisitos: Node.js e npm instalados.
 
-Fluxo previsto:
+Com o repositório clonado, execute a partir da raiz do projeto:
 
-```text
-1. git clone <link-do-repositorio>
-2. cd Projeto-de-Software
-3. npm install
-4. copiar .env.example para .env e configurar as variáveis
-5. npm run dev
+```sh
+cd front-end
+npm ci
+npm run dev
 ```
+
+Abra o endereço exibido no terminal, normalmente `http://localhost:5173`. Mantenha o terminal aberto enquanto estiver usando a aplicação e pressione `Ctrl+C` para encerrar o servidor.
+
+A versão atual usa dados mock e não requer back-end, banco de dados ou arquivo `.env`.
+
+Para gerar o build de produção e visualizá-lo localmente, execute dentro de `front-end/`:
+
+```sh
+npm run build
+npm run preview
+```
+
+O build é gerado em `front-end/dist/`. O comando de preview exibe no terminal o endereço para acesso, normalmente `http://localhost:4173`.
 
 ## 11. Especificação da API
 
