@@ -145,9 +145,13 @@ As telas ainda serão prototipadas e adicionadas em `docs/telas/`. Com base na e
 
 ## 5. Arquitetura de Software
 
-Seção prevista para a entrega N3.
+O front-end está organizado por responsabilidade: `main.jsx` inicializa o React e o roteador; `App.jsx` compõe a aplicação; `routes/` define os endereços; `layouts/` contém a estrutura de navegação; e `pages/` reúne as telas por área do sistema.
 
-A arquitetura será documentada em camadas, seguindo a estrutura:
+Os componentes compartilhados ficam em `components/`, os dados demonstrativos em `mocks/` e os estilos específicos acompanham a página ou componente. `styles/` concentra as regras globais e as variáveis visuais. Por enquanto, as páginas internas exibem somente títulos; os componentes, estilos e mocks existentes permanecem disponíveis para a construção das telas. O login mantém sua interface demonstrativa.
+
+As rotas internas são renderizadas por `<Outlet />` no layout. Avaliações usam `/avaliacoes/:id` e `/avaliacoes/:id/gerar`, com tratamento para identificadores inexistentes. O login é uma tela demonstrativa e não protege as rotas.
+
+Quando a API for implementada, as chamadas HTTP serão organizadas em `services/` no front-end. Hooks próprios serão extraídos conforme houver lógica reutilizável. O back-end seguirá a estrutura prevista:
 
 ```text
 rota -> controle -> serviço -> repositório -> model
@@ -212,9 +216,15 @@ front-end/
   package.json     # dependências e scripts do front-end
   package-lock.json # versões fixadas das dependências
   src/
-    App.jsx        # telas, rotas e dados mock da N1
+    App.jsx        # composição da aplicação
     main.jsx       # inicialização do React e do roteador
-    styles.css     # estilos da aplicação
+    routes/        # rotas e configuração do menu
+    layouts/       # layout principal, menu e cabeçalho
+    components/    # componentes reutilizáveis e seus estilos
+    pages/         # páginas e estilos organizados por área
+    mocks/         # questões, avaliações, turmas, alunos e resultados
+    styles/        # estilos globais e variáveis visuais
+  tests/           # testes de renderização das rotas
 back-end/          # reservado para a implementação da API
 docs/
   uml/             # diagramas UML
@@ -226,7 +236,9 @@ docs/
 README.md
 ```
 
-Conforme o projeto evoluir, o front-end poderá ser separado em `components/`, `pages/`, `routes/`, `mocks/` e `assets/`. A organização prevista para o back-end continua sendo `src/routes/`, `controllers/`, `services/`, `repositories/` e `models/`.
+Componentes usados por várias telas ficam em `components/`; os exclusivos de uma área ficam próximos das suas páginas. Os arquivos JSX usam nomes em PascalCase, páginas recebem o sufixo `Page` e cada componente é exportado em seu próprio arquivo. Os endereços continuam em português.
+
+A organização prevista para o back-end continua sendo `src/routes/`, `controllers/`, `services/`, `repositories/` e `models/`.
 
 ## 10. Como Executar o Projeto
 
@@ -272,9 +284,13 @@ Rotas preliminares que poderão compor a API:
 
 ## 12. Testes e Validações
 
-Seção prevista para a entrega N3.
+Para executar os testes atuais, use `npm test` dentro de `front-end/`. Eles verificam que as páginas internas exibem apenas seus títulos, preservam o layout, mantêm o formulário de login separado e tratam rotas e identificadores inexistentes. Os testes usam o executor nativo do Node.js e o Vite para carregar os componentes JSX.
 
-Os testes deverão validar os principais fluxos do sistema:
+Verifique também `npm run build` e navegue pelo menu para conferir os títulos e o recolhimento do menu. As páginas de nova avaliação, detalhes, geração e resultado da correção continuam acessíveis pelos seus endereços.
+
+A versão atual é uma base de navegação. O login continua demonstrativo, sem autenticação real, e as demais páginas ainda não exibem formulários, tabelas, indicadores ou ações.
+
+Na evolução para a N3, os testes deverão validar os principais fluxos reais do sistema:
 
 - cadastro de questões;
 - geração de avaliações;

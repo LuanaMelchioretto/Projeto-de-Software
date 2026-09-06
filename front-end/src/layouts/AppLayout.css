@@ -1,0 +1,161 @@
+.app {
+  display: flex;
+  min-height: 100vh;
+}
+
+.sidebar {
+  width: var(--sidebar-width);
+  background: var(--color-surface);
+  border-right: 1px solid #e7e9ed;
+  display: flex;
+  flex-direction: column;
+  padding: 22px 14px;
+  position: fixed;
+  inset: 0 auto 0 0;
+  transition: 0.2s;
+  z-index: 2;
+}
+
+.sidebar nav {
+  display: flex;
+  flex-direction: column;
+  gap: 5px;
+}
+
+.sidebar nav a,
+.sidebar-bottom button {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  text-decoration: none;
+  color: #68707d;
+  border: 0;
+  background: transparent;
+  padding: 11px 12px;
+  border-radius: 9px;
+  font-size: 14px;
+  text-align: left;
+}
+
+.sidebar nav a:hover,
+.sidebar nav a.active {
+  background: #eef0ff;
+  color: #4e5bf2;
+  font-weight: 700;
+}
+
+.sidebar-bottom {
+  margin-top: auto;
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+  border-top: 1px solid #eee;
+  padding-top: 12px;
+}
+
+.sidebar-bottom button:hover {
+  background: #f2f3f5;
+}
+
+.sidebar-bottom .collapse {
+  font-size: 12px;
+  color: #9096a0;
+}
+
+.main {
+  margin-left: var(--sidebar-width);
+  flex: 1;
+  min-width: 0;
+}
+
+.topbar {
+  height: 70px;
+  background: var(--color-surface);
+  border-bottom: 1px solid #e7e9ed;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0 38px;
+  position: sticky;
+  top: 0;
+  z-index: 1;
+}
+
+.crumb {
+  font-size: 13px;
+  color: #858c97;
+}
+
+.profile {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.avatar {
+  width: 36px;
+  height: 36px;
+  border-radius: 50%;
+  background: #eef0ff;
+  color: #4e5bf2;
+  display: grid;
+  place-items: center;
+  font-size: 12px;
+  font-weight: 800;
+}
+
+.profile small {
+  display: block;
+  color: #8a919c;
+  font-size: 12px;
+  margin-top: 2px;
+}
+
+.content {
+  max-width: 1250px;
+  margin: 0 auto;
+  padding: 34px 38px 60px;
+}
+
+@media (max-width: 900px) {
+  .sidebar {
+    width: 70px;
+  }
+  .sidebar .brand > span {
+    display: none;
+  }
+  .sidebar nav span {
+    display: none;
+  }
+  .sidebar-bottom span {
+    display: none;
+  }
+  .sidebar .brand {
+    justify-content: center;
+    padding: 4px 0 28px;
+  }
+  .main {
+    margin-left: 70px;
+  }
+  .topbar {
+    padding: 0 20px;
+  }
+  .content {
+    padding: 25px 20px;
+  }
+}
+
+.app.collapsed {
+  --sidebar-width: 70px;
+}
+
+.app.collapsed .sidebar .brand > span,
+.app.collapsed .sidebar nav span,
+.app.collapsed .sidebar-bottom span {
+  display: none;
+}
+
+.app.collapsed .sidebar .brand {
+  justify-content: center;
+  padding: 4px 0 28px;
+}
