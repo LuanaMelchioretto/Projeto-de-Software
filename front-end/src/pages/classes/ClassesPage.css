@@ -1,0 +1,36 @@
+.class-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 18px;
+}
+
+.class-grid .card {
+  margin: 0;
+}
+
+.class-grid p {
+  font-size: 13px;
+  color: #6f7782;
+}
+
+.class-foot {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  border-top: 1px solid #f0f1f3;
+  padding-top: 13px;
+  font-size: 12px;
+  color: #7e8691;
+}
+
+.class-foot span {
+  display: flex;
+  align-items: center;
+  gap: 5px;
+}
+
+@media (max-width: 900px) {
+  .class-grid {
+    grid-template-columns: 1fr;
+  }
+}
