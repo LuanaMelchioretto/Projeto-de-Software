@@ -1,0 +1,9 @@
+:root {
+  --color-primary: #5664f5;
+  --color-primary-hover: #4856e8;
+  --color-background: #f7f8fa;
+  --color-surface: #fff;
+  --color-text: #20242b;
+  --color-border: #e6e8ec;
+  --sidebar-width: 240px;
+}

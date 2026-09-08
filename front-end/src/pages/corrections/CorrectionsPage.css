@@ -1,0 +1,98 @@
+.scan-area {
+  background: var(--color-surface);
+  border: 1px dashed #cfd3da;
+  border-radius: 14px;
+  min-height: 310px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  text-align: center;
+  padding: 30px;
+  margin: 18px 0;
+}
+
+.scan-icon {
+  width: 76px;
+  height: 76px;
+  background: #eef0ff;
+  color: var(--color-primary);
+  border-radius: 18px;
+  display: grid;
+  place-items: center;
+  margin-bottom: 14px;
+}
+
+.scan-area h2 {
+  font-size: 19px;
+  margin: 0 0 6px;
+}
+
+.scan-area p {
+  color: #858c97;
+  font-size: 13px;
+  max-width: 480px;
+}
+
+.scan-area small {
+  margin-top: 12px;
+  color: #a0a5ad;
+}
+
+.progress-card {
+  background: var(--color-surface);
+  border: 1px solid var(--color-border);
+  border-radius: 12px;
+  padding: 15px;
+  display: flex;
+  align-items: center;
+  gap: 14px;
+}
+
+.progress-card > div:first-child {
+  flex: 1;
+}
+
+.progress-card span {
+  display: block;
+  color: #8a919c;
+  font-size: 12px;
+  margin-top: 4px;
+}
+
+.result-head {
+  background: var(--color-surface);
+  border: 1px solid var(--color-border);
+  border-radius: 12px;
+  padding: 24px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 18px;
+}
+
+.result-head small {
+  color: #8a919c;
+}
+
+.result-head h2 {
+  margin: 5px 0;
+  font-size: 21px;
+}
+
+.result-head span {
+  color: #858c97;
+  font-size: 12px;
+}
+
+.big-score {
+  font-size: 42px;
+  font-weight: 800;
+  color: var(--color-primary);
+}
+
+.big-score small {
+  font-size: 16px;
+  color: #9097a2;
+  font-weight: 600;
+}

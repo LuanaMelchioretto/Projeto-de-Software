@@ -1,0 +1,26 @@
+.bars {
+  display: grid;
+  gap: 12px;
+}
+
+.bar-row {
+  display: grid;
+  grid-template-columns: 35px 1fr 45px;
+  gap: 10px;
+  align-items: center;
+  font-size: 12px;
+}
+
+.bar {
+  height: 10px;
+  background: #eceef2;
+  border-radius: 20px;
+  overflow: hidden;
+}
+
+.bar span {
+  height: 100%;
+  display: block;
+  background: var(--color-primary);
+  border-radius: 20px;
+}
