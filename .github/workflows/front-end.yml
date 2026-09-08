@@ -37,7 +37,7 @@ jobs:
       - name: Configurar o Node.js
         uses: actions/setup-node@v6
         with:
-          node-version-file: front-end/.nvmrc
+          node-version: 24
           cache: npm
           cache-dependency-path: front-end/package-lock.json
 
@@ -92,7 +92,7 @@ jobs:
       - name: Configurar o Node.js
         uses: actions/setup-node@v6
         with:
-          node-version-file: front-end/.nvmrc
+          node-version: 24
           package-manager-cache: false
 
       - name: Instalar a CLI da Netlify
