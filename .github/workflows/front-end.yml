@@ -1,0 +1,108 @@
+name: Front-end CI/CD
+
+on:
+  pull_request:
+    branches: [main]
+    paths:
+      - 'front-end/**'
+      - '.github/workflows/front-end.yml'
+  push:
+    branches: [main]
+    paths:
+      - 'front-end/**'
+      - '.github/workflows/front-end.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: front-end-${{ github.event.pull_request.number || github.ref }}
+  cancel-in-progress: ${{ github.event_name == 'pull_request' }}
+
+jobs:
+  validate:
+    name: Testes e build
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    defaults:
+      run:
+        working-directory: front-end
+    steps:
+      - name: Obter o código
+        uses: actions/checkout@v6
+        with:
+          persist-credentials: false
+
+      - name: Configurar o Node.js
+        uses: actions/setup-node@v6
+        with:
+          node-version-file: front-end/.nvmrc
+          cache: npm
+          cache-dependency-path: front-end/package-lock.json
+
+      - name: Instalar dependências
+        run: npm ci
+
+      - name: Executar testes
+        run: npm test
+
+      - name: Gerar o build
+        run: npm run build
+
+      - name: Guardar o build para o deploy
+        uses: actions/upload-artifact@v4
+        with:
+          name: front-end-dist
+          path: front-end/dist
+          if-no-files-found: error
+          retention-days: 1
+
+  deploy:
+    name: Deploy na Netlify
+    needs: validate
+    if: >-
+      github.ref == 'refs/heads/main' &&
+      (github.event_name == 'push' || github.event_name == 'workflow_dispatch')
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    environment:
+      name: production
+      url: ${{ steps.deploy.outputs.url }}
+    env:
+      NETLIFY_AUTH_TOKEN: ${{ secrets.NETLIFY_AUTH_TOKEN }}
+      NETLIFY_SITE_ID: ${{ secrets.NETLIFY_SITE_ID }}
+    steps:
+      - name: Verificar os secrets de deploy
+        shell: bash
+        run: |
+          for secret in NETLIFY_AUTH_TOKEN NETLIFY_SITE_ID; do
+            if [[ -z "${!secret}" ]]; then
+              echo "::error::Configure o secret $secret em Settings > Secrets and variables > Actions."
+              exit 1
+            fi
+          done
+
+      - name: Baixar o build validado
+        uses: actions/download-artifact@v5
+        with:
+          name: front-end-dist
+          path: front-end/dist
+
+      - name: Configurar o Node.js
+        uses: actions/setup-node@v6
+        with:
+          node-version-file: front-end/.nvmrc
+          package-manager-cache: false
+
+      - name: Instalar a CLI da Netlify
+        run: npm install --global netlify-cli@27.5.0
+
+      - name: Publicar na Netlify
+        id: deploy
+        shell: bash
+        run: |
+          deployment_json=$(netlify deploy --prod --dir=front-end/dist --message "Deploy do commit ${GITHUB_SHA}" --json)
+          deployment_url=$(node -e 'process.stdout.write(JSON.parse(process.argv[1]).url)' "$deployment_json")
+          echo "url=$deployment_url" >> "$GITHUB_OUTPUT"
+          echo "Front-end publicado na Netlify: $deployment_url" >> "$GITHUB_STEP_SUMMARY"

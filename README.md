@@ -233,6 +233,10 @@ npm run preview
 
 O build é gerado em `front-end/dist/`. O comando de preview exibe no terminal o endereço para acesso, normalmente `http://localhost:4173`.
 
+### CI/CD e hospedagem na Netlify
+
+O GitHub Actions executa os testes e o build em pull requests para `main` e publica o front-end na Netlify após a validação de pushes na `main`. O pipeline considera alterações em `front-end/` e no workflow.
+
 ## 8. Testes e Validações
 
 Para executar os testes atuais, use `npm test` dentro de `front-end/`. Eles verificam que as páginas internas exibem apenas seus títulos, preservam o layout, mantêm o formulário de login separado e tratam rotas e identificadores inexistentes. Os testes usam o executor nativo do Node.js e o Vite para carregar os componentes JSX.
