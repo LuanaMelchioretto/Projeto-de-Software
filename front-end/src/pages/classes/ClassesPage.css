@@ -34,3 +34,36 @@
     grid-template-columns: 1fr;
   }
 }
+
+/* Alerta de Sucesso */
+.alert-success {
+  padding: 12px 16px;
+  margin-bottom: 16px;
+  background-color: #d1fae5;
+  color: #065f46;
+  border: 1px solid #a7f3d0;
+  border-radius: 8px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.alert-success button {
+  background: none;
+  border: none;
+  font-weight: bold;
+  color: #065f46;
+  cursor: pointer;
+  font-size: 16px;
+}
+
+/* Alerta de Erro de Preenchimento */
+.alert-error {
+  padding: 10px 14px;
+  margin-bottom: 12px;
+  background-color: #fee2e2;
+  color: #991b1b;
+  border: 1px solid #fca5a5;
+  border-radius: 6px;
+  font-size: 13px;
+}
