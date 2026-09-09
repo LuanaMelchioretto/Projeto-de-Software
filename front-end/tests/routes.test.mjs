@@ -1,9 +1,8 @@
 import assert from "node:assert/strict";
 import { after, before, test } from "node:test";
-import { fileURLToPath } from "node:url";
 import React from "react";
 import { renderToStaticMarkup } from "react-dom/server";
-import { createServer } from "vite";
+import { createComponentServer } from "./helpers/vite.js";
 import { assessments, getAssessmentById } from "../src/mocks/assessments.js";
 
 let server;
@@ -11,16 +10,7 @@ let App;
 let StaticRouter;
 
 before(async () => {
-  server = await createServer({
-    root: fileURLToPath(new URL("..", import.meta.url)),
-    server: { middlewareMode: true, hmr: false, watch: null },
-    optimizeDeps: { noDiscovery: true, include: [] },
-    ssr: {
-      noExternal: ["react-router-dom", "react-router", "lucide-react"],
-      // React Router 7 publica a entrada ESM para Node sob module-sync.
-      resolve: { conditions: ["module", "node", "module-sync", "development"] },
-    },
-  });
+  server = await createComponentServer();
   ({ StaticRouter } = await server.ssrLoadModule("react-router-dom"));
   App = (await server.ssrLoadModule("/src/App.jsx")).default;
 });
@@ -51,7 +41,6 @@ function assertTitleOnly(path, title) {
 
 const pages = [
   ["/", "Dashboard"],
-  ["/questoes", "Banco de questões"],
   ["/avaliacoes", "Avaliações"],
   ["/avaliacoes/nova", "Nova avaliação"],
   ["/turmas", "Turmas"],
@@ -65,6 +54,15 @@ for (const [path, title] of pages) {
     assertTitleOnly(path, title);
   });
 }
+
+test("renderiza o banco de questões na rota /questoes dentro do layout", () => {
+  const html = renderRoute("/questoes");
+  assert.ok(html.includes("<h1>Banco de questões</h1>"));
+  assert.ok(html.includes('aria-label="Navegação principal"'));
+  assert.ok(html.includes("Nova questão"));
+  assert.ok(html.includes('aria-label="Buscar pelo texto da questão"'));
+  assert.ok(html.includes("Qual é o resultado de 2 + 2?"));
+});
 
 test("mantém o conteúdo do login fora do layout principal", () => {
   const html = renderRoute("/login");
