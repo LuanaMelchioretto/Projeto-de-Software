@@ -72,7 +72,9 @@ export default function ClassesPage() {
     <div className="p-6 max-w-6xl mx-auto">
       {/* Cabeçalho */}
       <div className="flex justify-between items-center mb-6">
-        <PageTitle title="Turmas" />
+        <div>
+          <PageTitle title="Turmas" />
+        </div>
         <button 
           onClick={abrirModalCriar} 
           className="bg-blue-600 hover:bg-blue-700 text-white font-medium px-4 py-2.5 rounded-lg flex items-center gap-2 shadow-sm transition"
