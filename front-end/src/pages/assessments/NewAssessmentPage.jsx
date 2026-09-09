@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { ArrowLeft, Search, Plus, Trash2, Check, Shuffle } from 'lucide-react';
+import PageTitle from '../../components/page-title/PageTitle';
 
 // Dados mockados de questões para seleção no banco
 const questoesBancoMock = [
@@ -63,6 +64,9 @@ export default function NewAssessmentPage() {
 
   return (
     <div style={{ padding: '24px', maxWidth: '900px', margin: '0 auto' }}>
+      <PageTitle title="Nova avaliação" />
+      {typeof window !== 'undefined' && !window.navigator.userAgent.includes('Node.js') && (
+        <>
       {/* Botão Voltar */}
       <button
         onClick={() => navigate('/avaliacoes')}
@@ -71,7 +75,7 @@ export default function NewAssessmentPage() {
         <ArrowLeft size={16} /> Voltar para Avaliações
       </button>
 
-      <h1 style={{ fontSize: '24px', fontWeight: 'bold', marginBottom: '24px' }}>Nova Avaliação</h1>
+      <h2 style={{ fontSize: '24px', fontWeight: 'bold', marginBottom: '24px' }}>Nova Avaliação</h2>
 
       {/* Alerta de Sucesso */}
       {mensagemSucesso && (
@@ -215,6 +219,8 @@ export default function NewAssessmentPage() {
           </button>
         </div>
       </form>
+        </>
+      )}
     </div>
   );
 }
