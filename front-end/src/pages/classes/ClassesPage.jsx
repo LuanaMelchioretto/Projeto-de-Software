@@ -1,202 +1,148 @@
-import React, { useState } from "react";
+import React, { useContext, useEffect, useRef, useState } from "react";
+import { Search, Users } from "lucide-react";
 import PageTitle from "../../components/page-title/PageTitle";
+import Button from "../../components/button/Button";
+import { CreateButton, EditButton } from "../../components/button/ActionButtons";
+import Card, { CardActions } from "../../components/card/Card";
+import EmptyState from "../../components/empty-state/EmptyState";
+import Feedback, { FEEDBACK_DURATION } from "../../components/feedback/Feedback";
+import SearchField from "../../components/search-field/SearchField";
+import { ClassContext } from "./ClassProvider";
 import "./ClassesPage.css";
 
 export default function ClassesPage() {
-  const [turmas, setTurmas] = useState([
-    { id: 1, nome: "Engenharia de Software - Matutino", identificacao: "ESOFT-2026-1M" },
-    { id: 2, nome: "Sistemas de Informação - Noturno", identificacao: "SI-2026-1N" },
-    { id: 3, nome: "Ciência da Computação", identificacao: "CC-2026-1M" }
-  ]);
-
-  const [termoBusca, setTermoBusca] = useState("");
-  const [mensagemSucesso, setMensagemSucesso] = useState("");
-  const [erroFormulario, setErroFormulario] = useState("");
-  const [exibirModal, setExibirModal] = useState(false);
-  const [modoEdicao, setModoEdicao] = useState(false);
-  const [idEdicao, setIdEdicao] = useState(null);
-
-  const [form, setForm] = useState({ nome: "", identificacao: "" });
-
-  const turmasFiltradas = turmas.filter(turma =>
-    turma.nome.toLowerCase().includes(termoBusca.toLowerCase()) ||
-    turma.identificacao.toLowerCase().includes(termoBusca.toLowerCase())
+  const { classes, saveClass } = useContext(ClassContext);
+  const [search, setSearch] = useState("");
+  const [feedback, setFeedback] = useState("");
+  const [editor, setEditor] = useState(null);
+  const newButton = useRef(null);
+  const restoreFocus = useRef(false);
+  const query = search.trim().toLocaleLowerCase("pt-BR");
+  const filteredClasses = classes.filter((schoolClass) =>
+    [schoolClass.name, schoolClass.code].some((value) => value.toLocaleLowerCase("pt-BR").includes(query)),
   );
 
-  const abrirModalCriar = () => {
-    setModoEdicao(false);
-    setIdEdicao(null);
-    setForm({ nome: "", identificacao: "" });
-    setErroFormulario("");
-    setExibirModal(true);
-  };
-
-  const abrirModalEditar = (turma) => {
-    setModoEdicao(true);
-    setIdEdicao(turma.id);
-    setForm({ nome: turma.nome, identificacao: turma.identificacao });
-    setErroFormulario("");
-    setExibirModal(true);
-  };
-
-  const fecharModal = () => {
-    setExibirModal(false);
-    setErroFormulario("");
-  };
-
-  const salvarTurma = (e) => {
-    e.preventDefault();
-
-    if (!form.nome.trim() || !form.identificacao.trim()) {
-      setErroFormulario("Por favor, preencha todos os campos obrigatórios (*).");
-      return;
+  useEffect(() => {
+    if (!editor && restoreFocus.current) {
+      newButton.current?.focus();
+      restoreFocus.current = false;
     }
+  }, [editor]);
 
-    if (modoEdicao) {
-      setTurmas(turmas.map(t => t.id === idEdicao ? { ...t, ...form } : t));
-      setMensagemSucesso("Dados da turma atualizados com sucesso!");
-    } else {
-      const novaTurma = {
-        id: Date.now(),
-        nome: form.nome,
-        identificacao: form.identificacao
-      };
-      setTurmas([...turmas, novaTurma]);
-      setMensagemSucesso("Nova turma cadastrada com sucesso!");
-    }
+  function openEditor(schoolClass = null) {
+    setFeedback("");
+    setEditor({ schoolClass });
+    restoreFocus.current = true;
+  }
 
-    fecharModal();
-  };
+  function handleSave(draft) {
+    const existing = editor.schoolClass;
+    saveClass(draft, existing?.id ?? null);
+    setSearch("");
+    setEditor(null);
+    setFeedback(existing ? "Dados da turma atualizados com sucesso!" : "Nova turma cadastrada com sucesso!");
+  }
 
   return (
-    <div className="p-6 max-w-6xl mx-auto">
-      <PageTitle title="Turmas" />
+    <div className="classes-page">
+      <PageTitle
+        title="Turmas"
+        subtitle="Cadastre e organize suas turmas."
+        action={!editor && <CreateButton ref={newButton} onClick={() => openEditor()}>Nova turma</CreateButton>}
+      />
+      {feedback && <Feedback duration={FEEDBACK_DURATION} onDismiss={() => setFeedback("")}>{feedback}</Feedback>}
 
-      {/* O resto do conteúdo fica oculto no ambiente de teste automatizado */}
-      {typeof window !== "undefined" && !window.navigator.userAgent.includes("Node.js") && (
+      {editor ? (
+        <ClassForm schoolClass={editor.schoolClass} onSave={handleSave} onCancel={() => setEditor(null)} />
+      ) : (
         <>
-          <div className="flex justify-end mb-6">
-            <button 
-              onClick={abrirModalCriar} 
-              className="bg-blue-600 hover:bg-blue-700 text-white font-medium px-4 py-2.5 rounded-lg flex items-center gap-2 shadow-sm transition"
-            >
-              <span className="text-lg font-bold">+</span> Nova turma
-            </button>
-          </div>
-
-          {mensagemSucesso && (
-            <div className="alert-success">
-              <span>{mensagemSucesso}</span>
-              <button onClick={() => setMensagemSucesso("")}>&times;</button>
-            </div>
-          )}
-
-          <div className="mb-6">
-            <input 
-              value={termoBusca}
-              onChange={(e) => setTermoBusca(e.target.value)}
-              type="text" 
-              placeholder="Buscar pelo nome ou identificação da turma..." 
-              className="w-full md:w-1/2 p-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:outline-none"
-            />
-          </div>
-
-          {turmasFiltradas.length === 0 ? (
-            <div className="text-center py-12 bg-gray-50 rounded-xl border-2 border-dashed border-gray-200">
-              <p className="text-gray-500 text-base font-medium">Nenhuma turma encontrada ou cadastrada.</p>
-              <p className="text-gray-400 text-xs mt-1">Clique em "Nova turma" para registrar sua primeira turma.</p>
-            </div>
+          <SearchField
+            className="classes-search"
+            label="Buscar pelo nome ou identificação da turma"
+            placeholder="Buscar pelo nome ou identificação da turma…"
+            value={search}
+            onChange={(event) => setSearch(event.target.value)}
+            onClear={() => setSearch("")}
+          />
+          {classes.length === 0 ? (
+            <EmptyState icon={Users} title="Nenhuma turma cadastrada" description="Cadastre sua primeira turma para organizar suas avaliações." action={<CreateButton onClick={() => openEditor()}>Nova turma</CreateButton>} />
+          ) : filteredClasses.length === 0 ? (
+            <EmptyState icon={Search} title="Nenhuma turma encontrada" description="Tente outro nome ou código, ou limpe a busca." />
           ) : (
-            <div className="bg-white rounded-xl shadow-sm border border-gray-200 overflow-hidden">
-              <table className="w-full text-left border-collapse">
-                <thead className="bg-gray-50 text-gray-700 uppercase text-xs font-semibold">
-                  <tr>
-                    <th className="p-4 border-b">Identificação / Código</th>
-                    <th className="p-4 border-b">Nome da Turma</th>
-                    <th className="p-4 border-b text-right">Ações</th>
-                  </tr>
-                </thead>
-                <tbody className="divide-y divide-gray-100 text-sm">
-                  {turmasFiltradas.map(turma => (
-                    <tr key={turma.id} className="hover:bg-blue-50/50 transition">
-                      <td className="p-4 font-mono font-semibold text-blue-600">{turma.identificacao}</td>
-                      <td className="p-4 font-medium text-gray-800">{turma.nome}</td>
-                      <td className="p-4 text-right">
-                        <button 
-                          onClick={() => abrirModalEditar(turma)} 
-                          className="text-blue-600 hover:text-blue-800 font-medium px-3 py-1.5 rounded-md hover:bg-blue-100/50 transition"
-                        >
-                          Editar
-                        </button>
-                      </td>
-                    </tr>
-                  ))}
-                </tbody>
-              </table>
-            </div>
-          )}
-
-          {exibirModal && (
-            <div className="fixed inset-0 bg-black/50 flex items-center justify-center p-4 z-50">
-              <div className="bg-white rounded-xl shadow-xl w-full max-w-md p-6">
-                <h2 className="text-xl font-bold mb-4 text-gray-800">
-                  {modoEdicao ? "Editar Turma" : "Cadastrar Nova Turma"}
-                </h2>
-
-                {erroFormulario && (
-                  <div className="alert-error">
-                    {erroFormulario}
-                  </div>
-                )}
-
-                <form onSubmit={salvarTurma} className="space-y-4">
-                  <div>
-                    <label className="block text-xs font-semibold text-gray-700 mb-1">
-                      Nome da Turma <span className="text-red-500">*</span>
-                    </label>
-                    <input 
-                      value={form.nome}
-                      onChange={(e) => setForm({ ...form, nome: e.target.value })}
-                      type="text" 
-                      placeholder="Ex: Engenharia de Software 2026/1" 
-                      className="w-full p-2.5 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-blue-500 focus:outline-none"
-                    />
-                  </div>
-
-                  <div>
-                    <label className="block text-xs font-semibold text-gray-700 mb-1">
-                      Identificação / Código <span className="text-red-500">*</span>
-                    </label>
-                    <input 
-                      value={form.identificacao}
-                      onChange={(e) => setForm({ ...form, identificacao: e.target.value })}
-                      type="text" 
-                      placeholder="Ex: ESOFT-2026-1M" 
-                      className="w-full p-2.5 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-blue-500 focus:outline-none"
-                    />
-                  </div>
-
-                  <div className="flex justify-end gap-2 pt-4 border-t border-gray-100">
-                    <button 
-                      type="button" 
-                      onClick={fecharModal} 
-                      className="px-4 py-2 border border-gray-300 text-gray-700 text-sm rounded-lg hover:bg-gray-50 font-medium transition"
-                    >
-                      Cancelar
-                    </button>
-                    <button 
-                      type="submit" 
-                      className="px-4 py-2 bg-blue-600 text-white text-sm rounded-lg hover:bg-blue-700 font-medium shadow-sm transition"
-                    >
-                      {modoEdicao ? "Atualizar" : "Salvar"}
-                    </button>
-                  </div>
-                </form>
+            <Card className="classes-table">
+              <div className="classes-table-scroll" tabIndex={0} role="region" aria-label="Lista de turmas">
+                <table>
+                  <thead>
+                    <tr><th scope="col">Identificação / Código</th><th scope="col">Nome da turma</th><th scope="col">Ações</th></tr>
+                  </thead>
+                  <tbody>
+                    {filteredClasses.map((schoolClass) => (
+                      <tr key={schoolClass.id}>
+                        <td><b>{schoolClass.code}</b></td>
+                        <td>{schoolClass.name}</td>
+                        <td><EditButton aria-label={`Editar turma ${schoolClass.name}`} onClick={() => openEditor(schoolClass)} /></td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
               </div>
-            </div>
+            </Card>
           )}
         </>
       )}
     </div>
+  );
+}
+
+function ClassForm({ schoolClass, onSave, onCancel }) {
+  const [draft, setDraft] = useState({ name: schoolClass?.name ?? "", code: schoolClass?.code ?? "" });
+  const [submitted, setSubmitted] = useState(false);
+  const invalidName = submitted && !draft.name.trim();
+  const invalidCode = submitted && !draft.code.trim();
+
+  function handleSubmit(event) {
+    event.preventDefault();
+    setSubmitted(true);
+    if (!draft.name.trim() || !draft.code.trim()) {
+      event.currentTarget.elements[!draft.name.trim() ? "name" : "code"].focus();
+      return;
+    }
+    onSave(draft);
+  }
+
+  return (
+    <Card as="form" className="class-form" aria-labelledby="class-form-title" noValidate onSubmit={handleSubmit}>
+      <h2 id="class-form-title">{schoolClass ? "Editar turma" : "Cadastrar nova turma"}</h2>
+      {(invalidName || invalidCode) && <Feedback variant="error">Por favor, preencha todos os campos obrigatórios (*).</Feedback>}
+      <div className="class-field">
+        <label htmlFor="class-name">Nome da turma *</label>
+        <input
+          id="class-name"
+          name="name"
+          required
+          autoFocus
+          value={draft.name}
+          onChange={(event) => setDraft({ ...draft, name: event.target.value })}
+          aria-invalid={invalidName}
+          placeholder="Ex: Engenharia de Software 2026/1"
+        />
+      </div>
+      <div className="class-field">
+        <label htmlFor="class-code">Identificação / Código *</label>
+        <input
+          id="class-code"
+          name="code"
+          required
+          value={draft.code}
+          onChange={(event) => setDraft({ ...draft, code: event.target.value })}
+          aria-invalid={invalidCode}
+          placeholder="Ex: ESOFT-2026-1M"
+        />
+      </div>
+      <CardActions>
+        <Button variant="secondary" onClick={onCancel}>Cancelar</Button>
+        <Button type="submit">{schoolClass ? "Atualizar" : "Salvar"}</Button>
+      </CardActions>
+    </Card>
   );
 }

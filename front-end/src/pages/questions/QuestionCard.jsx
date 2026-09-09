@@ -1,5 +1,7 @@
 import React from "react";
-import { CheckCircle2, ChevronUp, Eye, ImageIcon, Pencil } from "lucide-react";
+import { CheckCircle2, ImageIcon } from "lucide-react";
+import Card, { CardActions } from "../../components/card/Card";
+import { EditButton, ViewButton } from "../../components/button/ActionButtons";
 import { buildStatementPreview, isCompactOptionList, OPTION_LABELS } from "./questionUtils";
 
 export default function QuestionCard({ question, expanded, onToggle, onEdit }) {
@@ -8,9 +10,9 @@ export default function QuestionCard({ question, expanded, onToggle, onEdit }) {
   const hasTags = Boolean(question.image || question.topic || question.difficulty);
 
   return (
-    <article className="question-card" aria-label={`Questão ${question.id}`}>
+    <Card as="article" className="question-card" aria-label={`Questão ${question.id}`}>
       {hasTags && (
-        <header className="question-card-header">
+        <header className="card-header">
           <div className="question-tags">
             {question.image && (
               <span className="tag question-tag-image">
@@ -39,33 +41,24 @@ export default function QuestionCard({ question, expanded, onToggle, onEdit }) {
         )}
       </div>
 
-      <footer className="question-card-footer">
+      <footer className="card-footer">
         <span>{question.options.length} alternativas · 1 correta</span>
 
-        <div className="question-card-actions">
-          <button
-            type="button"
-            className="text-btn"
+        <CardActions>
+          <ViewButton
             onClick={onToggle}
-            aria-expanded={expanded}
+            expanded={expanded}
             aria-controls={detailsId}
             aria-label={`${expanded ? "Recolher" : "Visualizar"} questão ${question.id}`}
-          >
-            {expanded ? <ChevronUp size={16} aria-hidden="true" /> : <Eye size={16} aria-hidden="true" />}
-            {expanded ? "Recolher" : "Visualizar"}
-          </button>
+          />
 
-          <button
-            type="button"
-            className="secondary"
+          <EditButton
             onClick={onEdit}
             aria-label={`Editar questão ${question.id}`}
-          >
-            <Pencil size={15} aria-hidden="true" /> Editar
-          </button>
-        </div>
+          />
+        </CardActions>
       </footer>
-    </article>
+    </Card>
   );
 }
 

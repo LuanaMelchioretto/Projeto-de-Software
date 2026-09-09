@@ -2,6 +2,7 @@ import React from "react";
 import { LogOut } from "lucide-react";
 import { NavLink, useNavigate } from "react-router-dom";
 import Brand from "../components/brand/Brand";
+import Button from "../components/button/Button";
 import { navigationItems } from "../routes/navigation";
 
 export default function Sidebar({ collapsed, onToggle }) {
@@ -26,16 +27,16 @@ export default function Sidebar({ collapsed, onToggle }) {
         ))}
       </nav>
       <div className="sidebar-bottom">
-        <button
-          type="button"
+        <Button
+          variant="text"
+          icon={LogOut}
           onClick={() => navigate("/login")}
           aria-label="Sair"
         >
-          <LogOut size={18} />
           <span>Sair</span>
-        </button>
-        <button
-          type="button"
+        </Button>
+        <Button
+          variant="text"
           className="collapse"
           onClick={onToggle}
           aria-label={collapsed ? "Expandir menu" : "Recolher menu"}
@@ -43,7 +44,7 @@ export default function Sidebar({ collapsed, onToggle }) {
         >
           {collapsed ? "→" : "←"}
           <span>Recolher menu</span>
-        </button>
+        </Button>
       </div>
     </aside>
   );

@@ -1,7 +1,8 @@
 import React from "react";
 import { Download } from "lucide-react";
+import Button from "../../components/button/Button";
 
-export default function FileAction({ icon, title, text }) {
+export default function FileAction({ icon, title, text, onDownload, disabled }) {
   return (
     <div className="file-action">
       <div className="icon-box">{icon}</div>
@@ -9,9 +10,7 @@ export default function FileAction({ icon, title, text }) {
         <b>{title}</b>
         <small>{text}</small>
       </div>
-      <button className="icon-btn">
-        <Download size={17} />
-      </button>
+      <Button variant="icon" icon={Download} aria-label={`Baixar ${title}`} onClick={onDownload} disabled={disabled} />
     </div>
   );
 }

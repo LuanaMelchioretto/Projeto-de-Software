@@ -1,5 +1,8 @@
 import React, { useEffect, useRef, useState } from "react";
-import { AlertCircle, CheckCircle2, Plus, Save } from "lucide-react";
+import { CheckCircle2, Plus, Save } from "lucide-react";
+import Button from "../../components/button/Button";
+import Card, { CardActions } from "../../components/card/Card";
+import Feedback from "../../components/feedback/Feedback";
 import ImageField, { MAX_IMAGE_MB } from "../../components/image-field/ImageField";
 import QuestionOptionField from "./QuestionOptionField";
 import {
@@ -69,16 +72,14 @@ export default function QuestionForm({ question, onSave, onCancel }) {
   }
 
   return (
-    <form className="question-form" aria-labelledby="question-form-title" noValidate onSubmit={handleSubmit}>
+    <Card as="form" className="question-form" aria-labelledby="question-form-title" noValidate onSubmit={handleSubmit}>
       <header className="question-form-header">
         <h2 id="question-form-title">{question ? "Editar questão" : "Nova questão"}</h2>
         <p>Preencha o enunciado, defina as alternativas e marque a única resposta correta.</p>
       </header>
 
       {hasErrors && (
-        <p role="alert" className="feedback feedback--error">
-          <AlertCircle size={18} aria-hidden="true" /> Não foi possível salvar. Revise os campos indicados.
-        </p>
+        <Feedback variant="error">Não foi possível salvar. Revise os campos indicados.</Feedback>
       )}
 
       <div className="question-field">
@@ -131,14 +132,14 @@ export default function QuestionForm({ question, onSave, onCancel }) {
         </div>
 
         <div className="question-options-actions">
-          <button
-            type="button"
-            className="secondary"
+          <Button
+            variant="secondary"
+            icon={Plus}
             onClick={handleAddOption}
             disabled={draft.options.length >= MAX_OPTIONS}
           >
-            <Plus size={16} aria-hidden="true" /> Adicionar alternativa
-          </button>
+            Adicionar alternativa
+          </Button>
           <p className="question-options-count" role="status">
             {draft.options.length} de {MAX_OPTIONS} alternativas.
           </p>
@@ -155,11 +156,11 @@ export default function QuestionForm({ question, onSave, onCancel }) {
       </fieldset>
 
       <footer className="question-form-footer">
-        <button type="button" className="secondary" onClick={onCancel}>Cancelar</button>
-        <button type="submit" className="primary">
-          <Save size={16} aria-hidden="true" /> {question ? "Salvar alterações" : "Cadastrar questão"}
-        </button>
+        <CardActions>
+          <Button variant="secondary" onClick={onCancel}>Cancelar</Button>
+          <Button type="submit" icon={Save}>{question ? "Salvar alterações" : "Cadastrar questão"}</Button>
+        </CardActions>
       </footer>
-    </form>
+    </Card>
   );
 }

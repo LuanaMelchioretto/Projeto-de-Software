@@ -1,69 +1,70 @@
-.class-grid {
-  display: grid;
-  grid-template-columns: 1fr 1fr;
-  gap: 18px;
+.classes-search {
+  margin-bottom: 18px;
 }
 
-.class-grid .card {
-  margin: 0;
+.classes-table {
+  --card-padding: 8px 12px;
 }
 
-.class-grid p {
-  font-size: 13px;
-  color: #6f7782;
+.classes-table-scroll {
+  overflow-x: auto;
 }
 
-.class-foot {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  border-top: 1px solid #f0f1f3;
-  padding-top: 13px;
-  font-size: 12px;
-  color: #7e8691;
+.classes-table th,
+.classes-table td {
+  padding: 14px 12px;
 }
 
-.class-foot span {
-  display: flex;
-  align-items: center;
-  gap: 5px;
+.classes-table th:last-child,
+.classes-table td:last-child {
+  text-align: right;
 }
 
-@media (max-width: 900px) {
-  .class-grid {
-    grid-template-columns: 1fr;
-  }
+.classes-table tbody tr:last-child td {
+  border-bottom: 0;
 }
 
-/* Alerta de Sucesso */
-.alert-success {
-  padding: 12px 16px;
-  margin-bottom: 16px;
-  background-color: #d1fae5;
-  color: #065f46;
-  border: 1px solid #a7f3d0;
+.class-form {
+  --card-padding: 26px;
+  max-width: 650px;
+}
+
+.class-form h2 {
+  margin: 0 0 24px;
+  font-size: 19px;
+}
+
+.class-field {
+  margin-bottom: 20px;
+}
+
+.class-field label {
+  display: block;
+  margin-bottom: 8px;
+  font-size: 14px;
+  font-weight: 600;
+}
+
+.class-field input {
+  width: 100%;
+  padding: 10px 12px;
+  border: 1px solid var(--color-border);
   border-radius: 8px;
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
+  background: var(--color-surface);
+  color: var(--color-text);
 }
 
-.alert-success button {
-  background: none;
-  border: none;
-  font-weight: bold;
-  color: #065f46;
-  cursor: pointer;
-  font-size: 16px;
+.class-field input[aria-invalid="true"] {
+  border-color: #b33840;
 }
 
-/* Alerta de Erro de Preenchimento */
-.alert-error {
-  padding: 10px 14px;
-  margin-bottom: 12px;
-  background-color: #fee2e2;
-  color: #991b1b;
-  border: 1px solid #fca5a5;
-  border-radius: 6px;
-  font-size: 13px;
+.class-form .card-actions {
+  border-top: 1px solid var(--color-border);
+  padding-top: 20px;
+}
+
+@media (max-width: 700px) {
+  .class-form {
+    --card-padding: 18px;
+  }
 }

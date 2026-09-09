@@ -4,6 +4,8 @@ import React from "react";
 import { renderToStaticMarkup } from "react-dom/server";
 import { createComponentServer } from "./helpers/vite.js";
 import { assessments, getAssessmentById } from "../src/mocks/assessments.js";
+import { classes } from "../src/mocks/classes.js";
+import { questions } from "../src/mocks/questions.js";
 
 let server;
 let App;
@@ -48,9 +50,6 @@ function assertTitleOnly(path, title) {
 
 const pages = [
   ["/", "Dashboard"],
-  ["/avaliacoes", "Avaliações"],
-  ["/avaliacoes/nova", "Nova avaliação"],
-  ["/turmas", "Turmas"],
   ["/correcoes", "Correção de provas"],
   ["/correcoes/resultado", "Resultado da correção"],
   ["/relatorios", "Relatórios"],
@@ -59,6 +58,21 @@ const pages = [
 for (const [path, title] of pages) {
   test(`renderiza somente o título em ${path}, mantendo o layout`, () => {
     assertTitleOnly(path, title);
+  });
+}
+
+for (const [path, title, records] of [
+  ["/avaliacoes", "Avaliações", assessments.map((assessment) => assessment.name)],
+  ["/avaliacoes/nova", "Nova avaliação", questions.map((question) => question.text)],
+  ["/turmas", "Turmas", classes.flatMap((schoolClass) => [schoolClass.name, schoolClass.code])],
+]) {
+  test(`renderiza o conteúdo dos mocks em ${path}, inclusive no servidor`, () => {
+    const html = renderRoute(path);
+    assert.ok(html.includes(`<h1>${title}</h1>`));
+    assert.ok(html.includes('aria-label="Navegação principal"'));
+    for (const text of records) {
+      assert.ok(html.includes(text), `Dado demonstrativo ausente: ${text}`);
+    }
   });
 }
 

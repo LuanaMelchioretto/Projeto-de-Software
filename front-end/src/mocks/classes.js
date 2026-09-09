@@ -1,6 +1,7 @@
 export const classes = [
   {
     id: "1",
+    code: "ESOFT-2026-3",
     name: "Engenharia de Software — 3ª fase",
     phase: "3ª fase",
     subject: "Probabilidade e Estatística",
@@ -9,6 +10,7 @@ export const classes = [
   },
   {
     id: "2",
+    code: "ESOFT-2026-2",
     name: "Engenharia de Software — 2ª fase",
     phase: "2ª fase",
     subject: "Fundamentos",
@@ -17,6 +19,7 @@ export const classes = [
   },
   {
     id: "3",
+    code: "BD-2026-3",
     name: "Banco de Dados — 3ª fase",
     phase: "3ª fase",
     subject: "Banco de Dados II",
@@ -25,6 +28,7 @@ export const classes = [
   },
   {
     id: "4",
+    code: "WEB-2026-4",
     name: "Desenvolvimento Web — 4ª fase",
     phase: "4ª fase",
     subject: "Web",

@@ -25,6 +25,7 @@
 .sidebar nav a,
 .sidebar-bottom button {
   display: flex;
+  justify-content: flex-start;
   align-items: center;
   gap: 12px;
   text-decoration: none;
@@ -34,6 +35,7 @@
   padding: 11px 12px;
   border-radius: 9px;
   font-size: 14px;
+  font-weight: 400;
   text-align: left;
 }
 

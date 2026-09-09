@@ -1,6 +1,9 @@
 import React, { useContext, useEffect, useRef, useState } from "react";
-import { BookOpen, Plus, Search } from "lucide-react";
+import { BookOpen, Search } from "lucide-react";
 import PageTitle from "../../components/page-title/PageTitle";
+import { CreateButton } from "../../components/button/ActionButtons";
+import EmptyState from "../../components/empty-state/EmptyState";
+import SearchField from "../../components/search-field/SearchField";
 import Feedback, { FEEDBACK_DURATION } from "../../components/feedback/Feedback";
 import Pagination from "../../components/pagination/Pagination";
 import { QuestionBankContext } from "./QuestionBankProvider";
@@ -92,9 +95,7 @@ export default function QuestionsPage() {
         title="Banco de questões"
         subtitle="Organize as questões que farão parte das suas provas."
         action={!editor && (
-          <button type="button" className="primary" ref={newButton} onClick={() => openEditor()}>
-            <Plus size={18} aria-hidden="true" /> Nova questão
-          </button>
+          <CreateButton ref={newButton} onClick={() => openEditor()}>Nova questão</CreateButton>
         )}
       />
 
@@ -158,22 +159,14 @@ function SearchToolbar({ search, total, found, onSearchChange }) {
 
   return (
     <div className="questions-toolbar">
-      <label className="questions-search">
-        <Search size={19} aria-hidden="true" />
-        <input
-          type="search"
-          aria-label="Buscar pelo texto da questão"
-          placeholder="Buscar pelo texto da questão…"
-          value={search}
-          onChange={(event) => onSearchChange(event.target.value)}
-        />
-      </label>
-
-      {search && (
-        <button type="button" className="text-btn" onClick={() => onSearchChange("")}>
-          Limpar busca
-        </button>
-      )}
+      <SearchField
+        className="questions-search"
+        label="Buscar pelo texto da questão"
+        placeholder="Buscar pelo texto da questão…"
+        value={search}
+        onChange={(event) => onSearchChange(event.target.value)}
+        onClear={() => onSearchChange("")}
+      />
 
       <p className="questions-count" role="status">{summary}</p>
     </div>
@@ -182,23 +175,21 @@ function SearchToolbar({ search, total, found, onSearchChange }) {
 
 function EmptyBankState({ onCreate }) {
   return (
-    <div className="questions-empty">
-      <BookOpen size={32} aria-hidden="true" />
-      <h2>Seu banco de questões está vazio</h2>
-      <p>Comece cadastrando uma questão para usar nas suas provas.</p>
-      <button type="button" className="primary" onClick={onCreate}>
-        <Plus size={17} aria-hidden="true" /> Cadastrar primeira questão
-      </button>
-    </div>
+    <EmptyState
+      icon={BookOpen}
+      title="Seu banco de questões está vazio"
+      description="Comece cadastrando uma questão para usar nas suas provas."
+      action={<CreateButton onClick={onCreate}>Cadastrar primeira questão</CreateButton>}
+    />
   );
 }
 
 function NoResultsState() {
   return (
-    <div className="questions-empty">
-      <Search size={32} aria-hidden="true" />
-      <h2>Nenhuma questão encontrada</h2>
-      <p>Tente outro trecho do enunciado ou limpe a busca para ver todas as questões.</p>
-    </div>
+    <EmptyState
+      icon={Search}
+      title="Nenhuma questão encontrada"
+      description="Tente outro trecho do enunciado ou limpe a busca para ver todas as questões."
+    />
   );
 }

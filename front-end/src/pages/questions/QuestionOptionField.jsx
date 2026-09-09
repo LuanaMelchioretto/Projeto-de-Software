@@ -1,5 +1,6 @@
 import React from "react";
 import { Trash2 } from "lucide-react";
+import Button from "../../components/button/Button";
 import { OPTION_LABELS } from "./questionUtils";
 
 export default function QuestionOptionField({
@@ -41,14 +42,12 @@ export default function QuestionOptionField({
           </label>
 
           {canRemove && (
-            <button
-              type="button"
-              className="icon-btn"
+            <Button
+              variant="icon"
+              icon={Trash2}
               onClick={onRemove}
               aria-label={`Remover alternativa ${letter}`}
-            >
-              <Trash2 size={15} aria-hidden="true" />
-            </button>
+            />
           )}
         </div>
       </div>

@@ -1,6 +1,9 @@
 import React, { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import Brand from "../../components/brand/Brand";
+import Button from "../../components/button/Button";
+import Card from "../../components/card/Card";
+import PageTitle from "../../components/page-title/PageTitle";
 import "./LoginPage.css";
 
 export default function LoginPage() {
@@ -9,13 +12,14 @@ export default function LoginPage() {
   const [pass, setPass] = useState("");
   return (
     <div className="login-page">
-      <div className="login-card">
+      <Card as="form" className="login-card" onSubmit={(event) => { event.preventDefault(); navigate("/"); }}>
         <Brand centered />
-        <h1>Bem-vindo de volta</h1>
-        <p>Acesse sua conta para gerenciar suas avaliações.</p>
+        <PageTitle className="login-title" title="Bem-vindo de volta" subtitle="Acesse sua conta para gerenciar suas avaliações." />
         <label>
           E-mail
           <input
+            type="email"
+            autoComplete="username"
             value={email}
             onChange={(e) => setEmail(e.target.value)}
             placeholder="professor@exemplo.com"
@@ -25,6 +29,7 @@ export default function LoginPage() {
           Senha
           <input
             type="password"
+            autoComplete="current-password"
             value={pass}
             onChange={(e) => setPass(e.target.value)}
             placeholder="••••••••"
@@ -36,11 +41,11 @@ export default function LoginPage() {
           </label>
           <a>Esqueci minha senha</a>
         </div>
-        <button className="primary full" onClick={() => navigate("/")}>
+        <Button type="submit" fullWidth>
           Entrar
-        </button>
+        </Button>
         <small className="demo">N1 — dados demonstrativos / mock</small>
-      </div>
+      </Card>
     </div>
   );
 }
