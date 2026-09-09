@@ -1,0 +1,37 @@
+.feedback {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 13px 16px;
+  margin: 0 0 18px;
+  border: 1px solid;
+  border-radius: 8px;
+  font-size: 13px;
+  line-height: 1.6;
+}
+
+.feedback > svg {
+  flex-shrink: 0;
+}
+
+.feedback > span {
+  min-width: 0;
+  overflow-wrap: anywhere;
+}
+
+.feedback--success {
+  background: #f2fbf5;
+  color: #226b40;
+  border-color: #b8e5c9;
+}
+
+.feedback--error {
+  background: #fff5f4;
+  color: #a32e36;
+  border-color: #f2c9ca;
+}
+
+.feedback .feedback-dismiss {
+  margin-left: auto;
+  color: inherit;
+}
