@@ -1,4 +1,5 @@
 .feedback {
+  position: relative;
   display: flex;
   align-items: center;
   gap: 10px;
@@ -8,6 +9,7 @@
   border-radius: 8px;
   font-size: 13px;
   line-height: 1.6;
+  overflow: hidden;
 }
 
 .feedback > svg {
@@ -34,4 +36,38 @@
 .feedback .feedback-dismiss {
   margin-left: auto;
   color: inherit;
+}
+
+.feedback-timer {
+  position: absolute;
+  inset: auto 0 0;
+  height: 3px;
+  background: currentColor;
+  opacity: 0.16;
+}
+
+.feedback-timer-bar {
+  display: block;
+  height: 100%;
+  background: currentColor;
+  transform-origin: left center;
+  animation-name: feedback-countdown;
+  animation-timing-function: linear;
+  animation-fill-mode: forwards;
+}
+
+@keyframes feedback-countdown {
+  from {
+    transform: scaleX(1);
+  }
+  to {
+    transform: scaleX(0);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .feedback-timer-bar {
+    animation: none;
+    transform: scaleX(1);
+  }
 }

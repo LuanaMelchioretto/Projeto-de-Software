@@ -38,8 +38,7 @@
   font-size: 13px;
 }
 
-.questions-search svg,
-.question-feedback > svg {
+.questions-search svg {
   flex-shrink: 0;
 }
 
@@ -82,26 +81,44 @@
   margin-bottom: 13px;
 }
 
-.question-card-header h2 {
-  margin: 0;
-  font-size: 12px;
-  color: var(--question-muted);
-  font-weight: 600;
-}
-
 .question-tags {
   display: flex;
   flex-wrap: wrap;
   gap: 6px;
 }
 
+.question-tag-image {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  background: #eef0ff;
+  color: #4d58cc;
+}
+
+.question-image {
+  margin: 0 0 18px;
+}
+
+.question-image img {
+  display: block;
+  max-width: 100%;
+  max-height: 360px;
+  border: 1px solid var(--color-border);
+  border-radius: 8px;
+  background: #fafbfc;
+  object-fit: contain;
+}
+
+/* Enunciados de prova de direito são longos: peso menor e medida limitada para leitura corrida. */
 .question-statement {
   margin: 0 0 18px;
+  max-width: 78ch;
   font-size: 14px;
-  line-height: 1.7;
-  font-weight: 600;
+  line-height: 1.75;
+  font-weight: 500;
   white-space: pre-wrap;
   overflow-wrap: anywhere;
+  text-wrap: pretty;
 }
 
 .question-card-footer {
@@ -123,11 +140,15 @@
 
 .question-options {
   display: grid;
-  grid-template-columns: repeat(2, minmax(0, 1fr));
+  grid-template-columns: minmax(0, 1fr);
   gap: 9px;
   list-style: none;
   margin: 0 0 20px;
   padding: 0;
+}
+
+.question-options-compact {
+  grid-template-columns: repeat(2, minmax(0, 1fr));
 }
 
 .question-options li {
@@ -138,7 +159,7 @@
   border-radius: 8px;
   padding: 12px;
   font-size: 13px;
-  line-height: 1.6;
+  line-height: 1.65;
 }
 
 .question-option-letter {
@@ -155,8 +176,10 @@
 .question-option-text {
   flex: 1;
   min-width: 0;
+  max-width: 78ch;
   overflow-wrap: anywhere;
   white-space: pre-wrap;
+  text-wrap: pretty;
 }
 
 .question-options .question-option-correct {
@@ -180,35 +203,7 @@
 
 .question-answer-label {
   flex-shrink: 0;
-}
-
-.question-feedback {
-  display: flex;
-  align-items: center;
-  gap: 10px;
-  padding: 13px 16px;
-  margin: 0 0 18px;
-  border: 1px solid;
-  border-radius: 8px;
-  font-size: 13px;
-  line-height: 1.6;
-}
-
-.question-feedback-success {
-  background: #f2fbf5;
-  color: #226b40;
-  border-color: #b8e5c9;
-}
-
-.question-feedback-error {
-  background: #fff5f4;
-  color: #a32e36;
-  border-color: #f2c9ca;
-}
-
-.question-feedback .text-btn {
   margin-left: auto;
-  color: inherit;
 }
 
 .questions-empty {
@@ -289,6 +284,10 @@
   border-color: #b33840;
 }
 
+.question-form .image-field {
+  margin-top: 22px;
+}
+
 .question-form-options {
   min-width: 0;
   margin: 26px 0 0;
@@ -336,6 +335,12 @@
   background: #eef0ff;
 }
 
+.question-option-tools {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
 .question-correct-choice {
   display: inline-flex;
   align-items: center;
@@ -350,6 +355,20 @@
   height: 16px;
   margin: 0;
   accent-color: var(--color-primary);
+}
+
+.question-options-actions {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 12px;
+  margin-top: 4px;
+}
+
+.question-options-count {
+  margin: 0;
+  color: var(--question-muted);
+  font-size: 12px;
 }
 
 .question-form .question-field-error {
@@ -375,8 +394,8 @@
 }
 
 @media (max-width: 700px) {
-  .question-options {
-    grid-template-columns: 1fr;
+  .question-options-compact {
+    grid-template-columns: minmax(0, 1fr);
   }
 
   .questions-count {

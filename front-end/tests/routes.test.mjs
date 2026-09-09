@@ -11,7 +11,9 @@ let StaticRouter;
 
 before(async () => {
   server = await createComponentServer();
+
   ({ StaticRouter } = await server.ssrLoadModule("react-router-dom"));
+
   App = (await server.ssrLoadModule("/src/App.jsx")).default;
 });
 
@@ -20,6 +22,7 @@ after(async () => {
 });
 
 function renderRoute(path) {
+
   return renderToStaticMarkup(
     React.createElement(
       StaticRouter,
@@ -32,10 +35,14 @@ function renderRoute(path) {
 function assertTitleOnly(path, title) {
   const html = renderRoute(path);
   const content = html.match(/<section class="content">([\s\S]*?)<\/section>/)?.[1];
+
   assert.ok(content, `Área de conteúdo ausente em ${path}`);
   assert.ok(content.includes(`<h1>${title}</h1>`));
+
   assert.equal(content.replace(/<[^>]+>/g, "").trim(), title);
+
   assert.doesNotMatch(content, /<(?:p|button|a|input|select|textarea|table|form|svg|img|ul|ol)(?:\s|>)/);
+  
   assert.ok(html.includes('aria-label="Navegação principal"'));
 }
 
@@ -57,15 +64,17 @@ for (const [path, title] of pages) {
 
 test("renderiza o banco de questões na rota /questoes dentro do layout", () => {
   const html = renderRoute("/questoes");
+
   assert.ok(html.includes("<h1>Banco de questões</h1>"));
   assert.ok(html.includes('aria-label="Navegação principal"'));
   assert.ok(html.includes("Nova questão"));
   assert.ok(html.includes('aria-label="Buscar pelo texto da questão"'));
-  assert.ok(html.includes("Qual é o resultado de 2 + 2?"));
+  assert.ok(html.includes("Qual remédio constitucional é cabível"));
 });
 
 test("mantém o conteúdo do login fora do layout principal", () => {
   const html = renderRoute("/login");
+  
   assert.ok(html.includes("<h1>Bem-vindo de volta</h1>"));
   assert.ok(html.includes("Acesse sua conta para gerenciar suas avaliações."));
   assert.ok(html.includes('placeholder="professor@exemplo.com"'));

@@ -11,7 +11,9 @@ export default function QuestionBankProvider({ children, initialQuestions = demo
 
   function saveQuestion(draft, questionId) {
     const result = saveQuestionInBank(questions, draft, questionId);
+
     setQuestions(result.questions);
+
     return result.question;
   }
 

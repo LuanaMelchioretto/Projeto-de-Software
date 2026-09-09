@@ -1,0 +1,71 @@
+.image-field > label {
+  display: block;
+  margin-bottom: 10px;
+  font-size: 14px;
+  font-weight: 600;
+}
+
+.image-field-help {
+  margin: -4px 0 10px;
+  color: var(--color-text-muted);
+  font-size: 12px;
+  line-height: 1.6;
+}
+
+.image-field input[type="file"] {
+  width: 100%;
+  padding: 10px 12px;
+  border: 1px dashed #c9cdd6;
+  border-radius: 8px;
+  background: #fafbfc;
+  font: inherit;
+  font-size: 13px;
+  color: var(--color-text);
+}
+
+.image-field input[type="file"][aria-invalid="true"] {
+  border-color: #b33840;
+}
+
+.image-field input[type="file"]:focus-visible {
+  outline: 2px solid var(--color-primary);
+  outline-offset: 2px;
+}
+
+.image-field-error {
+  margin: 7px 0 0;
+  color: #a32e36;
+  font-size: 12px;
+  line-height: 1.6;
+}
+
+.image-field-preview {
+  display: grid;
+  gap: 10px;
+  justify-items: start;
+  margin: 14px 0 0;
+}
+
+.image-field-preview img {
+  display: block;
+  max-width: 100%;
+  max-height: 360px;
+  border: 1px solid var(--color-border);
+  border-radius: 8px;
+  background: #fafbfc;
+  object-fit: contain;
+}
+
+.image-field-preview figcaption {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 12px;
+  color: var(--color-text-muted);
+  font-size: 12px;
+}
+
+.image-field-preview figcaption > span {
+  min-width: 0;
+  overflow-wrap: anywhere;
+}
