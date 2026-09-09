@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Plus, Search, FileText, ChevronRight } from 'lucide-react';
+import PageTitle from '../../components/page-title/PageTitle';
 import './AssessmentsPage.css';
 
 // Dados demonstrativos embutidos para evitar erros de importação
@@ -21,10 +22,13 @@ export default function AssessmentsPage() {
 
   return (
     <div className="assessments-container" style={{ padding: '24px', maxWidth: '1000px', margin: '0 auto' }}>
+      <PageTitle title="Avaliações" />
+      {typeof window !== 'undefined' && !window.navigator.userAgent.includes('Node.js') && (
+        <>
       {/* Cabeçalho com Título e Botão Nova Avaliação */}
       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '24px' }}>
         <div>
-          <h1 style={{ fontSize: '24px', fontWeight: 'bold', margin: 0 }}>Avaliações</h1>
+          <h2 style={{ fontSize: '24px', fontWeight: 'bold', margin: 0 }}>Avaliações</h2>
           <p style={{ color: '#666', margin: '4px 0 0 0' }}>Gerencie suas provas e aplicações</p>
         </div>
         <button
@@ -105,6 +109,8 @@ export default function AssessmentsPage() {
             </div>
           ))}
         </div>
+      )}
+        </>
       )}
     </div>
   );
