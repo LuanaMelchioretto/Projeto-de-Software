@@ -1,0 +1,21 @@
+.empty-state {
+  --card-padding: 48px 24px;
+  text-align: center;
+}
+
+.empty-state > svg {
+  color: var(--color-primary);
+  margin-bottom: 8px;
+}
+
+.empty-state h2 {
+  font-size: 18px;
+  margin: 12px 0 8px;
+}
+
+.empty-state p {
+  color: var(--color-text-muted);
+  font-size: 14px;
+  line-height: 1.7;
+  margin: 0 0 20px;
+}

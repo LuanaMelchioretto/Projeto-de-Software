@@ -1,0 +1,73 @@
+.feedback {
+  position: relative;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 13px 16px;
+  margin: 0 0 18px;
+  border: 1px solid;
+  border-radius: 8px;
+  font-size: 13px;
+  line-height: 1.6;
+  overflow: hidden;
+}
+
+.feedback > svg {
+  flex-shrink: 0;
+}
+
+.feedback > span {
+  min-width: 0;
+  overflow-wrap: anywhere;
+}
+
+.feedback--success {
+  background: #f2fbf5;
+  color: #226b40;
+  border-color: #b8e5c9;
+}
+
+.feedback--error {
+  background: #fff5f4;
+  color: #a32e36;
+  border-color: #f2c9ca;
+}
+
+.feedback .feedback-dismiss {
+  margin-left: auto;
+  color: inherit;
+}
+
+.feedback-timer {
+  position: absolute;
+  inset: auto 0 0;
+  height: 3px;
+  background: currentColor;
+  opacity: 0.16;
+}
+
+.feedback-timer-bar {
+  display: block;
+  height: 100%;
+  background: currentColor;
+  transform-origin: left center;
+  animation-name: feedback-countdown;
+  animation-timing-function: linear;
+  animation-fill-mode: forwards;
+}
+
+@keyframes feedback-countdown {
+  from {
+    transform: scaleX(1);
+  }
+  to {
+    transform: scaleX(0);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .feedback-timer-bar {
+    animation: none;
+    transform: scaleX(1);
+  }
+}
