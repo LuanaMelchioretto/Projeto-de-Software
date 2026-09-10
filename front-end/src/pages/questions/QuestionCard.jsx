@@ -2,7 +2,7 @@ import React from "react";
 import { CheckCircle2, ChevronUp, Eye, ImageIcon, Pencil } from "lucide-react";
 import { buildStatementPreview, isCompactOptionList, OPTION_LABELS } from "./questionUtils";
 
-export default function QuestionCard({ question, expanded, onToggle, onEdit }) {
+export default function QuestionCard({ question, expanded = false, onToggle, onEdit }) {
   const detailsId = `question-${question.id}-details`;
   const preview = buildStatementPreview(question.text);
   const hasTags = Boolean(question.image || question.topic || question.difficulty);

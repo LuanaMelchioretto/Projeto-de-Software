@@ -1,26 +1,22 @@
 import React, { useEffect, useRef, useState } from "react";
-import { AlertCircle, CheckCircle2, Plus, Save } from "lucide-react";
+import { CheckCircle2, Plus, Save } from "lucide-react";
 import ImageField, { MAX_IMAGE_MB } from "../../components/image-field/ImageField";
 import QuestionOptionField from "./QuestionOptionField";
-import {
-  addOption,
-  createQuestionDraft,
-  MAX_OPTIONS,
-  MIN_OPTIONS,
-  OPTION_LABELS,
-  removeOption,
-  validateQuestion,
-} from "./questionUtils";
+import { OPTION_LABELS } from "./questionUtils";
 
-export default function QuestionForm({ question, onSave, onCancel }) {
-  const [draft, setDraft] = useState(() => createQuestionDraft(question));
-  const [submitted, setSubmitted] = useState(false);
+const MIN_OPTIONS = 2;
+const MAX_OPTIONS = OPTION_LABELS.length;
+
+export default function QuestionForm({ question, onPreview, onCancel }) {
+  const [draft, setDraft] = useState(() => ({
+    text: question?.text ?? "",
+    options: question ? [...question.options] : OPTION_LABELS.map(() => ""),
+    answer: question?.answer ?? null,
+    image: question?.image ? { ...question.image } : null,
+  }));
 
   const optionsList = useRef(null);
   const optionToFocus = useRef(null);
-
-  const errors = submitted ? validateQuestion(draft) : {};
-  const hasErrors = Object.keys(errors).length > 0;
 
   useEffect(() => {
     if (optionToFocus.current === null) return;
@@ -30,21 +26,6 @@ export default function QuestionForm({ question, onSave, onCancel }) {
     optionsList.current?.querySelector(`[name="option${index}"]`)?.focus();
   }, [draft.options.length]);
 
-  function handleSubmit(event) {
-    event.preventDefault();
-    setSubmitted(true);
-
-    const validationErrors = validateQuestion(draft);
-    const [firstInvalidField] = Object.keys(validationErrors);
-
-    if (firstInvalidField) {
-      event.currentTarget.querySelector(`[name="${firstInvalidField}"]`)?.focus();
-      return;
-    }
-
-    onSave(draft);
-  }
-
   function updateOption(index, value) {
     setDraft((current) => ({
       ...current,
@@ -52,34 +33,40 @@ export default function QuestionForm({ question, onSave, onCancel }) {
     }));
   }
 
-  function handleAddOption() {
-    const next = addOption(draft);
-    if (next === draft) return;
+  function addOption() {
+    if (draft.options.length >= MAX_OPTIONS) return;
 
-    optionToFocus.current = next.options.length - 1;
-    setDraft(next);
+    optionToFocus.current = draft.options.length;
+    setDraft((current) => ({ ...current, options: [...current.options, ""] }));
   }
 
-  function handleRemoveOption(index) {
-    const next = removeOption(draft, index);
-    if (next === draft) return;
+  function removeOption(index) {
+    if (draft.options.length <= MIN_OPTIONS) return;
 
     optionToFocus.current = Math.max(0, index - 1);
-    setDraft(next);
+    setDraft((current) => ({
+      ...current,
+      options: current.options.filter((option, optionIndex) => optionIndex !== index),
+      answer: current.answer === index ? null
+        : current.answer > index ? current.answer - 1 : current.answer,
+    }));
   }
 
   return (
-    <form className="question-form" aria-labelledby="question-form-title" noValidate onSubmit={handleSubmit}>
+    <form
+      className="question-form"
+      aria-labelledby="question-form-title"
+      noValidate
+      onSubmit={(event) => {
+        event.preventDefault();
+        onPreview();
+      }}
+    >
       <header className="question-form-header">
         <h2 id="question-form-title">{question ? "Editar questão" : "Nova questão"}</h2>
         <p>Preencha o enunciado, defina as alternativas e marque a única resposta correta.</p>
+        <p>Formulário demonstrativo: os dados preenchidos não serão salvos.</p>
       </header>
-
-      {hasErrors && (
-        <p role="alert" className="feedback feedback--error">
-          <AlertCircle size={18} aria-hidden="true" /> Não foi possível salvar. Revise os campos indicados.
-        </p>
-      )}
 
       <div className="question-field">
         <label htmlFor="question-text">Enunciado</label>
@@ -87,15 +74,11 @@ export default function QuestionForm({ question, onSave, onCancel }) {
           id="question-text"
           name="text"
           rows={6}
-          required
           autoFocus
           placeholder="Escreva o enunciado completo da questão…"
           value={draft.text}
           onChange={(event) => setDraft({ ...draft, text: event.target.value })}
-          aria-invalid={Boolean(errors.text)}
-          aria-describedby={errors.text ? "question-text-error" : undefined}
         />
-        {errors.text && <p className="question-field-error" id="question-text-error">{errors.text}</p>}
       </div>
 
       <ImageField
@@ -110,7 +93,7 @@ export default function QuestionForm({ question, onSave, onCancel }) {
       <fieldset className="question-form-options" aria-describedby="question-options-help">
         <legend>Alternativas</legend>
         <p id="question-options-help">
-          Use de {MIN_OPTIONS} a {MAX_OPTIONS} alternativas. Todas são obrigatórias e apenas uma pode ser a correta.
+          Use de {MIN_OPTIONS} a {MAX_OPTIONS} alternativas e marque a única resposta correta.
         </p>
 
         <div ref={optionsList}>
@@ -120,12 +103,10 @@ export default function QuestionForm({ question, onSave, onCancel }) {
               index={index}
               value={option}
               isCorrect={draft.answer === index}
-              error={errors[`option${index}`]}
-              answerInvalid={Boolean(errors.answer)}
               canRemove={draft.options.length > MIN_OPTIONS}
               onChange={(value) => updateOption(index, value)}
               onSelectCorrect={() => setDraft({ ...draft, answer: index })}
-              onRemove={() => handleRemoveOption(index)}
+              onRemove={() => removeOption(index)}
             />
           ))}
         </div>
@@ -134,7 +115,7 @@ export default function QuestionForm({ question, onSave, onCancel }) {
           <button
             type="button"
             className="secondary"
-            onClick={handleAddOption}
+            onClick={addOption}
             disabled={draft.options.length >= MAX_OPTIONS}
           >
             <Plus size={16} aria-hidden="true" /> Adicionar alternativa
@@ -143,9 +124,6 @@ export default function QuestionForm({ question, onSave, onCancel }) {
             {draft.options.length} de {MAX_OPTIONS} alternativas.
           </p>
         </div>
-
-        {errors.options && <p className="question-field-error">{errors.options}</p>}
-        {errors.answer && <p className="question-field-error" id="question-answer-error">{errors.answer}</p>}
 
         {draft.answer !== null && (
           <p className="question-answer-hint">

@@ -260,6 +260,10 @@
   font-weight: 600;
 }
 
+.question-form-header p + p {
+  margin-top: 8px;
+}
+
 .question-form textarea {
   display: block;
   resize: vertical;
@@ -278,10 +282,6 @@
 .question-form textarea:focus-visible {
   outline: 2px solid var(--color-primary);
   outline-offset: 2px;
-}
-
-.question-form textarea[aria-invalid="true"] {
-  border-color: #b33840;
 }
 
 .question-form .image-field {
@@ -369,13 +369,6 @@
   margin: 0;
   color: var(--question-muted);
   font-size: 12px;
-}
-
-.question-form .question-field-error {
-  color: #a32e36;
-  font-size: 12px;
-  line-height: 1.6;
-  margin: 7px 0 0;
 }
 
 .question-form-options .question-answer-hint {

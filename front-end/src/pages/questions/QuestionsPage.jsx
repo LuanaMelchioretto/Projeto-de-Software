@@ -1,9 +1,9 @@
-import React, { useContext, useEffect, useRef, useState } from "react";
+import React, { useEffect, useRef, useState } from "react";
 import { BookOpen, Plus, Search } from "lucide-react";
 import PageTitle from "../../components/page-title/PageTitle";
 import Feedback, { FEEDBACK_DURATION } from "../../components/feedback/Feedback";
 import Pagination from "../../components/pagination/Pagination";
-import { QuestionBankContext } from "./QuestionBankProvider";
+import { questions as demoQuestions } from "../../mocks/questions";
 import QuestionCard from "./QuestionCard";
 import QuestionForm from "./QuestionForm";
 import { filterQuestions } from "./questionUtils";
@@ -11,9 +11,7 @@ import "./QuestionsPage.css";
 
 export const PAGE_SIZE = 25;
 
-export default function QuestionsPage() {
-  const { questions, saveQuestion } = useContext(QuestionBankContext);
-
+export default function QuestionsPage({ questions = demoQuestions }) {
   const [search, setSearch] = useState("");
   const [page, setPage] = useState(1);
   const [editor, setEditor] = useState(null);
@@ -39,9 +37,9 @@ export default function QuestionsPage() {
     }
   }, [editor]);
 
-  function showFeedback(type, text) {
+  function showFeedback(text) {
     feedbackCount.current += 1;
-    setFeedback({ id: feedbackCount.current, type, text });
+    setFeedback({ id: feedbackCount.current, text });
   }
 
   function openEditor(question = null) {
@@ -64,26 +62,11 @@ export default function QuestionsPage() {
     setExpandedId(expandedId === questionId ? null : questionId);
   }
 
-  function goToPageOf(questionId) {
-    const position = questions.findIndex((question) => question.id === questionId);
-    setPage(position < 0 ? 1 : Math.floor(position / PAGE_SIZE) + 1);
-  }
-
-  function handleSave(draft) {
-    try {
-      const saved = saveQuestion(draft, editor.question?.id ?? null);
-
-      showFeedback("success", editor.question
-        ? "Questão atualizada com sucesso."
-        : "Questão cadastrada com sucesso.");
-
-      setSearch("");
-      setExpandedId(saved.id);
-      setEditor(null);
-      goToPageOf(saved.id);
-    } catch {
-      showFeedback("error", "Não foi possível salvar a questão. Seus dados foram mantidos; tente novamente.");
-    }
+  function finishPreview() {
+    showFeedback(editor.question
+      ? "Edição demonstrativa concluída. Nenhuma alteração foi salva."
+      : "Cadastro demonstrativo concluído. Nenhuma questão foi salva.");
+    setEditor(null);
   }
 
   return (
@@ -101,8 +84,7 @@ export default function QuestionsPage() {
       {feedback && (
         <Feedback
           key={feedback.id}
-          variant={feedback.type}
-          duration={feedback.type === "error" ? 0 : FEEDBACK_DURATION}
+          duration={FEEDBACK_DURATION}
           onDismiss={() => setFeedback(null)}
         >
           {feedback.text}
@@ -110,7 +92,7 @@ export default function QuestionsPage() {
       )}
 
       {editor ? (
-        <QuestionForm question={editor.question} onSave={handleSave} onCancel={closeEditor} />
+        <QuestionForm question={editor.question} onPreview={finishPreview} onCancel={closeEditor} />
       ) : (
         <>
           <SearchToolbar

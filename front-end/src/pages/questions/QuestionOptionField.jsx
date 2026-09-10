@@ -6,8 +6,6 @@ export default function QuestionOptionField({
   index,
   value,
   isCorrect,
-  error,
-  answerInvalid,
   canRemove,
   onChange,
   onSelectCorrect,
@@ -15,7 +13,6 @@ export default function QuestionOptionField({
 }) {
   const letter = OPTION_LABELS[index];
   const fieldId = `question-option-${index}`;
-  const errorId = `${fieldId}-error`;
 
   return (
     <div className={`question-form-option${isCorrect ? " is-correct" : ""}`}>
@@ -30,12 +27,9 @@ export default function QuestionOptionField({
               type="radio"
               name="answer"
               value={index}
-              required
               checked={isCorrect}
               onChange={onSelectCorrect}
               aria-label={`Marcar alternativa ${letter} como correta`}
-              aria-invalid={answerInvalid}
-              aria-describedby={answerInvalid ? "question-answer-error" : undefined}
             />
             {isCorrect ? "Resposta correta" : "Marcar como correta"}
           </label>
@@ -57,15 +51,10 @@ export default function QuestionOptionField({
         id={fieldId}
         name={`option${index}`}
         rows={2}
-        required
         placeholder={`Escreva a alternativa ${letter}…`}
         value={value}
         onChange={(event) => onChange(event.target.value)}
-        aria-invalid={Boolean(error)}
-        aria-describedby={error ? errorId : undefined}
       />
-
-      {error && <p className="question-field-error" id={errorId}>{error}</p>}
     </div>
   );
 }
