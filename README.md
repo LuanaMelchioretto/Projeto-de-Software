@@ -4,7 +4,7 @@
 
 **Sistema para gerar, identificar, corrigir e analisar provas objetivas, reduzindo o tempo gasto pelos professores na correção manual.**
 
-**Link do sistema hospedado:** a definir
+**Links do sistema hospedado:** [Netlify](https://provaplus.netlify.app/) | [GitHub Pages](https://luanamelchioretto.github.io/Projeto-de-Software/)
 
 ![Node.js](https://img.shields.io/badge/Node.js-339933?style=for-the-badge&logo=nodedotjs&logoColor=white)
 ![Express](https://img.shields.io/badge/Express-000000?style=for-the-badge&logo=express&logoColor=white)
@@ -138,7 +138,7 @@ Métricas sugeridas para avaliar a facilidade de uso e a confiabilidade do siste
 
 ## 3. Telas do Sistema
 
-As telas ainda serão prototipadas e adicionadas em `docs/telas/`. 
+As telas ainda serão prototipadas e adicionadas em [docs/telas/](docs/telas/).
 
 ## 4. Arquitetura de Software
 
@@ -178,30 +178,77 @@ Outras bibliotecas poderão ser adicionadas conforme o projeto evoluir, como aut
 Estrutura atual do projeto:
 
 ```text
-front-end/
-  .gitignore       # dependências, build e variáveis locais ignorados pelo Git
-  index.html       # ponto de entrada HTML do Vite
-  package.json     # dependências e scripts do front-end
-  package-lock.json # versões fixadas das dependências
-  src/
-    App.jsx        # composição da aplicação
-    main.jsx       # inicialização do React e do roteador
-    routes/        # rotas e configuração do menu
-    layouts/       # layout principal, menu e cabeçalho
-    components/    # componentes reutilizáveis e seus estilos
-    pages/         # páginas e estilos organizados por área
-    mocks/         # questões, avaliações, turmas, alunos e resultados
-    styles/        # estilos globais e variáveis visuais
-  tests/           # testes de renderização das rotas
-back-end/          # reservado para a implementação da API
-docs/
-  uml/             # diagramas UML
-  telas/           # protótipos e prints das telas
-  arquitetura/     # diagramas de arquitetura
-  adr/             # registros de decisões arquiteturais
-  modelo-dados/    # MER/DER e dicionário de dados
-  api/             # documentação ou coleções da API
-README.md
+Projeto-de-Software/
+│
+├── .github/
+│   └── workflows/
+│       └── ...
+│
+├── back-end/
+│   └── ...
+│
+├── docs/
+│   ├── adr/
+│   ├── api/
+│   ├── arquitetura/
+│   ├── modelo-dados/
+│   ├── telas/
+│   └── uml/
+│
+├── front-end/
+│   │
+│   ├── src/
+│   │   ├── components/
+│   │   │   ├── brand/
+│   │   │   ├── button/
+│   │   │   ├── card/
+│   │   │   ├── empty-state/
+│   │   │   ├── feedback/
+│   │   │   ├── image-field/
+│   │   │   ├── page-title/
+│   │   │   ├── pagination/
+│   │   │   └── search-field/
+│   │   │
+│   │   ├── layouts/
+│   │   │   ├── AppLayout.jsx
+│   │   │   ├── AppLayout.css
+│   │   │   ├── Sidebar.jsx
+│   │   │   └── Topbar.jsx
+│   │   │
+│   │   ├── mocks/
+│   │   │   ├── assessments.js
+│   │   │   ├── classes.js
+│   │   │   ├── corrections.js
+│   │   │   ├── dashboard.js
+│   │   │   ├── questions.js
+│   │   │   ├── reports.js
+│   │   │   └── students.js
+│   │   │
+│   │   ├── pages/
+│   │   │   ├── assessments/
+│   │   │   ├── auth/
+│   │   │   ├── classes/
+│   │   │   ├── corrections/
+│   │   │   ├── dashboard/
+│   │   │   ├── questions/
+│   │   │   ├── reports/
+│   │   │   └── NotFoundPage.jsx
+│   │   │
+│   │   ├── routes/
+│   │   ├── styles/
+│   │   ├── App.jsx
+│   │   └── main.jsx
+│   │
+│   ├── tests/
+│   │
+│   ├── index.html
+│   ├── package.json
+│   ├── package-lock.json
+│   └── .gitignore
+│
+├── .gitignore
+├── README.md
+└── package-lock.json
 ```
 
 Componentes usados por várias telas ficam em `components/`; os exclusivos de uma área ficam próximos das suas páginas. Os arquivos JSX usam nomes em PascalCase, páginas recebem o sufixo `Page` e cada componente é exportado em seu próprio arquivo. Os endereços continuam em português.
