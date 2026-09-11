@@ -1,0 +1,667 @@
+.correction-result-page {
+  min-height: 100vh;
+  width: 100%;
+  background-color: #f6f7f9;
+  padding: 32px 24px 48px;
+  box-sizing: border-box;
+}
+
+.correction-result-container {
+  width: 100%;
+  max-width: 1200px;
+  margin: 0 auto;
+}
+
+/* =========================
+   CABEÇALHO
+========================= */
+
+.result-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  gap: 24px;
+  margin-bottom: 28px;
+}
+
+.result-breadcrumb {
+  display: block;
+  margin-bottom: 8px;
+  color: #777;
+  font-size: 14px;
+}
+
+.result-header h1 {
+  margin: 0 0 8px;
+  color: #202124;
+  font-size: 30px;
+  font-weight: 700;
+}
+
+.result-header p {
+  margin: 0;
+  color: #6b6b6b;
+  font-size: 15px;
+}
+
+.back-button {
+  border: 1px solid #d8d8d8;
+  background-color: #ffffff;
+  color: #333;
+  border-radius: 8px;
+  padding: 11px 16px;
+  font-size: 14px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: 0.2s;
+  white-space: nowrap;
+}
+
+.back-button:hover {
+  background-color: #f0f0f0;
+}
+
+/* =========================
+   IDENTIFICAÇÃO DO ALUNO
+========================= */
+
+.student-card {
+  background-color: #ffffff;
+  border: 1px solid #e1e1e1;
+  border-radius: 12px;
+  padding: 22px 24px;
+  margin-bottom: 20px;
+}
+
+.student-info {
+  display: grid;
+  grid-template-columns: 1.5fr 1.2fr 1.5fr 1fr;
+  gap: 24px;
+}
+
+.info-item {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.info-label {
+  color: #777;
+  font-size: 12px;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.4px;
+}
+
+.info-item strong {
+  color: #242424;
+  font-size: 15px;
+}
+
+/* =========================
+   RESUMO
+========================= */
+
+.result-summary {
+  display: grid;
+  grid-template-columns: 2fr 1fr 1fr 1fr;
+  gap: 16px;
+  margin-bottom: 20px;
+}
+
+.grade-card,
+.stat-card {
+  min-height: 145px;
+  box-sizing: border-box;
+  background-color: #ffffff;
+  border: 1px solid #e1e1e1;
+  border-radius: 12px;
+}
+
+.grade-card {
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  padding: 24px;
+}
+
+.summary-label {
+  color: #777;
+  font-size: 13px;
+  font-weight: 600;
+  text-transform: uppercase;
+  margin-bottom: 4px;
+}
+
+.grade-value {
+  color: #202124;
+  font-size: 48px;
+  line-height: 1;
+  font-weight: 800;
+}
+
+.grade-hidden {
+  color: #888;
+  font-size: 42px;
+  letter-spacing: 7px;
+  line-height: 1;
+}
+
+.grade-status {
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+  width: fit-content;
+  margin-top: 12px;
+  padding: 6px 10px;
+  border-radius: 6px;
+  font-size: 12px;
+  font-weight: 600;
+}
+
+.grade-status.released {
+  background-color: #e9f7ee;
+  color: #26733e;
+}
+
+.grade-status.hidden {
+  background-color: #f0f0f0;
+  color: #666;
+}
+
+.status-icon {
+  font-size: 13px;
+}
+
+.stat-card {
+  display: flex;
+  align-items: center;
+  gap: 15px;
+  padding: 22px;
+}
+
+.stat-icon {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 42px;
+  height: 42px;
+  border-radius: 50%;
+  background-color: #f1f1f1;
+  color: #333;
+  font-size: 20px;
+  font-weight: 700;
+  flex-shrink: 0;
+}
+
+.stat-card > div {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.stat-card strong {
+  color: #222;
+  font-size: 28px;
+  line-height: 1;
+}
+
+.stat-card span {
+  color: #777;
+  font-size: 13px;
+}
+
+.correct-stat .stat-icon {
+  color: #24743d;
+  background-color: #e8f5ec;
+}
+
+.wrong-stat .stat-icon {
+  color: #b73535;
+  background-color: #fbeaea;
+}
+
+/* =========================
+   LIBERAÇÃO DA NOTA
+========================= */
+
+.release-card {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 20px;
+  background-color: #ffffff;
+  border: 1px solid #e1e1e1;
+  border-radius: 12px;
+  padding: 20px 24px;
+  margin-bottom: 28px;
+}
+
+.release-info {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+}
+
+.release-icon {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  width: 42px;
+  height: 42px;
+  border-radius: 50%;
+  background-color: #f0f0f0;
+  font-size: 18px;
+  flex-shrink: 0;
+}
+
+.release-info h2 {
+  margin: 0 0 5px;
+  color: #252525;
+  font-size: 16px;
+}
+
+.release-info p {
+  margin: 0;
+  color: #777;
+  font-size: 13px;
+}
+
+.release-button {
+  border: none;
+  border-radius: 8px;
+  background-color: #222;
+  color: #ffffff;
+  padding: 12px 18px;
+  font-size: 13px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: 0.2s;
+  white-space: nowrap;
+}
+
+.release-button:hover {
+  background-color: #000;
+}
+
+.release-button.release-active {
+  background-color: #666;
+}
+
+/* =========================
+   QUESTÕES
+========================= */
+
+.questions-section {
+  background-color: #ffffff;
+  border: 1px solid #e1e1e1;
+  border-radius: 12px;
+  overflow: hidden;
+  margin-bottom: 24px;
+}
+
+.section-heading {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  gap: 20px;
+  padding: 24px;
+  border-bottom: 1px solid #e7e7e7;
+}
+
+.section-heading h2 {
+  margin: 0 0 6px;
+  color: #242424;
+  font-size: 19px;
+}
+
+.section-heading p {
+  margin: 0;
+  color: #777;
+  font-size: 13px;
+}
+
+.legend {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  flex-shrink: 0;
+}
+
+.legend-item {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  color: #666;
+  font-size: 12px;
+  font-weight: 600;
+}
+
+.legend-check,
+.legend-error {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  width: 22px;
+  height: 22px;
+  border-radius: 50%;
+  font-weight: 700;
+}
+
+.legend-check {
+  background-color: #e8f5ec;
+  color: #24743d;
+}
+
+.legend-error {
+  background-color: #fbeaea;
+  color: #b73535;
+}
+
+.questions-list {
+  width: 100%;
+}
+
+.question-row {
+  display: grid;
+  grid-template-columns: 1fr 1.5fr 1.5fr 1fr;
+  align-items: center;
+  min-height: 86px;
+  padding: 14px 24px;
+  box-sizing: border-box;
+  border-bottom: 1px solid #eeeeee;
+  gap: 20px;
+  position: relative;
+}
+
+.question-row:last-child {
+  border-bottom: none;
+}
+
+.question-row::before {
+  content: "";
+  position: absolute;
+  left: 0;
+  top: 0;
+  bottom: 0;
+  width: 4px;
+}
+
+.question-correct::before {
+  background-color: #4b9560;
+}
+
+.question-wrong::before {
+  background-color: #c34b4b;
+}
+
+.question-number {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.question-number span {
+  color: #777;
+  font-size: 12px;
+}
+
+.question-number strong {
+  color: #242424;
+  font-size: 16px;
+}
+
+.answer-info {
+  display: flex;
+  flex-direction: column;
+  gap: 5px;
+}
+
+.answer-label {
+  color: #888;
+  font-size: 11px;
+  text-transform: uppercase;
+  font-weight: 600;
+}
+
+.answer-value {
+  color: #252525;
+  font-size: 16px;
+  font-weight: 700;
+}
+
+.correct-answer {
+  color: #24743d;
+}
+
+.question-result {
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  gap: 8px;
+  font-size: 13px;
+  font-weight: 700;
+}
+
+.question-correct .question-result {
+  color: #24743d;
+}
+
+.question-wrong .question-result {
+  color: #b73535;
+}
+
+.result-symbol {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 28px;
+  height: 28px;
+  border-radius: 50%;
+  font-size: 15px;
+}
+
+.question-correct .result-symbol {
+  background-color: #e8f5ec;
+}
+
+.question-wrong .result-symbol {
+  background-color: #fbeaea;
+}
+
+/* =========================
+   NAVEGAÇÃO
+========================= */
+
+.result-navigation {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 20px;
+}
+
+.secondary-navigation-button,
+.next-correction-button {
+  min-width: 180px;
+  border-radius: 8px;
+  padding: 12px 18px;
+  font-size: 13px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: 0.2s;
+}
+
+.secondary-navigation-button {
+  border: 1px solid #d8d8d8;
+  background-color: #ffffff;
+  color: #333;
+}
+
+.secondary-navigation-button:hover:not(:disabled) {
+  background-color: #f0f0f0;
+}
+
+.next-correction-button {
+  border: none;
+  background-color: #222;
+  color: #ffffff;
+}
+
+.next-correction-button:hover:not(:disabled) {
+  background-color: #000;
+}
+
+.secondary-navigation-button:disabled,
+.next-correction-button:disabled {
+  opacity: 0.4;
+  cursor: not-allowed;
+}
+
+.correction-counter {
+  color: #777;
+  font-size: 13px;
+  font-weight: 600;
+}
+
+/* =========================
+   RESPONSIVIDADE
+========================= */
+
+@media (max-width: 900px) {
+  .result-summary {
+    grid-template-columns: 1fr 1fr;
+  }
+
+  .grade-card {
+    grid-column: span 2;
+  }
+
+  .student-info {
+    grid-template-columns: 1fr 1fr;
+  }
+
+  .question-row {
+    grid-template-columns: 1fr 1fr;
+    gap: 16px;
+  }
+
+  .question-result {
+    justify-content: flex-start;
+  }
+}
+
+@media (max-width: 650px) {
+  .correction-result-page {
+    padding: 20px 14px 32px;
+  }
+
+  .result-header {
+    flex-direction: column;
+    gap: 16px;
+  }
+
+  .result-header h1 {
+    font-size: 25px;
+  }
+
+  .back-button {
+    width: 100%;
+  }
+
+  .student-card {
+    padding: 18px;
+  }
+
+  .student-info {
+    grid-template-columns: 1fr;
+    gap: 16px;
+  }
+
+  .result-summary {
+    grid-template-columns: 1fr;
+  }
+
+  .grade-card {
+    grid-column: auto;
+  }
+
+  .stat-card {
+    min-height: 100px;
+  }
+
+  .release-card {
+    flex-direction: column;
+    align-items: stretch;
+    padding: 18px;
+  }
+
+  .release-info {
+    align-items: flex-start;
+  }
+
+  .release-button {
+    width: 100%;
+  }
+
+  .section-heading {
+    flex-direction: column;
+    padding: 18px;
+  }
+
+  .legend {
+    width: 100%;
+  }
+
+  .questions-list {
+    width: 100%;
+  }
+
+  .question-row {
+    grid-template-columns: 1fr 1fr;
+    padding: 18px;
+    gap: 18px 12px;
+  }
+
+  .question-number {
+    grid-column: span 2;
+  }
+
+  .question-result {
+    grid-column: span 2;
+    justify-content: flex-start;
+    padding-top: 4px;
+  }
+
+  .result-navigation {
+    flex-direction: column;
+  }
+
+  .secondary-navigation-button,
+  .next-correction-button {
+    width: 100%;
+  }
+
+  .correction-counter {
+    order: -1;
+  }
+}
+
+@media (max-width: 400px) {
+  .correction-result-page {
+    padding-left: 10px;
+    padding-right: 10px;
+  }
+
+  .grade-value {
+    font-size: 42px;
+  }
+
+  .question-row {
+    grid-template-columns: 1fr;
+  }
+
+  .question-number,
+  .question-result {
+    grid-column: auto;
+  }
+}

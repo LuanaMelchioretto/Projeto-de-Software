@@ -1,10 +1,14 @@
 import React, { useState } from "react";
+import { useNavigate } from "react-router-dom";
 import PageTitle from "../../components/page-title/PageTitle";
 import "./CorrectionsPage.css";
 
 export default function CorrectionsPage() {
+  const navigate = useNavigate();
+
   const [etapa, setEtapa] = useState("selecao");
-  const [avaliacaoSelecionada, setAvaliacaoSelecionada] = useState("ESOFT-N1");
+  const [avaliacaoSelecionada, setAvaliacaoSelecionada] =
+    useState("ESOFT-N1");
   const [carregando, setCarregando] = useState(false);
   const [simularErro, setSimularErro] = useState(false);
 
@@ -15,10 +19,15 @@ export default function CorrectionsPage() {
 
   const capturarGabarito = () => {
     setCarregando(true);
+
     setTimeout(() => {
       setCarregando(false);
       setEtapa("resultado");
     }, 1500);
+  };
+
+  const irParaResultado = () => {
+    navigate("/correcoes/resultado");
   };
 
   return (
@@ -32,18 +41,32 @@ export default function CorrectionsPage() {
             <label className="corrections-label">
               Selecione a Avaliação Demonstrativa
             </label>
+
             <select
               value={avaliacaoSelecionada}
-              onChange={(e) => setAvaliacaoSelecionada(e.target.value)}
+              onChange={(e) =>
+                setAvaliacaoSelecionada(e.target.value)
+              }
               className="corrections-select"
             >
-              <option value="ESOFT-N1">Engenharia de Software - Prova N1 (Versão A)</option>
-              <option value="SI-N1">Sistemas de Informação - Prova N1 (Versão B)</option>
-              <option value="CC-N1">Ciência da Computação - Prova N1 (Versão A)</option>
+              <option value="ESOFT-N1">
+                Engenharia de Software - Prova N1 (Versão A)
+              </option>
+
+              <option value="SI-N1">
+                Sistemas de Informação - Prova N1 (Versão B)
+              </option>
+
+              <option value="CC-N1">
+                Ciência da Computação - Prova N1 (Versão A)
+              </option>
             </select>
           </div>
 
-          <button onClick={iniciarLeitura} className="btn-primary">
+          <button
+            onClick={iniciarLeitura}
+            className="btn-primary"
+          >
             📷 Iniciar Leitura com Câmera
           </button>
         </div>
@@ -53,13 +76,23 @@ export default function CorrectionsPage() {
       {etapa === "camera" && (
         <div className="corrections-camera-flow">
           <div className="camera-box">
-            <div className={`camera-frame ${simularErro ? "frame-error" : ""}`}>
-              <span className="camera-tag">ÁREA DO QR CODE</span>
+            <div
+              className={`camera-frame ${
+                simularErro ? "frame-error" : ""
+              }`}
+            >
+              <span className="camera-tag">
+                ÁREA DO QR CODE
+              </span>
+
               {carregando ? (
-                <p className="camera-status">Lendo QR Code e identificando modelo...</p>
+                <p className="camera-status">
+                  Lendo QR Code e identificando modelo...
+                </p>
               ) : (
                 <p className="camera-instruction">
-                  Aponta a câmera para o QR Code da folha para identificar a prova
+                  Aponte a câmera para o QR Code da folha para
+                  identificar a prova
                 </p>
               )}
             </div>
@@ -69,7 +102,8 @@ export default function CorrectionsPage() {
               onClick={() => setSimularErro(!simularErro)}
               className="btn-toggle-state"
             >
-              Simular estado: {simularErro ? "Falha na Leitura" : "Sucesso"}
+              Simular estado:{" "}
+              {simularErro ? "Falha na Leitura" : "Sucesso"}
             </button>
           </div>
 
@@ -80,26 +114,32 @@ export default function CorrectionsPage() {
             >
               Voltar
             </button>
+
             <button
               onClick={capturarGabarito}
               disabled={carregando}
               className="btn-success"
             >
-              {carregando ? "Processando..." : "Escanear QR Code"}
+              {carregando
+                ? "Processando..."
+                : "Escanear QR Code"}
             </button>
           </div>
         </div>
       )}
 
-      {/* ETAPA 3: Confirmação do Modelo / Gabarito de Referência */}
+      {/* ETAPA 3: Confirmação do Modelo / Gabarito */}
       {etapa === "resultado" && (
         <div className="corrections-result">
           {simularErro ? (
             <div className="result-card-error">
               <h3>⚠️ Falha ao Ler QR Code</h3>
+
               <p>
-                Não foi possível reconhecer o QR Code da prova. Verifique o enquadramento e a iluminação.
+                Não foi possível reconhecer o QR Code da prova.
+                Verifique o enquadramento e a iluminação.
               </p>
+
               <button
                 onClick={() => setEtapa("camera")}
                 className="btn-danger"
@@ -110,13 +150,25 @@ export default function CorrectionsPage() {
           ) : (
             <div className="result-card">
               <div className="result-header">
-                <span className="result-badge">PROVA IDENTIFICADA VIA QR CODE</span>
-                <h3 className="result-student-name">Prova: Engenharia de Software</h3>
-                <p className="result-student-id">Modelo: Versão A (Embaralhada) | Aluno: João Silva (Matrícula: 20261099)</p>
+                <span className="result-badge">
+                  PROVA IDENTIFICADA VIA QR CODE
+                </span>
+
+                <h3 className="result-student-name">
+                  Prova: Engenharia de Software
+                </h3>
+
+                <p className="result-student-id">
+                  Modelo: Versão A (Embaralhada) | Aluno:
+                  João Silva (Matrícula: 20261099)
+                </p>
               </div>
 
               <div className="answers-section">
-                <h4 className="answers-title">Gabarito Oficial de Referência (Carregado):</h4>
+                <h4 className="answers-title">
+                  Gabarito Oficial de Referência (Carregado):
+                </h4>
+
                 <div className="answers-grid">
                   <div className="answer-item">Q1: A</div>
                   <div className="answer-item">Q2: C</div>
@@ -126,12 +178,14 @@ export default function CorrectionsPage() {
               </div>
 
               <div className="result-actions">
+                {/* AGORA VAI PARA A SUA TELA */}
                 <button
-                  onClick={() => alert("Redirecionando para a tela de Resultado da Correção...")}
+                  onClick={irParaResultado}
                   className="btn-primary"
                 >
                   Prosseguir para Resultado da Correção →
                 </button>
+
                 <button
                   onClick={() => setEtapa("camera")}
                   className="btn-outline"
