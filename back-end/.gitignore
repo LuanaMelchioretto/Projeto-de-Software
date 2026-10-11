@@ -1,5 +1,5 @@
 # Prisma Client generated during local setup
-/src/generated/prisma/
+/src/server/generated/prisma/
 
 # Locally installed assistant skills
 /.agents/skills/

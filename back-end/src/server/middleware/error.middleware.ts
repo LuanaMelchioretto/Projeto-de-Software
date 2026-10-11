@@ -1,7 +1,7 @@
 import type { ErrorRequestHandler } from "express";
 import { ZodError } from "zod";
-import { Prisma } from "../generated/prisma/client.js";
-import { ApiError } from "../lib/api-error.js";
+import { Prisma } from "../generated/prisma/client";
+import { ApiError } from "../lib";
 
 export const errorMiddleware: ErrorRequestHandler = (error: unknown, _request, response, _next) => {
   if (error instanceof ZodError) {

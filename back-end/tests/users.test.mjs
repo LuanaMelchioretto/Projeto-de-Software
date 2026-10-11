@@ -5,9 +5,10 @@ import bcrypt from "bcryptjs";
 
 // Simula somente o acesso ao MySQL; HTTP, controllers e services são reais.
 process.env.DATABASE_URL = "mysql://test:test@127.0.0.1:3306/test";
-const { app } = await import("../dist/app.js");
-const { prisma } = await import("../dist/lib/prisma.js");
-const { Prisma } = await import("../dist/generated/prisma/client.js");
+process.env.FRONTEND_ORIGINS = "http://localhost:5173,http://localhost:4173";
+const { app } = await import("../dist/server/Server.js");
+const { prisma } = await import("../dist/server/lib/prisma.js");
+const { Prisma } = await import("../dist/server/generated/prisma/client.js");
 
 const rows = new Map();
 let nextId = 1;

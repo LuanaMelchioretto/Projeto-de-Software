@@ -1,6 +1,6 @@
 import { PrismaMariaDb } from "@prisma/adapter-mariadb";
-import { PrismaClient } from "../generated/prisma/client.js";
-import { env } from "../config/env.js";
+import { PrismaClient } from "../generated/prisma/client";
+import { env } from "../config/env";
 
 const databaseUrl = new URL(env.DATABASE_URL);
 const adapter = new PrismaMariaDb({

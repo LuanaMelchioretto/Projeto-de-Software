@@ -1,18 +1,20 @@
 {
   "name": "back-end",
   "version": "1.0.0",
-  "type": "module",
+  "type": "commonjs",
   "scripts": {
-    "dev": "npm run db:setup && tsx watch src/server.ts",
-    "user:create": "npm run db:setup && tsx src/commands/create-user.ts",
-    "db:seed": "npm run db:setup && prisma db seed",
-    "db:setup": "docker compose up -d --wait && prisma migrate deploy && prisma generate",
+    "dev": "npm run db:setup && tsx watch src/index.ts",
+    "typecheck": "prisma generate && tsc --noEmit",
+    "build": "prisma generate && tsc",
+    "start": "node dist/index.js",
+    "db:seed": "prisma db seed",
+    "db:setup": "docker compose up -d --wait && prisma migrate deploy && prisma generate && prisma db seed",
+    "db:deploy": "prisma migrate deploy",
     "db:stop": "docker compose stop",
     "db:migrate": "prisma migrate dev",
-    "test": "prisma generate && tsc && node --test"
+    "test": "npm run build && node --test"
   },
   "devDependencies": {
-    "@inquirer/prompts": "^8.7.3",
     "@types/cors": "^2.8.19",
     "@types/express": "^5.0.6",
     "@types/jsonwebtoken": "^9.0.10",

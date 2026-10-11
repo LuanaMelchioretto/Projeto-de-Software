@@ -1,17 +1,10 @@
 generator client {
   provider = "prisma-client"
-  output   = "../src/generated/prisma"
+  output   = "../src/server/generated/prisma"
+  moduleFormat = "cjs"
+  importFileExtension = ""
 }
 
 datasource db {
   provider = "mysql"
-}
-
-model User {
-  id           Int      @id @default(autoincrement())
-  nome         String
-  email        String   @unique
-  senhaHash    String
-  criadoEm     DateTime @default(now())
-  atualizadoEm DateTime @updatedAt
 }
