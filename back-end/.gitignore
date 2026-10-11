@@ -1,0 +1,8 @@
+# Prisma Client generated during local setup
+/src/generated/prisma/
+
+# Locally installed assistant skills
+/.agents/skills/
+/.claude/skills/
+/.windsurf/skills/
+/skills-lock.json
