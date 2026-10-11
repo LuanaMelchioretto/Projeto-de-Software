@@ -1,0 +1,27 @@
+﻿flowchart TD
+    A([Início]) --> B[Professor acessa a correção da prova]
+    B --> C[Escanear QR Code da folha de respostas]
+    C --> D{QR Code válido?}
+
+    D -- Não --> E[Informar erro de identificação]
+    E --> F([Encerrar sem corrigir])
+
+    D -- Sim --> G[Identificar avaliação, versão e gabarito]
+    G --> H{Avaliação e gabarito encontrados?}
+
+    H -- Não --> I[Informar que não foi possível identificar a avaliação]
+    I --> F
+
+    H -- Sim --> J[Capturar e reconhecer as respostas marcadas]
+    J --> K{Existem marcações ilegíveis ou ambíguas?}
+
+    K -- Sim --> L[Solicitar conferência das respostas]
+    L --> M[Professor confere e confirma as respostas]
+    M --> N[Comparar respostas com o gabarito]
+
+    K -- Não --> N
+
+    N --> O[Calcular o resultado da correção]
+    O --> P[Registrar o resultado]
+    P --> Q[Apresentar confirmação e resultado ao professor]
+    Q --> R([Fim])
