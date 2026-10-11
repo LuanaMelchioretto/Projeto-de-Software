@@ -159,126 +159,105 @@ O diagrama de arquitetura será salvo em `docs/arquitetura/`.
 
 ## 5. Stack Tecnológica
 
-O front-end implementado utiliza React, React Router, Vite e Lucide React para os ícones.
-Stack prevista para o back-end, conforme padrão da disciplina:
+| Parte | Tecnologias em uso |
+| --- | --- |
+| Front-end | React 18, React Router 7, Vite 6 e Lucide React. |
+| Back-end | Node.js 24, TypeScript, Express 5, Zod 4 e bcryptjs. |
+| Dados | MySQL 8.4 em Docker Compose; Prisma 7 com `@prisma/adapter-mariadb` e migrações versionadas. |
+| Testes e entrega | Executor de testes do Node.js, GitHub Actions para testes e build do front-end e Netlify para sua publicação. |
 
-![Node.js](https://img.shields.io/badge/Node.js-339933?style=flat-square&logo=nodedotjs&logoColor=white)
-![Express](https://img.shields.io/badge/Express-000000?style=flat-square&logo=express&logoColor=white)
-![MySQL](https://img.shields.io/badge/MySQL-4479A1?style=flat-square&logo=mysql&logoColor=white)
-
-- **Node.js**: ambiente de execução do back-end.
-- **Express**: framework para criação das rotas e da API REST.
-- **MySQL**: banco de dados relacional para armazenar usuários, alunos, questões, provas, respostas e correções.
-- **Git e GitHub**: versionamento do código e colaboração entre os integrantes da equipe.
-
-Outras bibliotecas poderão ser adicionadas conforme o projeto evoluir, como autenticação, geração de arquivos, leitura de QR code e exportação de planilhas.
+O schema Prisma atual contém apenas `User`. Os dados de alunos, questões, provas e correções ainda não foram modelados no banco. A dependência de JWT está instalada no back-end, mas a API ainda não implementa autenticação.
 
 ## 6. Estrutura de Pastas
 
-Estrutura atual do projeto:
+Visão resumida da estrutura atual:
 
 ```text
 Projeto-de-Software/
-│
-├── .github/
-│   └── workflows/
-│       └── ...
-│
+├── .github/workflows/        # CI/CD do front-end
 ├── back-end/
-│   └── ...
-│
-├── docs/
-│   ├── adr/
-│   ├── api/
-│   ├── arquitetura/
-│   ├── modelo-dados/
-│   ├── telas/
-│   └── uml/
-│
-├── front-end/
-│   │
+│   ├── compose.yaml          # MySQL local
+│   ├── prisma/
+│   │   ├── schema.prisma      # generator e datasource
+│   │   ├── models/            # modelos Prisma, como User
+│   │   ├── migrations/        # migrações versionadas
+│   │   └── seed.ts            # conta local configurada no .env
 │   ├── src/
-│   │   ├── components/
-│   │   │   ├── brand/
-│   │   │   ├── button/
-│   │   │   ├── card/
-│   │   │   ├── empty-state/
-│   │   │   ├── feedback/
-│   │   │   ├── image-field/
-│   │   │   ├── page-title/
-│   │   │   ├── pagination/
-│   │   │   └── search-field/
-│   │   │
-│   │   ├── layouts/
-│   │   │   ├── AppLayout.jsx
-│   │   │   ├── AppLayout.css
-│   │   │   ├── Sidebar.jsx
-│   │   │   └── Topbar.jsx
-│   │   │
-│   │   ├── mocks/
-│   │   │   ├── assessments.js
-│   │   │   ├── classes.js
-│   │   │   ├── corrections.js
-│   │   │   ├── dashboard.js
-│   │   │   ├── questions.js
-│   │   │   ├── reports.js
-│   │   │   └── students.js
-│   │   │
-│   │   ├── pages/
-│   │   │   ├── assessments/
-│   │   │   ├── auth/
-│   │   │   ├── classes/
-│   │   │   ├── corrections/
-│   │   │   ├── dashboard/
-│   │   │   ├── questions/
-│   │   │   ├── reports/
-│   │   │   └── NotFoundPage.jsx
-│   │   │
-│   │   ├── routes/
-│   │   ├── styles/
+│   │   ├── index.ts           # inicialização da API
+│   │   └── server/
+│   │       ├── Server.ts      # configuração do Express
+│   │       ├── config/        # variáveis de ambiente
+│   │       ├── controllers/   # entrada e saída HTTP
+│   │       ├── schemas/       # validações Zod por recurso
+│   │       ├── routes/        # endpoints por recurso
+│   │       ├── services/      # regras de negócio
+│   │       ├── repositories/  # acesso ao Prisma
+│   │       ├── middleware/    # erros e rotas não encontradas
+│   │       ├── lib/           # cliente Prisma, hash e ApiError
+│   │       └── generated/     # Prisma Client gerado, ignorado pelo Git
+│   ├── tests/                # testes da API com banco simulado
+│   ├── .env.example
+│   └── package.json
+├── docs/                     # documentação, telas e diagramas
+├── front-end/
+│   ├── src/
+│   │   ├── components/       # componentes reutilizáveis
+│   │   ├── layouts/          # navegação e layout
+│   │   ├── mocks/            # dados demonstrativos
+│   │   ├── pages/            # telas por área
+│   │   ├── routes/           # navegação React Router
+│   │   ├── styles/           # estilos globais
 │   │   ├── App.jsx
 │   │   └── main.jsx
-│   │
 │   ├── tests/
-│   │
-│   ├── index.html
-│   ├── package.json
-│   ├── package-lock.json
-│   └── .gitignore
-│
-├── .gitignore
-├── README.md
-└── package-lock.json
+│   └── package.json
+└── README.md
 ```
 
-Componentes usados por várias telas ficam em `components/`; os exclusivos de uma área ficam próximos das suas páginas. Os arquivos JSX usam nomes em PascalCase, páginas recebem o sufixo `Page` e cada componente é exportado em seu próprio arquivo. Os endereços continuam em português.
-
-A organização prevista para o back-end continua sendo `src/routes/`, `controllers/`, `services/`, `repositories/` e `models/`.
+Nos diretórios `controllers`, `schemas`, `routes`, `services` e `repositories`, o recurso `users` possui sua própria pasta e um `index.ts` para os imports. O modelo persistido `User` está em `prisma/models/user.prisma`; `src/server/schemas/` contém as validações Zod.
 
 ## 7. Como Executar o Projeto
 
-Pré-requisitos: Node.js e npm instalados.
+Pré-requisitos: Node.js 24 e npm. Para o back-end, instale e inicie também o Docker Desktop com containers Linux. Os comandos abaixo partem da raiz do repositório.
 
-Com o repositório clonado, execute a partir da raiz do projeto:
+### Front-end
 
-```sh
+```bash
 cd front-end
 npm ci
 npm run dev
 ```
 
-Abra o endereço exibido no terminal, normalmente `http://localhost:5173`. Mantenha o terminal aberto enquanto estiver usando a aplicação e pressione `Ctrl+C` para encerrar o servidor.
+Abra o endereço exibido pelo Vite, normalmente `http://localhost:5173`. O front-end usa dados de `mocks/` e pode ser executado sem a API. Para gerar e visualizar o build localmente, execute em `front-end/`:
 
-A versão atual usa dados mock e não requer back-end, banco de dados ou arquivo `.env`.
-
-Para gerar o build de produção e visualizá-lo localmente, execute dentro de `front-end/`:
-
-```sh
+```bash
 npm run build
 npm run preview
 ```
 
-O build é gerado em `front-end/dist/`. O comando de preview exibe no terminal o endereço para acesso, normalmente `http://localhost:4173`.
+O build fica em `front-end/dist/`; o preview normalmente abre em `http://localhost:4173`.
+
+### Back-end e MySQL local
+
+Em outro terminal, a partir da raiz do repositório:
+
+```powershell
+cd back-end
+npm ci
+Copy-Item .env.example .env
+```
+
+Edite `back-end/.env` antes de iniciar. Defina `MYSQL_ROOT_PASSWORD`, `DB_PASSWORD` e as mesmas credenciais nas URLs `DATABASE_URL` e `SHADOW_DATABASE_URL`. Defina `FRONTEND_ORIGINS` com as origens do front-end permitidas neste ambiente, separadas por vírgula. Defina também `SEED_USER_NAME`, `SEED_USER_EMAIL` e `SEED_USER_PASSWORD`; esta última está vazia no exemplo e deve ter pelo menos 12 caracteres e no máximo 72 bytes em UTF-8. O arquivo `.env` não é versionado. Em sistemas Unix, use `cp .env.example .env` no lugar de `Copy-Item`.
+
+Com o Docker Desktop aberto, execute em `back-end/`:
+
+```powershell
+npm run dev
+```
+
+O comando sobe o MySQL na porta `3307`, aplica as migrações, gera o Prisma Client, executa o seed da conta local e inicia a API, normalmente em `http://localhost:3000`. Confira `/api/health` para a API, `/api/health/db` para a conexão com o MySQL e `/api/users` para a lista de usuários. O front-end ainda não consome essa API. Para parar o banco sem apagar seus dados, execute `npm run db:stop` em `back-end/`.
+
+Após alterar um modelo em `back-end/prisma/models/`, crie uma migração local com `npm run db:migrate -- --name descricao_da_alteracao` dentro de `back-end/`. Consulte [as instruções detalhadas do back-end](back-end/README.md) para os demais comandos.
 
 ### CI/CD e hospedagem na Netlify
 
@@ -286,23 +265,26 @@ O GitHub Actions executa os testes e o build em pull requests para `main` e publ
 
 ## 8. Testes e Validações
 
-Para executar os testes atuais, use `npm test` dentro de `front-end/`. Eles verificam que as páginas internas exibem apenas seus títulos, preservam o layout, mantêm o formulário de login separado e tratam rotas e identificadores inexistentes. Os testes usam o executor nativo do Node.js e o Vite para carregar os componentes JSX.
+Execute os testes em cada projeto:
 
-Verifique também `npm run build` e navegue pelo menu para conferir os títulos e o recolhimento do menu. As páginas de nova avaliação, detalhes, geração e resultado da correção continuam acessíveis pelos seus endereços.
+```bash
+cd front-end
+npm test
+npm run build
+```
 
-A versão atual é uma base de navegação. O login continua demonstrativo, sem autenticação real, e as demais páginas ainda não exibem formulários, tabelas, indicadores ou ações.
+Os testes do front-end usam o executor do Node.js e o Vite. Eles cobrem a prévia das questões e interações do banco de questões com dados demonstrativos. O build verifica a compilação da interface.
 
-Na evolução para a N3, os testes deverão validar os principais fluxos reais do sistema:
+Em outro terminal, a partir da raiz do repositório:
 
-- cadastro de questões;
-- geração de avaliações;
-- embaralhamento de questões e alternativas;
-- identificação correta da prova e do aluno;
-- cálculo de nota;
-- geração de estatísticas;
-- exportação de relatórios.
+```bash
+cd back-end
+npm test
+```
 
-Também deverão ser tratados casos de erro, como questão sem alternativa correta, folha de respostas sem identificação, aluno inexistente, avaliação inexistente e tentativa de exportar dados vazios.
+O script do back-end gera o Prisma Client, compila o TypeScript e executa os testes HTTP do CRUD de usuários, das verificações de saúde e do CORS. Esses testes simulam o acesso ao banco e não exigem MySQL ativo. Para validar a conexão real localmente, inicie a API com `npm run dev` e consulte `/api/health/db`.
+
+O GitHub Actions executa testes e build do front-end em pull requests e pushes para `main` que alterem `front-end/` ou o workflow. O deploy na Netlify ocorre após validação de pushes em `main`. Não há pipeline de deploy do back-end neste repositório.
 
 
 ## 9. Equipe e Contribuições
