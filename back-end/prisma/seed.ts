@@ -1,8 +1,8 @@
 import "dotenv/config";
 import { ZodError } from "zod";
 import { hashPassword, prisma } from "../src/server/lib";
-import { usersSchemas } from "../src/server/schemas";
 import { usersRepository } from "../src/server/repositories";
+import { usersSchemas } from "../src/server/schemas";
 
 async function seed() {
   const defaultUser = usersSchemas.createUserSchema.parse({

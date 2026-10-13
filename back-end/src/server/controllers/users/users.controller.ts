@@ -7,7 +7,7 @@ export const create = async (request: Request, response: Response): Promise<void
 };
 
 export const getAll = async (request: Request, response: Response): Promise<void> => {
-  response.json(await usersService.getAll(request.query));
+  response.json(await usersService.getAll(request.query, response.locals.authUser.id));
 };
 
 export const getById = async (request: Request, response: Response): Promise<void> => {

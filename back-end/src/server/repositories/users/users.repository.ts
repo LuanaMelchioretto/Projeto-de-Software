@@ -1,10 +1,11 @@
 import type { Prisma } from "../../generated/prisma/client";
 import { prisma } from "../../lib";
 
-const publicUserSelect = {
+export const publicUserSelect = {
   id: true,
   nome: true,
   email: true,
+  status: true,
   criadoEm: true,
   atualizadoEm: true,
 } satisfies Prisma.UserSelect;
@@ -28,10 +29,24 @@ export const findPage = async (page: number, limit: number) => {
 export const findById = (id: number) =>
   prisma.user.findUnique({ where: { id }, select: publicUserSelect });
 
+export const findCredentialsByEmail = (email: string) =>
+  prisma.user.findUnique({ where: { email }, select: { id: true, senhaHash: true, status: true } });
+
 export const updateById = (
   id: number,
   data: { nome?: string; email?: string; senhaHash?: string },
-) => prisma.user.update({ where: { id }, data, select: publicUserSelect });
+  revokeSessions = false,
+) => {
+  if (!revokeSessions) return prisma.user.update({ where: { id }, data, select: publicUserSelect });
+  return prisma.$transaction(async (tx) => {
+    const user = await tx.user.update({ where: { id }, data, select: publicUserSelect });
+    await tx.session.updateMany({
+      where: { userId: id, revokedAt: null },
+      data: { revokedAt: new Date() },
+    });
+    return user;
+  }, { isolationLevel: "Serializable" });
+};
 
 export const deleteById = (id: number) =>
   prisma.user.delete({ where: { id }, select: { id: true } });

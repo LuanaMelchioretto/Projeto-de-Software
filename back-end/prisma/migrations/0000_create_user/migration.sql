@@ -4,6 +4,7 @@ CREATE TABLE `User` (
     `nome` VARCHAR(191) NOT NULL,
     `email` VARCHAR(191) NOT NULL,
     `senhaHash` VARCHAR(191) NOT NULL,
+    `status` TINYINT NOT NULL DEFAULT 1,
     `criadoEm` DATETIME(3) NOT NULL DEFAULT CURRENT_TIMESTAMP(3),
     `atualizadoEm` DATETIME(3) NOT NULL,
 

@@ -15,6 +15,11 @@ export const errorMiddleware: ErrorRequestHandler = (error: unknown, _request, r
     response.status(error.status).json({ erro: error.message });
     return;
   }
+  if (error instanceof Prisma.PrismaClientInitializationError ||
+    (error instanceof Prisma.PrismaClientKnownRequestError && ["P1001", "P1002", "P1017"].includes(error.code))) {
+    response.status(503).json({ erro: "Serviço temporariamente indisponível" });
+    return;
+  }
   if (error instanceof Prisma.PrismaClientKnownRequestError) {
     if (error.code === "P2002") {
       response.status(409).json({ erro: "E-mail já cadastrado" });

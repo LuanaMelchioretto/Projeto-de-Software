@@ -11,4 +11,6 @@ export const env = z.object({
   PORT: z.coerce.number().int().min(1).max(65535).default(3001),
   FRONTEND_ORIGINS: z.string().transform((value) => value.split(",").map((origin) => origin.trim()).filter(Boolean))
     .pipe(z.array(frontendOrigin).min(1)),
+  JWT_SECRET: z.string().min(32),
+  COOKIE_SECURE: z.enum(["true", "false"]).default("false").transform((value) => value === "true"),
 }).parse(process.env);

@@ -8,9 +8,11 @@ export const create = async (input: unknown) => {
   return usersRepository.create({ nome, email, senhaHash });
 };
 
-export const getAll = async (input: unknown) => {
+export const getAll = async (input: unknown, userId: number) => {
   const { page, limit } = usersSchemas.listUsersSchema.parse(input);
-  const { data, total } = await usersRepository.findPage(page, limit);
+  const user = await usersRepository.findById(userId);
+  const data = user && page === 1 ? [user] : [];
+  const total = user ? 1 : 0;
   return { data, total, page, limit };
 };
 
@@ -27,8 +29,10 @@ export const updateById = async (idInput: unknown, input: unknown) => {
   const data: { nome?: string; email?: string; senhaHash?: string } = {};
   if (nome !== undefined) data.nome = nome;
   if (email !== undefined) data.email = email;
-  if (senha !== undefined) data.senhaHash = await hashPassword(senha);
-  return usersRepository.updateById(id, data);
+  if (senha !== undefined) {
+    data.senhaHash = await hashPassword(senha);
+  }
+  return usersRepository.updateById(id, data, senha !== undefined);
 };
 
 export const deleteById = async (input: unknown): Promise<void> => {

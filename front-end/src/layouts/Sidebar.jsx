@@ -1,11 +1,24 @@
-import React from "react";
+import React, { useState } from "react";
 import { LogOut } from "lucide-react";
 import { NavLink, useNavigate } from "react-router-dom";
 import Brand from "../components/brand/Brand";
 import { navigationItems } from "../routes/navigation";
+import { useAuth } from "../auth/AuthContext";
 
 export default function Sidebar({ collapsed, onToggle }) {
   const navigate = useNavigate();
+  const { logout } = useAuth();
+  const [logoutError, setLogoutError] = useState("");
+
+  async function handleLogout() {
+    setLogoutError("");
+    try {
+      await logout();
+      navigate("/login", { replace: true });
+    } catch (error) {
+      setLogoutError(error.message);
+    }
+  }
 
   return (
     <aside className="sidebar">
@@ -26,9 +39,10 @@ export default function Sidebar({ collapsed, onToggle }) {
         ))}
       </nav>
       <div className="sidebar-bottom">
+        {logoutError && <small role="alert">{logoutError}</small>}
         <button
           type="button"
-          onClick={() => navigate("/login")}
+          onClick={handleLogout}
           aria-label="Sair"
         >
           <LogOut size={18} />

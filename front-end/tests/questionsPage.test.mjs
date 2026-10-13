@@ -157,11 +157,20 @@ test("anexa e remove a prévia de imagem", async () => {
 });
 
 test("a rota de questões mantém as interações dentro do layout da aplicação", async () => {
-  render(React.createElement(MemoryRouter, { initialEntries: ["/questoes"] }, React.createElement(App)));
-  const user = userEvent.setup({ document: dom.window.document });
-  await user.click(screen.getByRole("button", { name: "Nova questão" }));
-  assert.ok(screen.getByRole("form", { name: "Nova questão" }));
-  await user.click(screen.getByRole("link", { name: "Turmas" }));
-  await user.click(screen.getByRole("link", { name: "Questões" }));
-  assert.equal(screen.getAllByRole("article").length, questions.length);
+  const originalFetch = globalThis.fetch;
+  globalThis.fetch = async () => ({
+    ok: true, status: 200,
+    json: async () => ({ user: { id: 1, nome: "Ana", email: "ana@example.com", status: 1 }, expiresAt: Date.now() + 60_000 }),
+  });
+  try {
+    render(React.createElement(MemoryRouter, { initialEntries: ["/questoes"] }, React.createElement(App)));
+    const user = userEvent.setup({ document: dom.window.document });
+    await user.click(await screen.findByRole("button", { name: "Nova questão" }));
+    assert.ok(screen.getByRole("form", { name: "Nova questão" }));
+    await user.click(screen.getByRole("link", { name: "Turmas" }));
+    await user.click(screen.getByRole("link", { name: "Questões" }));
+    assert.equal(screen.getAllByRole("article").length, questions.length);
+  } finally {
+    globalThis.fetch = originalFetch;
+  }
 });

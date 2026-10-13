@@ -4,6 +4,7 @@ import { once } from "node:events";
 
 process.env.DATABASE_URL = "mysql://test:test@127.0.0.1:3306/test";
 process.env.FRONTEND_ORIGINS = "http://localhost:5173,http://localhost:4173";
+process.env.JWT_SECRET = "test-secret-with-at-least-32-characters";
 
 const { app } = await import("../dist/server/Server.js");
 const { prisma } = await import("../dist/server/lib/prisma.js");

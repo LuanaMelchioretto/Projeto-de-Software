@@ -2,166 +2,189 @@ import assert from "node:assert/strict";
 import { after, before, beforeEach, test } from "node:test";
 import { once } from "node:events";
 import bcrypt from "bcryptjs";
+import jwt from "jsonwebtoken";
 
-// Simula somente o acesso ao MySQL; HTTP, controllers e services são reais.
 process.env.DATABASE_URL = "mysql://test:test@127.0.0.1:3306/test";
-process.env.FRONTEND_ORIGINS = "http://localhost:5173,http://localhost:4173";
+process.env.FRONTEND_ORIGINS = "http://localhost:5173";
+process.env.JWT_SECRET = "test-secret-with-at-least-32-characters";
+
 const { app } = await import("../dist/server/Server.js");
 const { prisma } = await import("../dist/server/lib/prisma.js");
 const { Prisma } = await import("../dist/server/generated/prisma/client.js");
 
 const rows = new Map();
-let nextId = 1;
+const sessions = new Map();
+const originals = { user: {}, session: {}, transaction: null };
 let listener;
 let baseUrl;
-const originals = {};
-const dbError = (code) => new Prisma.PrismaClientKnownRequestError("Erro simulado", {
-  code, clientVersion: "7.10.0",
-});
-const project = (row, select) => {
-  assert.equal(select.senhaHash, undefined, "A consulta deve excluir senhaHash");
-  return Object.fromEntries(Object.keys(select).filter((key) => select[key]).map((key) => [key, row[key]]));
-};
+let dbOffline = false;
+
+const project = (row, select) => Object.fromEntries(
+  Object.keys(select).filter((key) => select[key]).map((key) => [key, row[key]]),
+);
 
 before(async () => {
-  const implementations = {
-    create: async ({ data, select }) => {
-      assert.equal(data.senha, undefined, "Senha em texto puro não deve chegar ao banco");
-      if ([...rows.values()].some((row) => row.email === data.email)) throw dbError("P2002");
-      const row = { ...data, id: nextId++, criadoEm: new Date(), atualizadoEm: new Date() };
-      rows.set(row.id, row);
-      return project(row, select);
+  for (const [name, implementation] of Object.entries({
+    findUnique: async ({ where, select }) => {
+      if (dbOffline) throw new Prisma.PrismaClientKnownRequestError("Banco indisponível", { code: "P1001", clientVersion: "7.10.0" });
+      const row = where.id ? rows.get(where.id) : [...rows.values()].find((item) => item.email === where.email);
+      return row ? project(row, select) : null;
     },
-    findMany: async ({ skip, take, select }) => [...rows.values()].slice(skip, skip + take).map((row) => project(row, select)),
-    count: async () => rows.size,
-    findUnique: async ({ where, select }) => rows.has(where.id) ? project(rows.get(where.id), select) : null,
     update: async ({ where, data, select }) => {
       const row = rows.get(where.id);
-      if (!row) throw dbError("P2025");
-      if (data.email && [...rows.values()].some((item) => item.id !== row.id && item.email === data.email)) throw dbError("P2002");
-      Object.assign(row, data, { atualizadoEm: new Date() });
+      Object.assign(row, data);
       return project(row, select);
     },
     delete: async ({ where, select }) => {
       const row = rows.get(where.id);
-      if (!row) throw dbError("P2025");
       rows.delete(where.id);
       return project(row, select);
     },
-  };
-  for (const [name, implementation] of Object.entries(implementations)) {
-    originals[name] = prisma.user[name];
+  })) {
+    originals.user[name] = prisma.user[name];
     prisma.user[name] = implementation;
   }
+  for (const [name, implementation] of Object.entries({
+    create: async ({ data }) => {
+      const session = { ...data, revokedAt: null, createdAt: new Date() };
+      sessions.set(data.jti, session);
+      return session;
+    },
+    findUnique: async ({ where, select }) => {
+      const session = sessions.get(where.jti);
+      if (!session) return null;
+      return {
+        ...project(session, select),
+        user: project(rows.get(session.userId), select.user.select),
+      };
+    },
+    updateMany: async ({ where, data }) => {
+      let count = 0;
+      for (const session of sessions.values()) {
+        if (where.jti && session.jti !== where.jti) continue;
+        if (session.userId !== where.userId || session.revokedAt !== null) continue;
+        session.revokedAt = data.revokedAt;
+        count++;
+      }
+      return { count };
+    },
+  })) {
+    originals.session[name] = prisma.session[name];
+    prisma.session[name] = implementation;
+  }
+  originals.transaction = prisma.$transaction;
+  prisma.$transaction = async (callback) => callback(prisma);
   listener = app.listen(0, "127.0.0.1");
   await once(listener, "listening");
-  baseUrl = `http://127.0.0.1:${listener.address().port}/api/users`;
+  baseUrl = `http://127.0.0.1:${listener.address().port}/api`;
 });
 
-beforeEach(() => { rows.clear(); nextId = 1; });
+beforeEach(async () => {
+  rows.clear();
+  sessions.clear();
+  dbOffline = false;
+  rows.set(1, { id: 1, nome: "Ana", email: "ana@example.com", senhaHash: await bcrypt.hash("SenhaCorreta123", 4), status: 1, criadoEm: new Date(), atualizadoEm: new Date() });
+  rows.set(2, { id: 2, nome: "Bia", email: "bia@example.com", senhaHash: await bcrypt.hash("OutraSenha123", 4), status: 1, criadoEm: new Date(), atualizadoEm: new Date() });
+});
 
 after(async () => {
-  for (const [name, implementation] of Object.entries(originals)) prisma.user[name] = implementation;
+  for (const [name, implementation] of Object.entries(originals.user)) prisma.user[name] = implementation;
+  for (const [name, implementation] of Object.entries(originals.session)) prisma.session[name] = implementation;
+  prisma.$transaction = originals.transaction;
   if (listener) await new Promise((resolve) => listener.close(resolve));
   await prisma.$disconnect();
 });
 
-const request = (path = "", method = "GET", body) => fetch(baseUrl + path, {
+const request = (path, { method = "GET", cookie, body } = {}) => fetch(baseUrl + path, {
   method,
-  ...(body === undefined ? {} : { headers: { "Content-Type": "application/json" }, body: JSON.stringify(body) }),
+  headers: { ...(cookie ? { Cookie: cookie } : {}), ...(body ? { "Content-Type": "application/json" } : {}) },
+  ...(body ? { body: JSON.stringify(body) } : {}),
 });
-const input = (email = "ana@example.com") => ({ nome: "Ana Silva", email, senha: "MinhaSenhaDeTeste123" });
-const create = async (email) => {
-  const response = await request("", "POST", input(email));
-  assert.equal(response.status, 201);
-  return response.json();
+
+const login = async (email = "ana@example.com", senha = "SenhaCorreta123") => {
+  const response = await request("/auth/login", { method: "POST", body: { email, senha } });
+  return { response, cookie: response.headers.get("set-cookie")?.split(";")[0] };
 };
 
-test("cria usuário, normaliza e-mail e guarda apenas hash de senha", async () => {
-  const response = await request("", "POST", { ...input(" ANA@EXAMPLE.COM "), nome: " Ana Silva " });
-  assert.equal(response.status, 201);
-  const user = await response.json();
-  assert.equal(user.email, "ana@example.com");
-  assert.equal(user.nome, "Ana Silva");
-  assert.equal(response.headers.get("location"), `/api/users/${user.id}`);
-  assert.deepEqual(Object.keys(user).sort(), ["id", "nome", "email", "criadoEm", "atualizadoEm"].sort());
-  const stored = rows.get(user.id);
-  assert.notEqual(stored.senhaHash, input().senha);
-  assert.equal(await bcrypt.compare(input().senha, stored.senhaHash), true);
-});
-
-test("recusa e-mail duplicado com 409", async () => {
-  await create();
-  const response = await request("", "POST", input("ANA@EXAMPLE.COM"));
-  assert.equal(response.status, 409);
-  assert.equal(rows.size, 1);
-});
-
-test("recusa dados inválidos, campos internos e senha maior que 72 bytes", async () => {
-  for (const body of [
-    {}, { ...input(), nome: " " }, { ...input(), email: "inválido" },
-    { ...input(), senha: "curta" }, { ...input(), senha: "á".repeat(37) },
-    { ...input(), senhaHash: "hash-injetado" },
-  ]) {
-    assert.equal((await request("", "POST", body)).status, 400);
-  }
-  assert.equal(rows.size, 0);
-});
-
-test("lista usuários com paginação e sem hashes", async () => {
-  await create("primeiro@example.com");
-  const second = await create("segundo@example.com");
-  const response = await request("?page=2&limit=1");
+test("login válido usa o hash, entrega cookie HttpOnly e nunca expõe senha ou hash", async () => {
+  const { response, cookie } = await login(" ANA@EXAMPLE.COM ");
   assert.equal(response.status, 200);
-  const result = await response.json();
-  assert.equal(result.total, 2);
-  assert.equal(result.page, 2);
-  assert.equal(result.limit, 1);
-  assert.deepEqual(result.data, [second]);
-  assert.equal((await request("?page=0")).status, 400);
-  assert.equal((await request("?limit=101")).status, 400);
+  assert.match(response.headers.get("set-cookie"), /HttpOnly/);
+  const body = await response.json();
+  assert.equal(body.user.email, "ana@example.com");
+  assert.equal(body.user.status, 1);
+  assert.equal(body.user.senhaHash, undefined);
+  assert.equal(body.user.sessaoVersao, undefined);
+  assert.equal(JSON.stringify(body).includes("SenhaCorreta123"), false);
+  const me = await request("/auth/me", { cookie });
+  assert.equal(me.status, 200);
+  assert.equal((await me.json()).user.id, 1);
 });
 
-test("consulta por ID, distingue ID inválido e registro inexistente", async () => {
-  const user = await create();
-  assert.deepEqual(await (await request(`/${user.id}`)).json(), user);
-  assert.equal((await request("/999")).status, 404);
-  assert.equal((await request("/abc")).status, 400);
+test("senha errada, conta inativa e falta de sessão são recusadas", async () => {
+  assert.equal((await login("ana@example.com", "errada")).response.status, 401);
+  assert.equal((await login("inexistente@example.com")).response.status, 401);
+  rows.get(1).status = 0;
+  const inactive = await login();
+  assert.equal(inactive.response.status, 403);
+  assert.equal((await inactive.response.json()).erro, "Conta inativa");
+  assert.equal((await request("/users")).status, 401);
 });
 
-test("edita campos mantendo a senha quando ela não é enviada", async () => {
-  const user = await create();
-  const originalHash = rows.get(user.id).senhaHash;
-  const response = await request(`/${user.id}`, "PATCH", { nome: "Ana Souza", email: " NOVO@EXAMPLE.COM " });
+test("falha de conexão com banco mostra erro temporário", async () => {
+  dbOffline = true;
+  const { response } = await login();
+  assert.equal(response.status, 503);
+  assert.equal((await response.json()).erro, "Serviço temporariamente indisponível");
+});
+
+test("sessão expirada e conta desativada depois do login são recusadas", async () => {
+  const expired = jwt.sign({}, process.env.JWT_SECRET, { subject: "1", expiresIn: -1 });
+  assert.equal((await request("/auth/me", { cookie: `prova_session=${expired}` })).status, 401);
+  const unregistered = jwt.sign({}, process.env.JWT_SECRET, {
+    subject: "1",
+    jwtid: "00000000-0000-4000-8000-000000000000",
+    expiresIn: 3600,
+  });
+  assert.equal((await request("/auth/me", { cookie: `prova_session=${unregistered}` })).status, 401);
+  const { cookie } = await login();
+  rows.get(1).status = 0;
+  assert.equal((await request("/auth/me", { cookie })).status, 403);
+});
+
+test("logout invalida apenas a sessão atual", async () => {
+  const { cookie } = await login();
+  const { cookie: otherCookie } = await login();
+  assert.notEqual(cookie, otherCookie);
+  assert.equal((await request("/auth/logout", { method: "POST", cookie })).status, 204);
+  assert.equal((await request("/auth/me", { cookie })).status, 401);
+  assert.equal((await request("/users/1", { cookie })).status, 401);
+  assert.equal((await request("/auth/me", { cookie: otherCookie })).status, 200);
+});
+
+test("trocar a senha invalida sessões anteriores", async () => {
+  const { cookie } = await login();
+  const { cookie: otherCookie } = await login();
+  const response = await request("/users/1", { cookie, method: "PATCH", body: { senha: "NovaSenhaSegura123" } });
   assert.equal(response.status, 200);
-  const updated = await response.json();
-  assert.equal(updated.nome, "Ana Souza");
-  assert.equal(updated.email, "novo@example.com");
-  assert.equal(updated.senhaHash, undefined);
-  assert.equal(rows.get(user.id).senhaHash, originalHash);
-  assert.equal((await request(`/${user.id}`, "PATCH", {})).status, 400);
+  assert.equal((await response.json()).senhaHash, undefined);
+  assert.equal((await request("/auth/me", { cookie })).status, 401);
+  assert.equal((await request("/auth/me", { cookie: otherCookie })).status, 401);
+  assert.equal((await login("ana@example.com", "NovaSenhaSegura123")).response.status, 200);
 });
 
-test("troca a senha por um novo hash e recusa e-mail duplicado na edição", async () => {
-  const user = await create();
-  await create("outro@example.com");
-  const response = await request(`/${user.id}`, "PATCH", { senha: "OutraSenhaDeTeste123" });
-  assert.equal(response.status, 200);
-  assert.equal(await bcrypt.compare("OutraSenhaDeTeste123", rows.get(user.id).senhaHash), true);
-  assert.equal((await request(`/${user.id}`, "PATCH", { email: "outro@example.com" })).status, 409);
-  assert.equal((await request("/999", "PATCH", { nome: "Inexistente" })).status, 404);
-});
-
-test("exclui por ID e retorna 404 ao excluir novamente", async () => {
-  const user = await create();
-  const response = await request(`/${user.id}`, "DELETE");
-  assert.equal(response.status, 204);
-  assert.equal(await response.text(), "");
-  assert.equal(rows.size, 0);
-  assert.equal((await request(`/${user.id}`, "DELETE")).status, 404);
-});
-
-test("responde 400 para JSON malformado", async () => {
-  const response = await fetch(baseUrl, { method: "POST", headers: { "Content-Type": "application/json" }, body: "{" });
-  assert.equal(response.status, 400);
+test("professor só consulta e altera o próprio registro", async () => {
+  const { cookie } = await login();
+  const own = await request("/users/1", { cookie });
+  assert.equal(own.status, 200);
+  assert.equal((await own.json()).senhaHash, undefined);
+  assert.equal((await request("/users/2", { cookie })).status, 403);
+  assert.equal((await request("/users/2", { cookie, method: "PATCH", body: { nome: "Outro" } })).status, 403);
+  assert.equal((await request("/users/2", { cookie, method: "DELETE" })).status, 403);
+  const updated = await request("/users/1", { cookie, method: "PATCH", body: { nome: "Ana Souza" } });
+  assert.equal(updated.status, 200);
+  assert.equal((await updated.json()).nome, "Ana Souza");
+  const list = await request("/users", { cookie });
+  assert.deepEqual((await list.json()).data.map(({ id }) => id), [1]);
+  assert.equal((await request("/users", { cookie, method: "POST", body: {} })).status, 404);
 });

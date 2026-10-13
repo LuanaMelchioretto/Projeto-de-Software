@@ -3,6 +3,8 @@ model User {
   nome         String
   email        String   @unique
   senhaHash    String
+  status       Int      @default(1) @db.TinyInt
   criadoEm     DateTime @default(now())
   atualizadoEm DateTime @updatedAt
+  sessions     Session[]
 }

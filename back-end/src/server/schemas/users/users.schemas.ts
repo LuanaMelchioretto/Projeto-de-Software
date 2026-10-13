@@ -1,7 +1,7 @@
 import { z } from "zod";
 
-const password = z.string().min(12, "A senha deve ter pelo menos 12 caracteres")
-  .refine((value) => Buffer.byteLength(value, "utf8") <= 72, "A senha deve ter no máximo 72 bytes");
+const password = z.string().min(8, "A senha deve ter pelo menos 8 caracteres")
+  .refine((value) => Buffer.byteLength(value, "utf8") <= 64, "A senha deve ter no máximo 64 bytes");
 
 export const createUserSchema = z.object({
   nome: z.string().trim().min(2).max(191),
