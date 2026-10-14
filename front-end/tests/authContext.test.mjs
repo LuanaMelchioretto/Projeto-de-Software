@@ -89,6 +89,21 @@ async function renderSession() {
 
 const pause = (ms = 50) => new Promise((resolve) => setTimeout(resolve, ms));
 
+test("StrictMode consulta a sessão inicial apenas uma vez", async () => {
+  const calls = mockApi(() => valid(30 * 60_000));
+
+  render(
+    React.createElement(
+      React.StrictMode,
+      null,
+      React.createElement(AuthProvider, null, React.createElement(SessionStatus)),
+    ),
+  );
+
+  await screen.findByText("Ana");
+  assert.deepEqual(calls, ["GET /api/auth/me"]);
+});
+
 test("renova a sessão perto do fim quando o professor usa o sistema", async () => {
   const calls = mockApi(() => valid(5 * 60_000));
 

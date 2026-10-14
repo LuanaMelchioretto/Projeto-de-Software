@@ -12,6 +12,17 @@ const AuthContext = createContext(null);
 const renewalWindowMs = 10 * 60_000;
 const usageEvents = ["pointerdown", "keydown", "wheel"];
 const expiredMessage = "Sessão expirada. Entre novamente.";
+let initialSessionRequest = null;
+
+function getInitialSession() {
+  if (!initialSessionRequest) {
+    initialSessionRequest = api("/auth/me").finally(() => {
+      initialSessionRequest = null;
+    });
+  }
+
+  return initialSessionRequest;
+}
 
 export function AuthProvider({ children }) {
   const [session, setSession] = useState(null);
@@ -21,7 +32,7 @@ export function AuthProvider({ children }) {
   useEffect(() => {
     let active = true;
 
-    api("/auth/me")
+    getInitialSession()
       .then((value) => {
         if (active) setSession(value);
       })
