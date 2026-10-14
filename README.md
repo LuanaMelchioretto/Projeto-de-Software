@@ -232,7 +232,42 @@ Cada ADR registra o contexto, a decisão e suas consequências. As decisões doc
 
 ## 6. Modelo de Dados
 
----
+Diagrama MER/DER do banco de dados, exportado como imagem e salvo em `docs/modelo-dados/`:
+
+![Modelo Entidade-Relacionamento](docs/modelo-dados/DiagramaMER-DER.png)
+
+### Dicionário de Dados
+
+**Tabela: professores**
+| Campo | Tipo | Descrição |
+|---|---|---|
+| id | INT (PK) | Identificador único do professor |
+| nome | VARCHAR(100) | Nome completo do professor |
+| email | VARCHAR(100) | E-mail de acesso ao sistema |
+| matricula | VARCHAR(50) | Matrícula institucional única |
+
+**Tabela: avaliacoes**
+| Campo | Tipo | Descrição |
+|---|---|---|
+| id | INT (PK) | Identificador único da prova |
+| professor_id | INT (FK) | Relacionamento com o professor criador |
+| titulo | VARCHAR(150) | Título descritivo da avaliação |
+| embaralhar_questoes | BOOLEAN | Flag para randomização de questões |
+
+**Tabela: versoes_prova**
+| Campo | Tipo | Descrição |
+|---|---|---|
+| id | INT (PK) | Identificador da folha de prova física |
+| aplicacao_id | INT (FK) | Relacionamento com a aplicação da turma |
+| qr_code_hash | VARCHAR(255) | Hash único lido pelo app mobile no QR Code |
+
+**Tabela: resultados_aluno**
+| Campo | Tipo | Descrição |
+|---|---|---|
+| id | INT (PK) | Identificador do resultado |
+| versao_prova_id | INT (FK) | Relacionamento com a prova única do aluno |
+| nota_final | DECIMAL(4,2)| Nota calculada pela correção automática |
+| total_acertos | INT | Quantidade de alternativas corretas assinaladas |
 
 ## 7. Stack Tecnológica
 
