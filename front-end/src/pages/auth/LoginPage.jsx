@@ -7,7 +7,9 @@ import "./LoginPage.css";
 export default function LoginPage() {
   const navigate = useNavigate();
   const location = useLocation();
+
   const { user, loading, authError, login } = useAuth();
+
   const [email, setEmail] = useState("");
   const [pass, setPass] = useState("");
   const [error, setError] = useState("");
@@ -18,8 +20,10 @@ export default function LoginPage() {
 
   async function handleSubmit(event) {
     event.preventDefault();
+
     setError("");
     setSubmitting(true);
+    
     try {
       await login(email, pass);
       setPass("");
