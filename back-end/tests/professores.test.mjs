@@ -76,6 +76,16 @@ before(async () => {
       }
       return { count };
     },
+    deleteMany: async ({ where }) => {
+      let count = 0;
+      for (const [jti, session] of sessions) {
+        if (session.professorId !== where.professorId) continue;
+        if (session.revokedAt === null && session.expiresAt >= where.OR[1].expiresAt.lt) continue;
+        sessions.delete(jti);
+        count++;
+      }
+      return { count };
+    },
   })) {
     originals.session[name] = prisma.session[name];
     prisma.session[name] = implementation;
@@ -240,4 +250,20 @@ test("renovação não passa de 8 horas desde o login", async () => {
   assert.equal(unchanged.status, 200);
   assert.equal((await unchanged.json()).expiresAt, limit * 1000);
   assert.equal(unchanged.headers.get("set-cookie"), null);
+});
+
+test("login apaga as sessões vencidas e revogadas do professor", async () => {
+  const later = new Date(Date.now() + 60 * 60 * 1000);
+  const earlier = new Date(Date.now() - 1000);
+  sessions.set("revogada", { jti: "revogada", professorId: 1, expiresAt: later, revokedAt: new Date(), createdAt: new Date() });
+  sessions.set("vencida", { jti: "vencida", professorId: 1, expiresAt: earlier, revokedAt: null, createdAt: new Date() });
+  sessions.set("ativa", { jti: "ativa", professorId: 1, expiresAt: later, revokedAt: null, createdAt: new Date() });
+  sessions.set("outro", { jti: "outro", professorId: 2, expiresAt: earlier, revokedAt: null, createdAt: new Date() });
+  assert.equal((await login()).response.status, 200);
+  const remaining = [...sessions.keys()];
+  assert.equal(remaining.length, 3);
+  assert.ok(remaining.includes("ativa"));
+  assert.ok(remaining.includes("outro"));
+  assert.ok(!remaining.includes("revogada"));
+  assert.ok(!remaining.includes("vencida"));
 });

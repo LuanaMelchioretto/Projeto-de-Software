@@ -19,6 +19,12 @@ export const create = (
         professor.senhaHash !== expectedPasswordHash
       )
         return null;
+      await tx.session.deleteMany({
+        where: {
+          professorId,
+          OR: [{ revokedAt: { not: null } }, { expiresAt: { lt: new Date() } }],
+        },
+      });
       await tx.session.create({ data: { jti, professorId, expiresAt } });
       const { senhaHash, ...publicProfessor } = professor;
       return publicProfessor;
