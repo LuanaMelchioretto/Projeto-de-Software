@@ -6,14 +6,14 @@
 
 **Links do sistema hospedado:** [Netlify](https://provaplus.netlify.app/) | [GitHub Pages](https://luanamelchioretto.github.io/Projeto-de-Software/)
 
-![Node.js](https://img.shields.io/badge/Node.js-339933?style=for-the-badge&logo=nodedotjs&logoColor=white)
-![Express](https://img.shields.io/badge/Express-000000?style=for-the-badge&logo=express&logoColor=white)
-![MySQL](https://img.shields.io/badge/MySQL-4479A1?style=for-the-badge&logo=mysql&logoColor=white)
+![Node.js](docs/logos/nodejs.svg)
+![Express](docs/logos/express.svg)
+![MySQL](docs/logos/mysql.svg)
 ![Git](https://img.shields.io/badge/Git-F05032?style=for-the-badge&logo=git&logoColor=white)
 ![GitHub](https://img.shields.io/badge/GitHub-181717?style=for-the-badge&logo=github&logoColor=white)
 
 ![Status](https://img.shields.io/badge/status-em%20desenvolvimento-F5A623?style=flat-square)
-![Entrega](https://img.shields.io/badge/entrega%20atual-N1-3D348B?style=flat-square)
+![Entrega](https://img.shields.io/badge/entrega%20atual-N2-3D348B?style=flat-square)
 ![Licenca](https://img.shields.io/badge/licenca-uso%20academico-7B4FA6?style=flat-square)
 
 </div>
@@ -22,27 +22,34 @@
 
 | Nome completo | Papel / principais frentes no projeto |
 |---|---|
-| CAMILA LORENZETTI | Telas de Turmas e Correção de Provas |
-| GUILHERME FRANCIEL MEIRING | Tela de Banco de Questões, build e testes no GitHub Actions e atualizar README |
-| LUAN FERREIRA DO AMARAL | Tela de Relatórios e conteúdo do Dashboard |
-| LUANA MELCHIORETTO | Tela Login e de Resultado da Correção, revisão da navegação e documentação das telas para a entrega |
-| MATHEUS RECK SCHÄFFER | Telas de Avaliações, Nova Avaliação, Detalhes da Avaliação e Provas Geradas |
+| CAMILA LORENZETTI | Telas de Turmas e Correção de Provas; diagrama de sequência |
+| GUILHERME FRANCIEL MEIRING | Tela de Banco de Questões, build e testes no GitHub Actions, atualização do README e divisão das tarefas da equipe |
+| LUAN FERREIRA DO AMARAL | Tela de Relatórios, conteúdo do Dashboard e diagrama de atividades |
+| LUANA MELCHIORETTO | Telas de Login e Resultado da Correção, revisão da navegação, documentação das telas e diagrama de casos de uso |
+| MATHEUS RECK SCHÄFFER | Telas de Avaliações, Nova Avaliação, Detalhes da Avaliação e Provas Geradas; diagrama de classes |
 
 ## Sumário
 
 - [1. Visão Geral](#1-visão-geral)
   - [1.1 Objetivo do Projeto](#11-objetivo-do-projeto)
-  - [1.2 Escopo da N1](#12-escopo-da-n1)
 - [2. Requisitos](#2-requisitos)
   - [2.1 Funcionais (RF)](#21-funcionais-rf)
   - [2.2 Não Funcionais (RNF)](#22-não-funcionais-rnf)
-- [3. Telas do Sistema](#3-telas-do-sistema)
-- [4. Arquitetura de Software](#4-arquitetura-de-software)
-- [5. Stack Tecnológica](#5-stack-tecnológica)
-- [6. Estrutura de Pastas](#6-estrutura-de-pastas)
-- [7. Como Executar o Projeto](#7-como-executar-o-projeto)
-- [8. Testes e Validações](#8-testes-e-validações)
-- [9. Equipe e Contribuições](#9-equipe-e-contribuições)
+- [3. Modelagem (UML)](#3-modelagem-uml)
+  - [3.1 Diagrama de Casos de Uso](#31-diagrama-de-casos-de-uso)
+  - [3.2 Diagrama de Classes](#32-diagrama-de-classes)
+  - [3.3 Diagrama de Sequência](#33-diagrama-de-sequência)
+  - [3.4 Diagrama de Atividades](#34-diagrama-de-atividades)
+- [4. Telas do Sistema](#4-telas-do-sistema)
+- [5. Decisões Arquiteturais (ADRs)](#5-decisões-arquiteturais-adrs)
+- [6. Modelo de Dados](#6-modelo-de-dados)
+- [7. Stack Tecnológica](#7-stack-tecnológica)
+- [8. Estrutura de Pastas](#8-estrutura-de-pastas)
+- [9. Como Executar o Projeto](#9-como-executar-o-projeto)
+  - [Front-end](#front-end)
+  - [Back-end e MySQL local](#back-end-e-mysql-local)
+- [10. Especificação da API](#10-especificação-da-api)
+- [11. Equipe e Contribuições](#11-equipe-e-contribuições)
 
 ---
 
@@ -55,27 +62,6 @@ O projeto atende a necessidade de professores que corrigem um grande volume de p
 O objetivo do projeto é automatizar a geração, identificação, correção e análise de provas objetivas. A solução deve permitir que o professor crie ou importe questões, gere versões de provas com questões e alternativas embaralhadas, leia folhas de resposta identificadas por QR code ou identificador equivalente, calcule as notas e exporte os resultados em planilha.
 
 A partir da entrevista com o cliente, o ponto mais importante é tornar a correção automatizada simples, rápida e confiável. Como melhorias desejadas, o cliente também citou estatísticas por questão, geração de relatórios de notas, prova individualizada por aluno e maior controle sobre o layout da prova gerada.
-
-### 1.2 Escopo da N1
-
-Na N1, o foco é entregar a primeira versão navegável do sistema, com telas principais construídas e conectadas entre si por navegação. A aplicação deve permitir que o cliente visualize o fluxo do sistema tomando forma, mesmo sem conexão real com banco de dados.
-
-Para esta fase, fazem parte do escopo:
-
-- criação das telas principais do sistema;
-- navegação entre as telas;
-- uso de dados estáticos/mock;
-- README v1 conforme o modelo da disciplina;
-- estrutura inicial do repositório;
-- publicação do sistema em serviço de hospedagem gratuito.
-
-Não fazem parte do escopo da N1:
-
-- conexão real com banco de dados;
-- autenticação real;
-- API completa;
-- correção automática real por leitura de imagem;
-- geração definitiva de arquivos de prova ou planilhas.
 
 ## 2. Requisitos
 
@@ -136,77 +122,218 @@ Métricas sugeridas para avaliar a facilidade de uso e a confiabilidade do siste
 | RNF05 | O resultado da correção automática deve ser apresentado rapidamente. | Exibir o resultado em até 5 segundos após o reconhecimento válido do QR code e das respostas. |
 | RNF06 | O sistema deve manter os resultados das correções corretos e salvos. | Em um teste com 10 provas, as 10 notas devem coincidir com a conferência manual e permanecer iguais após fechar e reabrir o sistema. |
 
-## 3. Telas do Sistema
+## 3. Modelagem (UML)
 
-As telas ainda serão prototipadas e adicionadas em [docs/telas/](docs/telas/).
+Os diagramas existentes representam o domínio e os fluxos previstos para o PROVA+.
 
-## 4. Arquitetura de Software
+### 3.1 Diagrama de Casos de Uso
 
-O front-end está organizado por responsabilidade: `main.jsx` inicializa o React e o roteador; `App.jsx` compõe a aplicação; `routes/` define os endereços; `layouts/` contém a estrutura de navegação; e `pages/` reúne as telas por área do sistema.
+![Diagrama de Casos de Uso](docs/uml/Caso%20de%20Uso/Diagrama%20de%20caso%20de%20uso%20e%20passo%20a%20passo.jpg)
 
-Os componentes compartilhados ficam em `components/`, os dados demonstrativos em `mocks/` e os estilos específicos acompanham a página ou componente. `styles/` concentra as regras globais e as variáveis visuais. Por enquanto, as páginas internas exibem somente títulos; os componentes, estilos e mocks existentes permanecem disponíveis para a construção das telas. O login mantém sua interface demonstrativa.
+O diagrama de casos de uso mostra as ações do professor para preparar avaliações, corrigir provas e consultar resultados, além da consulta da nota pelo aluno após a liberação.
 
-As rotas internas são renderizadas por `<Outlet />` no layout. Avaliações usam `/avaliacoes/:id` e `/avaliacoes/:id/gerar`, com tratamento para identificadores inexistentes. O login é uma tela demonstrativa e não protege as rotas.
+Passo a passo e decisões de modelagem: [documentação dos casos de uso](docs/uml/Caso%20de%20Uso/Documenta%C3%A7%C3%A3o%20do%20Passo%20a%20Passo%20e%20Decis%C3%B5es%20de%20Modelagem%20%28UML%20-%20Casos%20de%20Uso%29.docx).
 
-Quando a API for implementada, as chamadas HTTP serão organizadas em `services/` no front-end. Hooks próprios serão extraídos conforme houver lógica reutilizável. O back-end seguirá a estrutura prevista:
+### 3.2 Diagrama de Classes
 
-```text
-rota -> controle -> serviço -> repositório -> model
-```
+![Diagrama de Classes](docs/uml/Classes/Diagrama-de-classes.png)
 
-O diagrama de arquitetura será salvo em `docs/arquitetura/`.
+O diagrama de classes descreve as entidades planejadas para o projeto e suas relações: professor, questão, alternativa, avaliação e prova gerada.
+
+Documento de modelagem: [documentação do diagrama de classes](docs/uml/Classes/Documenta%C3%A7%C3%A3o%20de%20Modelagem.docx).
+
+### 3.3 Diagrama de Sequência
+
+![Diagrama de Sequência](docs/uml/Sequ%C3%AAncia/diagrama%20de%20sequencia%20do%20sistema.png)
+
+O diagrama de sequência documenta as interações planejadas entre professor, front-end, API, serviço de QR code e banco de dados.
+
+Documento de apoio: [documentação do diagrama de sequência](docs/uml/Sequ%C3%AAncia/Diagrama%20de%20sequ%C3%AAncia%20do%20sistema.docx).
+
+### 3.4 Diagrama de Atividades
+
+![Diagrama de Atividades](docs/uml/Atividade/Diagrama-de-atividade-Correcao-de-Prova.png)
+
+O diagrama de atividades mostra o fluxo planejado de correção por QR code, incluindo a validação da prova, a conferência de marcações ambíguas e a apresentação do resultado ao professor.
+
+Passo a passo: [documentação do diagrama de atividades](docs/uml/Atividade/Documentacao-Diagrama-de-Atividade.md).
+
+## 4. Telas do Sistema
+
+![Tela de login](docs/telas/tela-login.jpg)
+*Tela de login: Apresenta os campos de e-mail e senha e leva ao dashboard; a autenticação ainda é demonstrativa.*
+
+![Dashboard](docs/telas/tela-dashboard.jpg)
+*Dashboard: Resume indicadores e oferece atalhos para as áreas principais.*
+
+![Turmas](docs/telas/tela-turma.jpg)
+*Turmas: Lista e pesquisa as turmas cadastradas na sessão.*
+
+![Cadastro de turma](docs/telas/tela-cadastrar-turma.jpg)
+*Cadastro de turma: Abre o formulário para criar uma turma a partir da listagem.*
+
+![Banco de questões](docs/telas/tela-banco-questao.jpg)
+*Banco de questões: Exibe as questões disponíveis e abre os formulários de cadastro e edição.*
+
+![Cadastro de questão, parte superior](docs/telas/tela-cadastro-questao-parte-de-cima.jpg)
+*Cadastro de questão, parte superior: Apresenta os dados iniciais da nova questão.*
+
+![Cadastro de questão, parte inferior](docs/telas/tela-cadastro-questao-parte-de-baixo.jpg)
+*Cadastro de questão, parte inferior: Permite preencher alternativas e pré-visualizar a questão.*
+
+![Edição de questão, parte superior](docs/telas/tela-editar-questao-parte-de-cima.jpg)
+*Edição de questão, parte superior: Carrega uma questão do banco para edição demonstrativa.*
+
+![Edição de questão, parte inferior](docs/telas/tela-editar-questao-parte-de-baixo.jpg)
+*Edição de questão, parte inferior: Mostra as alternativas e ações finais da edição demonstrativa.*
+
+![Avaliações](docs/telas/tela-avaliacao.jpg)
+*Avaliações: Lista as avaliações e leva à criação ou aos detalhes de uma avaliação.*
+
+![Cadastro de avaliação, parte superior](docs/telas/tela-cadastro-avaliacao-parte-de-cima.jpg)
+*Cadastro de avaliação, parte superior: Inicia a composição de uma nova avaliação.*
+
+![Cadastro de avaliação, parte inferior](docs/telas/tela-cadastro-avaliacao-parte-de-baixo.jpg)
+*Cadastro de avaliação, parte inferior: Mostra a seleção de questões e as opções de embaralhamento.*
+
+![Detalhes da avaliação](docs/telas/tela-detalhe-avaliacao.jpg)
+*Detalhes da avaliação: Exibe questões, gabarito e o acesso à geração da prova.*
+
+![Gerar avaliação](docs/telas/tela-gerar-avaliacao.jpg)
+*Gerar avaliação: Mostra a prévia da prova e da folha de respostas; o download é simulado.*
+
+![Correção de prova](docs/telas/tela-correca-prova.jpg)
+*Correção de prova: Seleciona uma avaliação demonstrativa e inicia o fluxo de leitura.*
+
+![Escanear QR code](docs/telas/tela-escanear-qrcode.jpg)
+*Escanear QR code: Apresenta a etapa simulada de leitura do QR code da folha.*
+
+![Confirmação da prova identificada](docs/telas/tela-confirmacao-resultado-avaliacao.jpg)
+*Confirmação da prova identificada: Confirma o modelo e o gabarito antes de abrir o resultado.*
+
+![Resultado da correção, parte superior](docs/telas/tela-resultado-avaliacao-parte-de-cima.jpg)
+*Resultado da correção, parte superior: Mostra aluno, nota, acertos e controle de liberação.*
+
+![Resultado da correção, parte inferior](docs/telas/tela-resultado-avaliacao-parte-de-baixo.jpg)
+*Resultado da correção, parte inferior: Detalha as respostas e permite percorrer outras correções demonstrativas.*
+
+![Relatório, parte superior](docs/telas/tela-relatorio-parte-de-cima.jpg)
+*Relatório, parte superior: Filtra turma e avaliação e resume os indicadores.*
+
+![Relatório, parte inferior](docs/telas/tela-relatorio-parte-de-baixo.jpg)
+*Relatório, parte inferior: Apresenta resultados por aluno e ações demonstrativas de exportação.*
+
+## 5. Decisões Arquiteturais (ADRs)
+
+Cada ADR registra o contexto, a decisão e suas consequências. As decisões documentadas até agora são:
+
+- [ADR-001: MySQL e Prisma para persistência](docs/adr/ADR-001-mysql-e-prisma.md)
+- [ADR-002: Organização da API em camadas](docs/adr/ADR-002-organizacao-em-camadas.md)
+
+## 6. Modelo de Dados
+
+Diagrama MER/DER do banco de dados, exportado como imagem e salvo em `docs/modelo-dados/`:
+
+![Modelo Entidade-Relacionamento](docs/modelo-dados/DiagramaMER-DER.png)
+
+### Dicionário de Dados
+
+**Tabela: professores**
+| Campo | Tipo | Descrição |
+|---|---|---|
+| id | INT (PK) | Identificador único do professor |
+| nome | VARCHAR(100) | Nome completo do professor |
+| email | VARCHAR(100) | E-mail de acesso ao sistema |
+| matricula | VARCHAR(50) | Matrícula institucional única |
+
+**Tabela: avaliacoes**
+| Campo | Tipo | Descrição |
+|---|---|---|
+| id | INT (PK) | Identificador único da prova |
+| professor_id | INT (FK) | Relacionamento com o professor criador |
+| titulo | VARCHAR(150) | Título descritivo da avaliação |
+| embaralhar_questoes | BOOLEAN | Flag para randomização de questões |
+
+**Tabela: versoes_prova**
+| Campo | Tipo | Descrição |
+|---|---|---|
+| id | INT (PK) | Identificador da folha de prova física |
+| aplicacao_id | INT (FK) | Relacionamento com a aplicação da turma |
+| qr_code_hash | VARCHAR(255) | Hash único lido pelo app mobile no QR Code |
+
+**Tabela: resultados_aluno**
+| Campo | Tipo | Descrição |
+|---|---|---|
+| id | INT (PK) | Identificador do resultado |
+| versao_prova_id | INT (FK) | Relacionamento com a prova única do aluno |
+| nota_final | DECIMAL(4,2)| Nota calculada pela correção automática |
+| total_acertos | INT | Quantidade de alternativas corretas assinaladas |
+
+## 7. Stack Tecnológica
+
+Stack obrigatória da disciplina:
+
+![Node.js](docs/logos/nodejs.svg) ![Express](docs/logos/express.svg) ![MySQL](docs/logos/mysql.svg)
 
 
-## 5. Stack Tecnológica
-
-| Parte | Tecnologias em uso |
+| Tecnologia | Uso e motivo da escolha |
 | --- | --- |
-| Front-end | React 18, React Router 7, Vite 6 e Lucide React. |
-| Back-end | Node.js 24, TypeScript, Express 5, Zod 4 e bcryptjs. |
-| Dados | MySQL 8.4 em Docker Compose; Prisma 7 com `@prisma/adapter-mariadb` e migrações versionadas. |
-| Testes e entrega | Executor de testes do Node.js, GitHub Actions para testes e build do front-end e Netlify para sua publicação. |
+| **Node.js** | Executa a API e os scripts do projeto com JavaScript no servidor. |
+| **Express** | Organiza as rotas HTTP e as respostas da API REST. |
+| **MySQL** | Armazena dados relacionais, como os usuários da API. |
+| React | Constrói a interface a partir de componentes reutilizáveis. |
+| Vite | Oferece servidor de desenvolvimento e gera o build do front-end. |
+| TypeScript | Adiciona tipos ao back-end para detectar inconsistências durante o desenvolvimento. |
+| Prisma | Definem os modelos, versionam migrações e conectam a API ao MySQL. |
+| Zod 4 | Valida os dados recebidos pela API e as variáveis de ambiente. |
+| bcryptjs | Gera o hash das senhas antes de armazená-las. |
+| dotenv | Carrega as configurações locais do arquivo `.env`. |
+| cors | Configura as origens de front-end aceitas pelo navegador nas chamadas à API. |
 
-O schema Prisma atual contém apenas `User`. Os dados de alunos, questões, provas e correções ainda não foram modelados no banco. A dependência de JWT está instalada no back-end, mas a API ainda não implementa autenticação.
 
-## 6. Estrutura de Pastas
+## 8. Estrutura de Pastas
 
 Visão resumida da estrutura atual:
 
 ```text
 Projeto-de-Software/
-├── .github/workflows/        # CI/CD do front-end
+├── .github/workflows/           # automatiza testes, build e publicação do front-end
 ├── back-end/
-│   ├── compose.yaml          # MySQL local
+│   ├── compose.yaml             # configura o MySQL local em Docker
 │   ├── prisma/
-│   │   ├── schema.prisma      # generator e datasource
-│   │   ├── models/            # modelos Prisma, como User
-│   │   ├── migrations/        # migrações versionadas
-│   │   └── seed.ts            # conta local configurada no .env
+│   │   ├── models/               # define os modelos persistidos
+│   │   ├── migrations/           # versiona as alterações do banco de dados
+│   │   ├── schema.prisma         # configura o Prisma Client e o banco MySQL
+│   │   └── seed.ts               # cria a conta local configurada no .env
 │   ├── src/
-│   │   ├── index.ts           # inicialização da API
+│   │   ├── index.ts              # conecta ao banco e inicia a API
 │   │   └── server/
-│   │       ├── Server.ts      # configuração do Express
-│   │       ├── config/        # variáveis de ambiente
-│   │       ├── controllers/   # entrada e saída HTTP
-│   │       ├── schemas/       # validações Zod por recurso
-│   │       ├── routes/        # endpoints por recurso
-│   │       ├── services/      # regras de negócio
-│   │       ├── repositories/  # acesso ao Prisma
-│   │       ├── middleware/    # erros e rotas não encontradas
-│   │       ├── lib/           # cliente Prisma, hash e ApiError
-│   │       └── generated/     # Prisma Client gerado, ignorado pelo Git
-│   ├── tests/                # testes da API com banco simulado
-│   ├── .env.example
-│   └── package.json
-├── docs/                     # documentação, telas e diagramas
+│   │       ├── config/           # lê e valida as variáveis de ambiente
+│   │       ├── controllers/      # recebem requisições e enviam respostas
+│   │       ├── lib/              # reúne recursos compartilhados de banco, senhas e erros da API
+│   │       ├── middleware/       # executa etapas entre a requisição e a resposta, como tratar erros
+│   │       ├── repositories/     # consulta e grava dados com o Prisma
+│   │       ├── routes/           # define endpoints e chama os controllers
+│   │       ├── schemas/          # valida os dados de entrada
+│   │       └── services/         # regras de negócio
+│   ├── tests/
+│   ├── .env.example              # mostra as variáveis de ambientesnecessárias à API
+│   └── package.json             # lista scripts e dependências do back-end
+├── docs/
+│   ├── adr/
+│   ├── api/
+│   ├── arquitetura/
+│   ├── modelo-dados/
+│   ├── telas/
+│   └── uml/
 ├── front-end/
 │   ├── src/
-│   │   ├── components/       # componentes reutilizáveis
-│   │   ├── layouts/          # navegação e layout
-│   │   ├── mocks/            # dados demonstrativos
-│   │   ├── pages/            # telas por área
-│   │   ├── routes/           # navegação React Router
-│   │   ├── styles/           # estilos globais
+│   │   ├── components/          # componentes reutilizáveis
+│   │   ├── layouts/             # navegação e layout
+│   │   ├── mocks/               # dados demonstrativos
+│   │   ├── pages/               # telas
+│   │   ├── routes/              # rotas React Router
+│   │   ├── styles/              # estilos globais
 │   │   ├── App.jsx
 │   │   └── main.jsx
 │   ├── tests/
@@ -214,21 +341,37 @@ Projeto-de-Software/
 └── README.md
 ```
 
-Nos diretórios `controllers`, `schemas`, `routes`, `services` e `repositories`, o recurso `users` possui sua própria pasta e um `index.ts` para os imports. O modelo persistido `User` está em `prisma/models/user.prisma`; `src/server/schemas/` contém as validações Zod.
+## 9. Como Executar o Projeto
 
-## 7. Como Executar o Projeto
+Pré-requisitos: Git, Node.js **24.x** com npm e, para o back-end, Docker Desktop em execução com containers Linux. O front-end usa React 18 e Vite 6; o back-end usa Express 5, Prisma 7 e MySQL 8.4. Confira as versões locais com `git --version`, `node --version`, `npm --version` e `docker compose version`.
 
-Pré-requisitos: Node.js 24 e npm. Para o back-end, instale e inicie também o Docker Desktop com containers Linux. Os comandos abaixo partem da raiz do repositório.
+1. Clone o repositório:
+
+   ```bash
+   git clone https://github.com/LuanaMelchioretto/Projeto-de-Software.git
+   ```
+
+2. Entre na pasta do projeto:
+
+   ```bash
+   cd Projeto-de-Software
+   ```
+
+3. Instale as dependências do front-end e inicie a interface:
+
+   ```bash
+   cd front-end
+   npm ci
+   npm run dev
+   ```
+
+   Use `npm ci` para instalar as versões do `package-lock.json`. Se estiver trabalhando sem o lockfile, use `npm install`.
+
+4. Abra o endereço exibido pelo Vite, normalmente `http://localhost:5173`. Para também executar a API, siga os passos abaixo em outro terminal a partir da raiz do repositório.
 
 ### Front-end
 
-```bash
-cd front-end
-npm ci
-npm run dev
-```
-
-Abra o endereço exibido pelo Vite, normalmente `http://localhost:5173`. O front-end usa dados de `mocks/` e pode ser executado sem a API. Para gerar e visualizar o build localmente, execute em `front-end/`:
+O front-end usa dados de `mocks/` e pode ser executado sem a API. Para gerar e visualizar o build localmente, execute em `front-end/`:
 
 ```bash
 npm run build
@@ -247,7 +390,7 @@ npm ci
 Copy-Item .env.example .env
 ```
 
-Edite `back-end/.env` antes de iniciar. Defina `MYSQL_ROOT_PASSWORD`, `DB_PASSWORD` e as mesmas credenciais nas URLs `DATABASE_URL` e `SHADOW_DATABASE_URL`. Defina `FRONTEND_ORIGINS` com as origens do front-end permitidas neste ambiente, separadas por vírgula. Defina também `SEED_USER_NAME`, `SEED_USER_EMAIL` e `SEED_USER_PASSWORD`; esta última está vazia no exemplo e deve ter pelo menos 12 caracteres e no máximo 72 bytes em UTF-8. O arquivo `.env` não é versionado. Em sistemas Unix, use `cp .env.example .env` no lugar de `Copy-Item`.
+Edite `back-end/.env` antes de iniciar. Defina `MYSQL_ROOT_PASSWORD`, `DB_PASSWORD` e as mesmas credenciais nas URLs `DATABASE_URL` e `SHADOW_DATABASE_URL`. Defina `FRONTEND_ORIGINS` com as origens do front-end permitidas neste ambiente, separadas por vírgula. Defina também `SEED_USER_NAME`, `SEED_USER_EMAIL` e `SEED_USER_PASSWORD`; esta última está vazia no exemplo e deve ter pelo menos 8 caracteres e no máximo 72 bytes em UTF-8. O arquivo `.env` não é versionado. Em sistemas Unix, use `cp .env.example .env` no lugar de `Copy-Item`.
 
 Com o Docker Desktop aberto, execute em `back-end/`:
 
@@ -255,47 +398,21 @@ Com o Docker Desktop aberto, execute em `back-end/`:
 npm run dev
 ```
 
-O comando sobe o MySQL na porta `3307`, aplica as migrações, gera o Prisma Client, executa o seed da conta local e inicia a API, normalmente em `http://localhost:3000`. Confira `/api/health` para a API, `/api/health/db` para a conexão com o MySQL e `/api/users` para a lista de usuários. O front-end ainda não consome essa API. Para parar o banco sem apagar seus dados, execute `npm run db:stop` em `back-end/`.
+O comando sobe o MySQL, aplica as migrações, gera o Prisma Client, executa o seed da conta local e inicia a API. Para parar o banco sem apagar seus dados, execute `npm run db:stop` em `back-end/`.
 
-Após alterar um modelo em `back-end/prisma/models/`, crie uma migração local com `npm run db:migrate -- --name descricao_da_alteracao` dentro de `back-end/`. Consulte [as instruções detalhadas do back-end](back-end/README.md) para os demais comandos.
+## 10. Especificação da API
 
-### CI/CD e hospedagem na Netlify
+A tabela de endpoints está em [docs/api/especificacao.md](docs/api/especificacao.md).
 
-O GitHub Actions executa os testes e o build em pull requests para `main` e publica o front-end na Netlify após a validação de pushes na `main`. O pipeline considera alterações em `front-end/` e no workflow.
-
-## 8. Testes e Validações
-
-Execute os testes em cada projeto:
-
-```bash
-cd front-end
-npm test
-npm run build
-```
-
-Os testes do front-end usam o executor do Node.js e o Vite. Eles cobrem a prévia das questões e interações do banco de questões com dados demonstrativos. O build verifica a compilação da interface.
-
-Em outro terminal, a partir da raiz do repositório:
-
-```bash
-cd back-end
-npm test
-```
-
-O script do back-end gera o Prisma Client, compila o TypeScript e executa os testes HTTP do CRUD de usuários, das verificações de saúde e do CORS. Esses testes simulam o acesso ao banco e não exigem MySQL ativo. Para validar a conexão real localmente, inicie a API com `npm run dev` e consulte `/api/health/db`.
-
-O GitHub Actions executa testes e build do front-end em pull requests e pushes para `main` que alterem `front-end/` ou o workflow. O deploy na Netlify ocorre após validação de pushes em `main`. Não há pipeline de deploy do back-end neste repositório.
-
-
-## 9. Equipe e Contribuições
+## 11. Equipe e Contribuições
 
 A divisão atual de tarefas segue a organização do quadro no Trello:
 
-- **CAMILA LORENZETTI**: criar a tela de Turmas e a tela de Correção de Provas.
-- **GUILHERME FRANCIEL MEIRING**: criar Tela de Banco de Questões, adicionar build e testes no GitHub Actions e atualizar README.
-- **LUAN FERREIRA DO AMARAL**: criar a tela de Relatórios e o conteúdo do Dashboard.
-- **LUANA MELCHIORETTO**: criar a tela de Login e Resultado da Correção, revisar a navegação e documentar as telas para a entrega.
-- **MATHEUS RECK SCHÄFFER**: criar as telas de Avaliações, Nova Avaliação, Detalhes da Avaliação e Provas Geradas.
+- **CAMILA LORENZETTI**: criar a tela de Turmas e a tela de Correção de Provas; elaborar o diagrama de sequência.
+- **GUILHERME FRANCIEL MEIRING**: criar a tela de Banco de Questões, adicionar build e testes no GitHub Actions, atualizar o README e dividir as tarefas da equipe.
+- **LUAN FERREIRA DO AMARAL**: criar a tela de Relatórios e o conteúdo do Dashboard; elaborar o diagrama de atividades.
+- **LUANA MELCHIORETTO**: criar a tela de Login e Resultado da Correção, revisar a navegação, documentar as telas para a entrega e elaborar o diagrama de casos de uso.
+- **MATHEUS RECK SCHÄFFER**: criar as telas de Avaliações, Nova Avaliação, Detalhes da Avaliação e Provas Geradas; elaborar o diagrama de classes.
 
 ---
 
