@@ -118,33 +118,33 @@ test("não renova a sessão longe do fim, mesmo com uso", async () => {
   assert.deepEqual(calls, ["GET /api/auth/me"]);
 });
 
-test("uma chamada da API recusada com 401 encerra a sessão", async () => {
+test("após o vencimento, uma chamada protegida recusada com 401 encerra a sessão", async () => {
   mockApi((call) =>
-    call === "GET /api/turmas" ? unauthorized : valid(30 * 60_000),
+    call === "GET /api/turmas" ? unauthorized : valid(100),
   );
 
   await renderSession();
+  await pause(150);
+  assert.ok(screen.getByText("Ana"));
   await api("/turmas").catch(() => {});
   await screen.findByText(expiredMessage);
 });
 
-test("no fim do prazo, mantém a sessão renovada em outra aba", async () => {
-  const calls = mockApi((_call, count) =>
-    count === 1 ? valid(100) : valid(60 * 60_000),
-  );
+test("voltar ao foco não consulta a sessão novamente", async () => {
+  const calls = mockApi(() => valid(30 * 60_000));
 
   await renderSession();
-  await waitFor(() =>
-    assert.deepEqual(calls, ["GET /api/auth/me", "GET /api/auth/me"]),
-  );
+  dom.window.dispatchEvent(new dom.window.Event("focus"));
   await pause();
-
-  assert.ok(screen.getByText("Ana"));
+  assert.deepEqual(calls, ["GET /api/auth/me"]);
 });
 
-test("no fim do prazo, encerra a sessão que não foi renovada", async () => {
-  mockApi((_call, count) => (count === 1 ? valid(100) : unauthorized));
+test("renovação recusada com 401 encerra a sessão", async () => {
+  mockApi((call) =>
+    call === "POST /api/auth/refresh" ? unauthorized : valid(5 * 60_000),
+  );
 
   await renderSession();
+  dom.window.dispatchEvent(new dom.window.Event("keydown"));
   await screen.findByText(expiredMessage);
 });

@@ -44,7 +44,6 @@ export function AuthProvider({ children }) {
     if (!session) return;
 
     let active = true;
-    let usedSinceRenewal = false;
     let renewing = false;
     let renewalLimitReached = false;
 
@@ -55,24 +54,8 @@ export function AuthProvider({ children }) {
       setSession(null);
     };
 
-    const confirmExpiration = () => {
-      api("/auth/me")
-        .then((value) => {
-          if (
-            active &&
-            value.user.id === session.user.id &&
-            value.expiresAt > session.expiresAt
-          ) {
-            setSession(value);
-          } else {
-            expire();
-          }
-        })
-        .catch(expire);
-    };
-
     const renew = () => {
-      if (!usedSinceRenewal || renewing || renewalLimitReached) return;
+      if (renewing || renewalLimitReached) return;
       if (session.expiresAt - Date.now() > renewalWindowMs) return;
 
       renewing = true;
@@ -84,63 +67,31 @@ export function AuthProvider({ children }) {
           if (value.expiresAt > session.expiresAt) setSession(value);
           else renewalLimitReached = true;
         })
-        .catch(() => {})
+        .catch((error) => {
+          if (error.status === 401) expire();
+          else if (error.status === 403 && active) {
+            setAuthError(error.message);
+            setSession(null);
+          }
+        })
         .finally(() => {
           renewing = false;
         });
     };
 
-    const markUsage = () => {
-      usedSinceRenewal = true;
-      renew();
-    };
-
-    const validate = () => {
-      api("/auth/me")
-        .then((value) => {
-          if (!active) return;
-
-          if (value.user.id !== session.user.id) setSession(null);
-          else if (value.expiresAt !== session.expiresAt) setSession(value);
-        })
-        .catch((error) => {
-          if (!active) return;
-
-          if (error.status === 401) {
-            expire();
-            return;
-          }
-
-          setAuthError(error.message);
-          setSession(null);
-        });
-    };
-
-    const expirationTimer = setTimeout(
-      confirmExpiration,
-      Math.max(0, session.expiresAt - Date.now()),
-    );
-    const renewalTimer = setTimeout(
-      renew,
-      Math.max(0, session.expiresAt - renewalWindowMs - Date.now()),
-    );
     const stopUnauthorized = onUnauthorized(expire);
 
-    window.addEventListener("focus", validate);
     for (const event of usageEvents) {
-      window.addEventListener(event, markUsage, { passive: true });
+      window.addEventListener(event, renew, { passive: true });
     }
 
     return () => {
       active = false;
 
-      clearTimeout(expirationTimer);
-      clearTimeout(renewalTimer);
       stopUnauthorized();
 
-      window.removeEventListener("focus", validate);
       for (const event of usageEvents) {
-        window.removeEventListener(event, markUsage);
+        window.removeEventListener(event, renew);
       }
     };
   }, [session]);
