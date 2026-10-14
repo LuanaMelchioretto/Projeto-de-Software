@@ -1,4 +1,12 @@
 const apiBase = (import.meta.env.VITE_API_URL || "http://localhost:3000").replace(/\/$/, "");
+let unauthorizedHandler = null;
+
+export function onUnauthorized(handler) {
+  unauthorizedHandler = handler;
+  return () => {
+    if (unauthorizedHandler === handler) unauthorizedHandler = null;
+  };
+}
 
 export async function api(path, options = {}) {
   let response;
@@ -13,9 +21,13 @@ export async function api(path, options = {}) {
   }
 
   if (!response.ok) {
+    if (response.status === 401 && !path.startsWith("/auth/")) unauthorizedHandler?.();
+   
     const result = await response.json().catch(() => ({}));
     const error = new Error(result.erro || "Não foi possível concluir a operação.");
+    
     error.status = response.status;
+    
     throw error;
   }
   return response.status === 204 ? null : response.json();

@@ -14,7 +14,7 @@ const { Prisma } = await import("../dist/server/generated/prisma/client.js");
 
 const rows = new Map();
 const sessions = new Map();
-const originals = { user: {}, session: {}, transaction: null };
+const originals = { professor: {}, session: {}, transaction: null };
 let listener;
 let baseUrl;
 let dbOffline = false;
@@ -32,6 +32,13 @@ before(async () => {
     },
     update: async ({ where, data, select }) => {
       const row = rows.get(where.id);
+      if (data.matricula && [...rows.values()].some((item) => item.id !== row.id && item.matricula === data.matricula)) {
+        throw new Prisma.PrismaClientKnownRequestError("Unique constraint failed on the constraint: `professores_matricula_key`", {
+          code: "P2002",
+          clientVersion: "7.10.0",
+          meta: { driverAdapterError: { cause: { kind: "UniqueConstraintViolation", constraint: { index: "professores_matricula_key" } } } },
+        });
+      }
       Object.assign(row, data);
       return project(row, select);
     },
@@ -41,8 +48,8 @@ before(async () => {
       return project(row, select);
     },
   })) {
-    originals.user[name] = prisma.user[name];
-    prisma.user[name] = implementation;
+    originals.professor[name] = prisma.professor[name];
+    prisma.professor[name] = implementation;
   }
   for (const [name, implementation] of Object.entries({
     create: async ({ data }) => {
@@ -55,15 +62,16 @@ before(async () => {
       if (!session) return null;
       return {
         ...project(session, select),
-        user: project(rows.get(session.userId), select.user.select),
+        professor: project(rows.get(session.professorId), select.professor.select),
       };
     },
     updateMany: async ({ where, data }) => {
       let count = 0;
       for (const session of sessions.values()) {
         if (where.jti && session.jti !== where.jti) continue;
-        if (session.userId !== where.userId || session.revokedAt !== null) continue;
-        session.revokedAt = data.revokedAt;
+        if (where.expiresAt && session.expiresAt.getTime() !== where.expiresAt.getTime()) continue;
+        if (session.professorId !== where.professorId || session.revokedAt !== null) continue;
+        Object.assign(session, data);
         count++;
       }
       return { count };
@@ -83,12 +91,12 @@ beforeEach(async () => {
   rows.clear();
   sessions.clear();
   dbOffline = false;
-  rows.set(1, { id: 1, nome: "Ana", email: "ana@example.com", senhaHash: await bcrypt.hash("SenhaCorreta123", 4), status: 1, criadoEm: new Date(), atualizadoEm: new Date() });
-  rows.set(2, { id: 2, nome: "Bia", email: "bia@example.com", senhaHash: await bcrypt.hash("OutraSenha123", 4), status: 1, criadoEm: new Date(), atualizadoEm: new Date() });
+  rows.set(1, { id: 1, nome: "Ana", email: "ana@example.com", matricula: "PROF-001", senhaHash: await bcrypt.hash("SenhaCorreta123", 4), status: 1, criadoEm: new Date(), atualizadoEm: new Date() });
+  rows.set(2, { id: 2, nome: "Bia", email: "bia@example.com", matricula: "PROF-002", senhaHash: await bcrypt.hash("OutraSenha123", 4), status: 1, criadoEm: new Date(), atualizadoEm: new Date() });
 });
 
 after(async () => {
-  for (const [name, implementation] of Object.entries(originals.user)) prisma.user[name] = implementation;
+  for (const [name, implementation] of Object.entries(originals.professor)) prisma.professor[name] = implementation;
   for (const [name, implementation] of Object.entries(originals.session)) prisma.session[name] = implementation;
   prisma.$transaction = originals.transaction;
   if (listener) await new Promise((resolve) => listener.close(resolve));
@@ -112,6 +120,7 @@ test("login válido usa o hash, entrega cookie HttpOnly e nunca expõe senha ou 
   assert.match(response.headers.get("set-cookie"), /HttpOnly/);
   const body = await response.json();
   assert.equal(body.user.email, "ana@example.com");
+  assert.equal(body.user.matricula, "PROF-001");
   assert.equal(body.user.status, 1);
   assert.equal(body.user.senhaHash, undefined);
   assert.equal(body.user.sessaoVersao, undefined);
@@ -128,7 +137,7 @@ test("senha errada, conta inativa e falta de sessão são recusadas", async () =
   const inactive = await login();
   assert.equal(inactive.response.status, 403);
   assert.equal((await inactive.response.json()).erro, "Conta inativa");
-  assert.equal((await request("/users")).status, 401);
+  assert.equal((await request("/professores")).status, 401);
 });
 
 test("falha de conexão com banco mostra erro temporário", async () => {
@@ -158,14 +167,14 @@ test("logout invalida apenas a sessão atual", async () => {
   assert.notEqual(cookie, otherCookie);
   assert.equal((await request("/auth/logout", { method: "POST", cookie })).status, 204);
   assert.equal((await request("/auth/me", { cookie })).status, 401);
-  assert.equal((await request("/users/1", { cookie })).status, 401);
+  assert.equal((await request("/professores/1", { cookie })).status, 401);
   assert.equal((await request("/auth/me", { cookie: otherCookie })).status, 200);
 });
 
 test("trocar a senha invalida sessões anteriores", async () => {
   const { cookie } = await login();
   const { cookie: otherCookie } = await login();
-  const response = await request("/users/1", { cookie, method: "PATCH", body: { senha: "NovaSenhaSegura123" } });
+  const response = await request("/professores/1", { cookie, method: "PATCH", body: { senha: "NovaSenhaSegura123" } });
   assert.equal(response.status, 200);
   assert.equal((await response.json()).senhaHash, undefined);
   assert.equal((await request("/auth/me", { cookie })).status, 401);
@@ -175,16 +184,60 @@ test("trocar a senha invalida sessões anteriores", async () => {
 
 test("professor só consulta e altera o próprio registro", async () => {
   const { cookie } = await login();
-  const own = await request("/users/1", { cookie });
+  const own = await request("/professores/1", { cookie });
   assert.equal(own.status, 200);
   assert.equal((await own.json()).senhaHash, undefined);
-  assert.equal((await request("/users/2", { cookie })).status, 403);
-  assert.equal((await request("/users/2", { cookie, method: "PATCH", body: { nome: "Outro" } })).status, 403);
-  assert.equal((await request("/users/2", { cookie, method: "DELETE" })).status, 403);
-  const updated = await request("/users/1", { cookie, method: "PATCH", body: { nome: "Ana Souza" } });
+  assert.equal((await request("/professores/2", { cookie })).status, 403);
+  assert.equal((await request("/professores/2", { cookie, method: "PATCH", body: { nome: "Outro" } })).status, 403);
+  assert.equal((await request("/professores/2", { cookie, method: "DELETE" })).status, 403);
+  const updated = await request("/professores/1", { cookie, method: "PATCH", body: { nome: "Ana Souza" } });
   assert.equal(updated.status, 200);
   assert.equal((await updated.json()).nome, "Ana Souza");
-  const list = await request("/users", { cookie });
+  const list = await request("/professores", { cookie });
   assert.deepEqual((await list.json()).data.map(({ id }) => id), [1]);
-  assert.equal((await request("/users", { cookie, method: "POST", body: {} })).status, 404);
+  assert.equal((await request("/professores", { cookie, method: "POST", body: {} })).status, 404);
+});
+
+test("matrícula do professor pode ser trocada, mas não repetida nem apagada", async () => {
+  const { cookie } = await login();
+  const updated = await request("/professores/1", { cookie, method: "PATCH", body: { matricula: " PROF-003 " } });
+  assert.equal(updated.status, 200);
+  assert.equal((await updated.json()).matricula, "PROF-003");
+  const duplicated = await request("/professores/1", { cookie, method: "PATCH", body: { matricula: "PROF-002" } });
+  assert.equal(duplicated.status, 409);
+  assert.equal((await duplicated.json()).erro, "Matrícula já cadastrada");
+  assert.equal((await request("/professores/1", { cookie, method: "PATCH", body: { matricula: "" } })).status, 400);
+  assert.equal((await request("/professores/1", { cookie, method: "PATCH", body: { matricula: null } })).status, 400);
+});
+
+const sessionCookie = (jti, exp, createdAt = new Date()) => {
+  sessions.set(jti, { jti, professorId: 1, expiresAt: new Date(exp * 1000), revokedAt: null, createdAt });
+  return `prova_session=${jwt.sign({ exp }, process.env.JWT_SECRET, { subject: "1", jwtid: jti })}`;
+};
+
+test("renovar estende a sessão por 1 hora e invalida o token anterior", async () => {
+  assert.equal((await request("/auth/refresh", { method: "POST" })).status, 401);
+  const cookie = sessionCookie("11111111-1111-4111-8111-111111111111", Math.floor(Date.now() / 1000) + 300);
+  const renewed = await request("/auth/refresh", { method: "POST", cookie });
+  assert.equal(renewed.status, 200);
+  const { user, expiresAt } = await renewed.json();
+  assert.equal(user.id, 1);
+  assert.ok(expiresAt >= Date.now() + 59 * 60 * 1000);
+  const renewedCookie = renewed.headers.get("set-cookie")?.split(";")[0];
+  assert.equal((await request("/auth/me", { cookie: renewedCookie })).status, 200);
+  assert.equal((await request("/auth/me", { cookie })).status, 401);
+});
+
+test("renovação não passa de 8 horas desde o login", async () => {
+  const now = Math.floor(Date.now() / 1000);
+  const limit = now + 600;
+  const cookie = sessionCookie("22222222-2222-4222-8222-222222222222", now + 300, new Date((limit - 8 * 60 * 60) * 1000));
+  const capped = await request("/auth/refresh", { method: "POST", cookie });
+  assert.equal(capped.status, 200);
+  assert.equal((await capped.json()).expiresAt, limit * 1000);
+  const cappedCookie = capped.headers.get("set-cookie")?.split(";")[0];
+  const unchanged = await request("/auth/refresh", { method: "POST", cookie: cappedCookie });
+  assert.equal(unchanged.status, 200);
+  assert.equal((await unchanged.json()).expiresAt, limit * 1000);
+  assert.equal(unchanged.headers.get("set-cookie"), null);
 });

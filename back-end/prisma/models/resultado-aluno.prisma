@@ -1,0 +1,9 @@
+model ResultadoAluno {
+  id            Int         @id @default(autoincrement())
+  versaoProvaId Int         @unique @map("versao_prova_id")
+  versaoProva   VersaoProva @relation(fields: [versaoProvaId], references: [id], onDelete: Cascade)
+  notaFinal     Decimal     @map("nota_final") @db.Decimal(4, 2)
+  totalAcertos  Int         @map("total_acertos")
+
+  @@map("resultados_aluno")
+}

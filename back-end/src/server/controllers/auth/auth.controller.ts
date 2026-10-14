@@ -1,6 +1,6 @@
 import type { Request, Response } from "express";
 import { env } from "../../config/env";
-import * as authService from "../../services/auth/auth.service";
+import { authService } from "../../services";
 
 const cookieOptions = {
   httpOnly: true,
@@ -9,12 +9,26 @@ const cookieOptions = {
   path: "/api",
 };
 
-export const login = async (request: Request, response: Response): Promise<void> => {
-  const { token, user, expiresAt } = await authService.login(request.body);
+const setSessionCookie = (response: Response, token: string, expiresAt: number) => {
   response.cookie("prova_session", token, {
     ...cookieOptions,
-    maxAge: authService.sessionDurationSeconds * 1000,
+    maxAge: expiresAt - Date.now(),
   });
+};
+
+export const login = async (request: Request, response: Response): Promise<void> => {
+  const { token, user, expiresAt } = await authService.login(request.body);
+  setSessionCookie(response, token, expiresAt);
+  response.set("Cache-Control", "no-store").json({ user, expiresAt });
+};
+
+export const refresh = async (_request: Request, response: Response): Promise<void> => {
+  const { token, user, expiresAt } = await authService.refresh(
+    response.locals.authUser.id,
+    response.locals.sessionJti,
+    response.locals.expiresAt,
+  );
+  if (token) setSessionCookie(response, token, expiresAt);
   response.set("Cache-Control", "no-store").json({ user, expiresAt });
 };
 

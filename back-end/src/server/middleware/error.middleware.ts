@@ -3,11 +3,31 @@ import { ZodError } from "zod";
 import { Prisma } from "../generated/prisma/client";
 import { ApiError } from "../lib";
 
-export const errorMiddleware: ErrorRequestHandler = (error: unknown, _request, response, _next) => {
+const uniqueConstraintMessages: Record<string, string> = {
+  professores_email_key: "E-mail já cadastrado",
+  professores_matricula_key: "Matrícula já cadastrada",
+};
+
+const uniqueConstraintIndex = (error: Prisma.PrismaClientKnownRequestError) => {
+  const adapterError = error.meta?.driverAdapterError as
+    | { cause?: { constraint?: { index?: string } } }
+    | undefined;
+  return adapterError?.cause?.constraint?.index;
+};
+
+export const errorMiddleware: ErrorRequestHandler = (
+  error: unknown,
+  _request,
+  response,
+  _next,
+) => {
   if (error instanceof ZodError) {
     response.status(400).json({
       erro: "Dados inválidos",
-      detalhes: error.issues.map(({ path, message }) => ({ campo: path.join("."), mensagem: message })),
+      detalhes: error.issues.map(({ path, message }) => ({
+        campo: path.join("."),
+        mensagem: message,
+      })),
     });
     return;
   }
@@ -15,14 +35,21 @@ export const errorMiddleware: ErrorRequestHandler = (error: unknown, _request, r
     response.status(error.status).json({ erro: error.message });
     return;
   }
-  if (error instanceof Prisma.PrismaClientInitializationError ||
-    (error instanceof Prisma.PrismaClientKnownRequestError && ["P1001", "P1002", "P1017"].includes(error.code))) {
+  if (
+    error instanceof Prisma.PrismaClientInitializationError ||
+    (error instanceof Prisma.PrismaClientKnownRequestError &&
+      ["P1001", "P1002", "P1017"].includes(error.code))
+  ) {
     response.status(503).json({ erro: "Serviço temporariamente indisponível" });
     return;
   }
   if (error instanceof Prisma.PrismaClientKnownRequestError) {
     if (error.code === "P2002") {
-      response.status(409).json({ erro: "E-mail já cadastrado" });
+      response.status(409).json({
+        erro:
+          uniqueConstraintMessages[uniqueConstraintIndex(error) ?? ""] ??
+          "Registro já cadastrado",
+      });
       return;
     }
     if (error.code === "P2025") {
@@ -30,11 +57,17 @@ export const errorMiddleware: ErrorRequestHandler = (error: unknown, _request, r
       return;
     }
     if (error.code === "P2003") {
-      response.status(409).json({ erro: "Registro possui vínculos que impedem a operação" });
+      response
+        .status(409)
+        .json({ erro: "Registro possui vínculos que impedem a operação" });
       return;
     }
   }
-  if (error instanceof SyntaxError && "status" in error && error.status === 400) {
+  if (
+    error instanceof SyntaxError &&
+    "status" in error &&
+    error.status === 400
+  ) {
     response.status(400).json({ erro: "JSON inválido" });
     return;
   }

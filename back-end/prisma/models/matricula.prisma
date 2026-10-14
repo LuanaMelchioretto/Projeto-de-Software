@@ -1,0 +1,11 @@
+model Matricula {
+  id      Int   @id @default(autoincrement())
+  alunoId Int   @map("aluno_id")
+  aluno   Aluno @relation(fields: [alunoId], references: [id], onDelete: Cascade)
+  turmaId Int   @map("turma_id")
+  turma   Turma @relation(fields: [turmaId], references: [id], onDelete: Cascade)
+
+  @@unique([alunoId, turmaId])
+  @@index([turmaId])
+  @@map("matriculas")
+}

@@ -1,0 +1,11 @@
+model AvaliacaoQuestao {
+  avaliacaoId Int       @map("avaliacao_id")
+  avaliacao   Avaliacao @relation(fields: [avaliacaoId], references: [id], onDelete: Cascade)
+  questaoId   Int       @map("questao_id")
+  questao     Questao   @relation(fields: [questaoId], references: [id], onDelete: Restrict)
+  ordem       Int
+
+  @@id([avaliacaoId, questaoId])
+  @@index([questaoId])
+  @@map("avaliacao_questoes")
+}

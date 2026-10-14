@@ -1,0 +1,9 @@
+model Disciplina {
+  id       Int       @id @default(autoincrement())
+  nome     String    @db.VarChar(100)
+  codigo   String    @unique @db.VarChar(20)
+  turmas   Turma[]
+  questoes Questao[]
+
+  @@map("disciplinas")
+}

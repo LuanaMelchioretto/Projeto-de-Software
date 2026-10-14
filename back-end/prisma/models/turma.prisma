@@ -1,0 +1,15 @@
+model Turma {
+  id           Int              @id @default(autoincrement())
+  professorId  Int              @map("professor_id")
+  professor    Professor        @relation(fields: [professorId], references: [id], onDelete: Restrict)
+  disciplinaId Int              @map("disciplina_id")
+  disciplina   Disciplina       @relation(fields: [disciplinaId], references: [id], onDelete: Restrict)
+  nome         String           @db.VarChar(100)
+  semestre     String           @db.VarChar(10)
+  matriculas   Matricula[]
+  aplicacoes   AplicacaoProva[]
+
+  @@index([professorId])
+  @@index([disciplinaId])
+  @@map("turmas")
+}
