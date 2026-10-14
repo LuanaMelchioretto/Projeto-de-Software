@@ -36,6 +36,10 @@
   - [2.1 Funcionais (RF)](#21-funcionais-rf)
   - [2.2 Não Funcionais (RNF)](#22-não-funcionais-rnf)
 - [3. Modelagem (UML)](#3-modelagem-uml)
+  - [3.1 Diagrama de Casos de Uso](#31-diagrama-de-casos-de-uso)
+  - [3.2 Diagrama de Classes](#32-diagrama-de-classes)
+  - [3.3 Diagrama de Sequência](#33-diagrama-de-sequência)
+  - [3.4 Diagrama de Atividades](#34-diagrama-de-atividades)
 - [4. Telas do Sistema](#4-telas-do-sistema)
 - [5. Decisões Arquiteturais (ADRs)](#5-decisões-arquiteturais-adrs)
 - [6. Modelo de Dados](#6-modelo-de-dados)
@@ -122,11 +126,15 @@ Métricas sugeridas para avaliar a facilidade de uso e a confiabilidade do siste
 
 Os diagramas existentes representam o domínio e os fluxos previstos para o PROVA+.
 
+### 3.1 Diagrama de Casos de Uso
+
 ![Diagrama de Casos de Uso](docs/uml/Caso%20de%20Uso/Diagrama%20de%20caso%20de%20uso%20e%20passo%20a%20passo.jpg)
 
 O diagrama de casos de uso mostra as ações do professor para preparar avaliações, corrigir provas e consultar resultados, além da consulta da nota pelo aluno após a liberação.
 
 Passo a passo e decisões de modelagem: [documentação dos casos de uso](docs/uml/Caso%20de%20Uso/Documenta%C3%A7%C3%A3o%20do%20Passo%20a%20Passo%20e%20Decis%C3%B5es%20de%20Modelagem%20%28UML%20-%20Casos%20de%20Uso%29.docx).
+
+### 3.2 Diagrama de Classes
 
 ![Diagrama de Classes](docs/uml/Classes/Diagrama-de-classes.png)
 
@@ -134,11 +142,15 @@ O diagrama de classes descreve as entidades planejadas para o projeto e suas rel
 
 Documento de modelagem: [documentação do diagrama de classes](docs/uml/Classes/Documenta%C3%A7%C3%A3o%20de%20Modelagem.docx).
 
+### 3.3 Diagrama de Sequência
+
 ![Diagrama de Sequência](docs/uml/Sequ%C3%AAncia/diagrama%20de%20sequencia%20do%20sistema.png)
 
 O diagrama de sequência documenta as interações planejadas entre professor, front-end, API, serviço de QR code e banco de dados.
 
 Documento de apoio: [documentação do diagrama de sequência](docs/uml/Sequ%C3%AAncia/Diagrama%20de%20sequ%C3%AAncia%20do%20sistema.docx).
+
+### 3.4 Diagrama de Atividades
 
 ![Diagrama de Atividades](docs/uml/Atividade/Diagrama-de-atividade-Correcao-de-Prova.png)
 
