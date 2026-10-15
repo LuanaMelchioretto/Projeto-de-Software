@@ -1,0 +1,14 @@
+model Avaliacao {
+  id                     Int                @id @default(autoincrement())
+  professorId            Int                @map("professor_id")
+  professor              Professor          @relation(fields: [professorId], references: [id], onDelete: Restrict)
+  titulo                 String             @db.VarChar(150)
+  embaralharQuestoes     Boolean            @default(false) @map("embaralhar_questoes")
+  embaralharAlternativas Boolean            @default(false) @map("embaralhar_alternativas")
+  dataCriacao            DateTime           @default(now()) @map("data_criacao")
+  questoes               AvaliacaoQuestao[]
+  aplicacoes             AplicacaoProva[]
+
+  @@index([professorId])
+  @@map("avaliacoes")
+}

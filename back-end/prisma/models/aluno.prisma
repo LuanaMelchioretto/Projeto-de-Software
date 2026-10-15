@@ -1,0 +1,9 @@
+model Aluno {
+  id           Int           @id @default(autoincrement())
+  nome         String        @db.VarChar(100)
+  matricula    String        @unique @db.VarChar(50)
+  matriculas   Matricula[]
+  versoesProva VersaoProva[]
+
+  @@map("alunos")
+}

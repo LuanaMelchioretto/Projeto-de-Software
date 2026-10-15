@@ -1,0 +1,13 @@
+model AplicacaoProva {
+  id            Int           @id @default(autoincrement())
+  avaliacaoId   Int           @map("avaliacao_id")
+  avaliacao     Avaliacao     @relation(fields: [avaliacaoId], references: [id], onDelete: Restrict)
+  turmaId       Int           @map("turma_id")
+  turma         Turma         @relation(fields: [turmaId], references: [id], onDelete: Restrict)
+  dataAplicacao DateTime      @default(now()) @map("data_aplicacao")
+  versoes       VersaoProva[]
+
+  @@index([avaliacaoId])
+  @@index([turmaId])
+  @@map("aplicacoes_prova")
+}

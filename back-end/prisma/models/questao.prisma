@@ -1,0 +1,16 @@
+model Questao {
+  id           Int                @id @default(autoincrement())
+  professorId  Int                @map("professor_id")
+  professor    Professor          @relation(fields: [professorId], references: [id], onDelete: Restrict)
+  disciplinaId Int                @map("disciplina_id")
+  disciplina   Disciplina         @relation(fields: [disciplinaId], references: [id], onDelete: Restrict)
+  enunciado    String             @db.Text
+  dataCriacao  DateTime           @default(now()) @map("data_criacao")
+  alternativas Alternativa[]
+  avaliacoes   AvaliacaoQuestao[]
+  respostas    RespostaAluno[]
+
+  @@index([professorId])
+  @@index([disciplinaId])
+  @@map("questoes")
+}

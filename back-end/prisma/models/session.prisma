@@ -1,0 +1,11 @@
+model Session {
+  jti         String    @id @db.VarChar(36)
+  professorId Int       @map("professor_id")
+  professor   Professor @relation(fields: [professorId], references: [id], onDelete: Cascade)
+  expiresAt   DateTime  @map("expira_em")
+  revokedAt   DateTime? @map("revogada_em")
+  createdAt   DateTime  @default(now()) @map("criada_em")
+
+  @@index([professorId])
+  @@map("sessoes")
+}

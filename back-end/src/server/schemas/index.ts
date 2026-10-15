@@ -1,1 +1,2 @@
-export * as usersSchemas from "./users";
+export * as professoresSchemas from "./professores";
+export * as authSchemas from "./auth";

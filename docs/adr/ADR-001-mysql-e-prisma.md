@@ -16,4 +16,3 @@ O sistema precisa persistir dados estruturados e permitir que cada integrante da
 
 - **Benefícios:** as migrações permitem reproduzir a estrutura do banco; o Prisma Client oferece acesso tipado aos dados; restrições como a unicidade do e-mail são aplicadas pelo banco.
 - **Custos:** executar a API localmente exige MySQL disponível e um `.env` configurado. Alterações nos modelos exigem criar, revisar e aplicar uma migração.
-- **Limite atual:** somente `User` está persistido. Turmas, questões, avaliações e correções ainda precisarão de modelos e migrações próprios.
