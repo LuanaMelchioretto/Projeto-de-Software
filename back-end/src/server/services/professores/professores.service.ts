@@ -1,6 +1,13 @@
+import bcrypt from "bcryptjs";
 import { ApiError, hashPassword } from "../../lib";
 import { professoresRepository } from "../../repositories";
 import { professoresSchemas } from "../../schemas";
+
+const requireOwnAccount = (idInput: unknown, actorId: number): number => {
+  const id = professoresSchemas.professorIdSchema.parse(idInput);
+  if (id !== actorId) throw new ApiError(403, "Acesso não permitido");
+  return id;
+};
 
 export const create = async (input: unknown) => {
   const { nome, email, senha, matricula } =
@@ -20,8 +27,8 @@ export const getAll = async (input: unknown, professorId: number) => {
   return { data, total, page, limit };
 };
 
-export const getById = async (input: unknown) => {
-  const id = professoresSchemas.professorIdSchema.parse(input);
+export const getById = async (input: unknown, actorId: number) => {
+  const id = requireOwnAccount(input, actorId);
 
   const professor = await professoresRepository.findById(id);
 
@@ -30,29 +37,35 @@ export const getById = async (input: unknown) => {
   return professor;
 };
 
-export const updateById = async (idInput: unknown, input: unknown) => {
-  const id = professoresSchemas.professorIdSchema.parse(idInput);
-  const { nome, email, senha, matricula } =
+export const updateById = async (idInput: unknown, input: unknown, actorId: number) => {
+  const id = requireOwnAccount(idInput, actorId);
+  const { nome, matricula } =
     professoresSchemas.updateProfessorSchema.parse(input);
 
   const data: {
     nome?: string;
-    email?: string;
-    senhaHash?: string;
     matricula?: string;
   } = {};
 
   if (nome !== undefined) data.nome = nome;
-  if (email !== undefined) data.email = email;
   if (matricula !== undefined) data.matricula = matricula;
-  if (senha !== undefined) {
-    data.senhaHash = await hashPassword(senha);
-  }
-
-  return professoresRepository.updateById(id, data, senha !== undefined);
+  return professoresRepository.updateById(id, data);
 };
 
-export const deleteById = async (input: unknown): Promise<void> => {
-  const id = professoresSchemas.professorIdSchema.parse(input);
-  await professoresRepository.deleteById(id);
+export const changePassword = async (idInput: unknown, input: unknown, actorId: number): Promise<void> => {
+  const id = requireOwnAccount(idInput, actorId);
+  const { senhaAtual, novaSenha } = professoresSchemas.changePasswordSchema.parse(input);
+  const credentials = await professoresRepository.findCredentialsById(id);
+  
+  if (!credentials || credentials.status !== 1 || !(await bcrypt.compare(senhaAtual, credentials.senhaHash))) {
+    throw new ApiError(400, "Senha atual incorreta");
+  }
+  
+  const changed = await professoresRepository.changePassword(id, credentials.senhaHash, await hashPassword(novaSenha));
+  if (!changed) throw new ApiError(401, "Credenciais alteradas. Entre novamente");
+};
+
+export const deactivateById = async (input: unknown, actorId: number): Promise<void> => {
+  const id = requireOwnAccount(input, actorId);
+  await professoresRepository.updateById(id, { status: 0 }, true);
 };

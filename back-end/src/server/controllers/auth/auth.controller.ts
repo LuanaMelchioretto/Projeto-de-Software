@@ -22,6 +22,16 @@ export const login = async (request: Request, response: Response): Promise<void>
   response.set("Cache-Control", "no-store").json({ user, expiresAt });
 };
 
+export const forgotPassword = async (request: Request, response: Response): Promise<void> => {
+  await authService.forgotPassword(request.body);
+  response.set("Cache-Control", "no-store").status(202).json({ mensagem: "Se houver uma conta ativa com este e-mail, enviaremos um link para redefinir a senha." });
+};
+
+export const resetPassword = async (request: Request, response: Response): Promise<void> => {
+  await authService.resetPassword(request.body);
+  response.set("Cache-Control", "no-store").status(204).send();
+};
+
 export const refresh = async (_request: Request, response: Response): Promise<void> => {
   const { token, user, expiresAt } = await authService.refresh(
     response.locals.authUser.id,
