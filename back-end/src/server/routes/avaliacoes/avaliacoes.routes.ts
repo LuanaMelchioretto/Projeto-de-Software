@@ -5,8 +5,10 @@ const avaliacoesRoutes = Router();
 
 avaliacoesRoutes.post('/', avaliacoesController.criar);
 avaliacoesRoutes.get('/', avaliacoesController.listar);
-
-// --- NOVA ROTA GET COM PARÂMETRO ID ---
 avaliacoesRoutes.get('/:id', avaliacoesController.buscarPorId);
+
+// --- NOVAS ROTAS PUT E DELETE ---
+avaliacoesRoutes.put('/:id', avaliacoesController.atualizar);
+avaliacoesRoutes.delete('/:id', avaliacoesController.excluir);
 
 export { avaliacoesRoutes };
