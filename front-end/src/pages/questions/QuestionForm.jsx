@@ -7,7 +7,7 @@ import { OPTION_LABELS } from "./questionUtils";
 const MIN_OPTIONS = 2;
 const MAX_OPTIONS = OPTION_LABELS.length;
 
-export default function QuestionForm({ question, onPreview, onCancel }) {
+export default function QuestionForm({ question, onSave, onCancel }) {
   const [draft, setDraft] = useState(() => ({
     text: question?.text ?? "",
     options: question ? [...question.options] : OPTION_LABELS.map(() => ""),
@@ -15,6 +15,7 @@ export default function QuestionForm({ question, onPreview, onCancel }) {
     image: question?.image ? { ...question.image } : null,
   }));
 
+  const [errors, setErrors] = useState([]);
   const optionsList = useRef(null);
   const optionToFocus = useRef(null);
 
@@ -59,14 +60,50 @@ export default function QuestionForm({ question, onPreview, onCancel }) {
       noValidate
       onSubmit={(event) => {
         event.preventDefault();
-        onPreview();
+        const nextErrors = [];
+
+        if (!draft.text.trim()) {
+          nextErrors.push("Informe o enunciado da questão.");
+        }
+
+        if (draft.options.some((option) => !option.trim())) {
+          nextErrors.push("Preencha todas as alternativas ou remova as que não utilizar.");
+        }
+
+        if (
+          draft.answer === null ||
+          draft.answer < 0 ||
+          draft.answer >= draft.options.length
+        ) {
+          nextErrors.push("Marque a alternativa correta.");
+        }
+
+        if (nextErrors.length > 0) {
+          setErrors(nextErrors);
+          return;
+        }
+
+        setErrors([]);
+        onSave({
+          text: draft.text.trim(),
+          options: draft.options.map((option) => option.trim()),
+          answer: draft.answer,
+          image: draft.image,
+        });
       }}
     >
       <header className="question-form-header">
         <h2 id="question-form-title">{question ? "Editar questão" : "Nova questão"}</h2>
         <p>Preencha o enunciado, defina as alternativas e marque a única resposta correta.</p>
-        <p>Formulário demonstrativo: os dados preenchidos não serão salvos.</p>
       </header>
+
+      {errors.length > 0 && (
+        <div className="question-validation-errors" role="alert">
+          <ul>
+            {errors.map((error) => <li key={error}>{error}</li>)}
+          </ul>
+        </div>
+      )}
 
       <div className="question-field">
         <label htmlFor="question-text">Enunciado</label>

@@ -11,7 +11,30 @@ import "./QuestionsPage.css";
 
 export const PAGE_SIZE = 25;
 
-export default function QuestionsPage({ questions = demoQuestions }) {
+const QUESTIONS_STORAGE_KEY = "prova-mais-questions";
+
+export default function QuestionsPage(props) {
+  const usesDemoQuestions = props.questions === undefined;
+
+  const [questions, setQuestions] = useState(() => {
+    if (usesDemoQuestions && typeof window !== "undefined") {
+      try {
+        const stored = window.localStorage.getItem(QUESTIONS_STORAGE_KEY);
+        if (stored !== null) {
+          const parsed = JSON.parse(stored);
+          if (Array.isArray(parsed)) return parsed;
+        }
+      } catch (error) {
+        console.warn("N?o foi poss?vel carregar as quest?es salvas.", error);
+      }
+    }
+
+    return (props.questions ?? demoQuestions).map((question) => ({
+      ...question,
+      options: [...question.options],
+    }));
+  });
+
   const [search, setSearch] = useState("");
   const [page, setPage] = useState(1);
   const [editor, setEditor] = useState(null);
@@ -29,6 +52,16 @@ export default function QuestionsPage({ questions = demoQuestions }) {
   const bankIsEmpty = questions.length === 0;
   const searchFoundNothing = !bankIsEmpty && filteredQuestions.length === 0;
   const showList = !bankIsEmpty && !searchFoundNothing;
+
+  useEffect(() => {
+    if (!usesDemoQuestions || typeof window === "undefined") return;
+
+    try {
+      window.localStorage.setItem(QUESTIONS_STORAGE_KEY, JSON.stringify(questions));
+    } catch (error) {
+      console.warn("N?o foi poss?vel persistir as quest?es neste navegador.", error);
+    }
+  }, [questions, usesDemoQuestions]);
 
   useEffect(() => {
     if (!editor && shouldRestoreFocus.current) {
@@ -62,11 +95,56 @@ export default function QuestionsPage({ questions = demoQuestions }) {
     setExpandedId(expandedId === questionId ? null : questionId);
   }
 
-  function finishPreview() {
-    showFeedback(editor.question
-      ? "Edição demonstrativa concluída. Nenhuma alteração foi salva."
-      : "Cadastro demonstrativo concluído. Nenhuma questão foi salva.");
+  function saveQuestion(draft) {
+    if (editor.question) {
+      setQuestions((current) =>
+        current.map((question) =>
+          question.id === editor.question.id
+            ? { ...question, ...draft, id: question.id }
+            : question
+        )
+      );
+      showFeedback("Altera??es salvas com sucesso.");
+    } else {
+      setQuestions((current) => {
+        const nextId = current.reduce(
+          (maxId, question) => Math.max(maxId, Number(question.id) || 0),
+          0
+        ) + 1;
+
+        return [...current, { ...draft, id: nextId }];
+      });
+      setSearch("");
+      setPage(1);
+      showFeedback("Quest?o cadastrada com sucesso.");
+    }
+
+    setExpandedId(null);
     setEditor(null);
+  }
+
+
+  function deleteQuestion(question) {
+    const confirmed = window.confirm(
+      `Deseja excluir a questao ${question.id}?`
+    );
+
+    if (!confirmed) return;
+
+    setQuestions((current) =>
+      current.filter((item) => item.id !== question.id)
+    );
+
+    setExpandedId((current) =>
+      current === question.id ? null : current
+    );
+
+    setEditor((current) =>
+      current?.question?.id === question.id ? null : current
+    );
+
+    setPage(1);
+    showFeedback("Questao excluida com sucesso.");
   }
 
   return (
@@ -92,7 +170,7 @@ export default function QuestionsPage({ questions = demoQuestions }) {
       )}
 
       {editor ? (
-        <QuestionForm question={editor.question} onPreview={finishPreview} onCancel={closeEditor} />
+        <QuestionForm question={editor.question} onSave={saveQuestion} onCancel={closeEditor} />
       ) : (
         <>
           <SearchToolbar
@@ -115,6 +193,7 @@ export default function QuestionsPage({ questions = demoQuestions }) {
                     expanded={expandedId === question.id}
                     onToggle={() => toggleExpanded(question.id)}
                     onEdit={() => openEditor(question)}
+                    onDelete={() => deleteQuestion(question)}
                   />
                 ))}
               </div>

@@ -1,8 +1,8 @@
 import React from "react";
-import { CheckCircle2, ChevronUp, Eye, ImageIcon, Pencil } from "lucide-react";
+import { CheckCircle2, ChevronUp, Eye, ImageIcon, Pencil, Trash2 } from "lucide-react";
 import { buildStatementPreview, isCompactOptionList, OPTION_LABELS } from "./questionUtils";
 
-export default function QuestionCard({ question, expanded = false, onToggle, onEdit }) {
+export default function QuestionCard({ question, expanded = false, onToggle, onEdit, onDelete }) {
   const detailsId = `question-${question.id}-details`;
   const preview = buildStatementPreview(question.text);
   const hasTags = Boolean(question.image || question.topic || question.difficulty);
@@ -62,6 +62,15 @@ export default function QuestionCard({ question, expanded = false, onToggle, onE
             aria-label={`Editar questão ${question.id}`}
           >
             <Pencil size={15} aria-hidden="true" /> Editar
+          </button>
+
+          <button
+            type="button"
+            className="secondary"
+            onClick={onDelete}
+            aria-label={`Excluir quest?o ${question.id}`}
+          >
+            <Trash2 size={15} aria-hidden="true" /> Excluir
           </button>
         </div>
       </footer>
