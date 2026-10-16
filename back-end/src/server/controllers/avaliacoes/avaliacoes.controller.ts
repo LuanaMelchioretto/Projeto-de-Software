@@ -6,9 +6,7 @@ class AvaliacoesController {
   async criar(req: Request, res: Response) {
     try {
       const { titulo, embaralharQuestoes, embaralharAlternativas, questoes } = req.body;
-      const professorId = 1; 
-
-      const novaAvaliacao = await AvaliacaoService.criarAvaliacao(professorId, {
+      const novaAvaliacao = await AvaliacaoService.criarAvaliacao(1, {
         titulo, embaralharQuestoes, embaralharAlternativas, questoes
       });
       return res.status(201).json(novaAvaliacao);
@@ -19,24 +17,42 @@ class AvaliacoesController {
 
   async listar(req: Request, res: Response) {
     try {
-      const professorId = 1; 
-      const avaliacoes = await AvaliacaoService.listarAvaliacoes(professorId);
+      const avaliacoes = await AvaliacaoService.listarAvaliacoes(1);
       return res.status(200).json(avaliacoes);
     } catch (error: any) {
       return res.status(500).json({ error: 'Erro ao buscar as avaliações.' });
     }
   }
 
-  // --- NOVO MÉTODO PARA BUSCAR DETALHES POR ID ---
   async buscarPorId(req: Request, res: Response) {
     try {
-      const { id } = req.params;
-      const professorId = 1; // Temporário até ter login
-
-      const avaliacao = await AvaliacaoService.buscarPorId(id, professorId);
+      const avaliacao = await AvaliacaoService.buscarPorId(req.params.id, 1);
       return res.status(200).json(avaliacao);
     } catch (error: any) {
       return res.status(404).json({ error: error.message });
+    }
+  }
+
+  // --- NOVAS FUNÇÕES: ATUALIZAR E EXCLUIR ---
+
+  async atualizar(req: Request, res: Response) {
+    try {
+      const { titulo, embaralharQuestoes, embaralharAlternativas, questoes } = req.body;
+      const avaliacaoAtualizada = await AvaliacaoService.atualizarAvaliacao(req.params.id, 1, {
+        titulo, embaralharQuestoes, embaralharAlternativas, questoes
+      });
+      return res.status(200).json(avaliacaoAtualizada);
+    } catch (error: any) {
+      return res.status(400).json({ error: error.message });
+    }
+  }
+
+  async excluir(req: Request, res: Response) {
+    try {
+      const resultado = await AvaliacaoService.excluirAvaliacao(req.params.id, 1);
+      return res.status(200).json(resultado);
+    } catch (error: any) {
+      return res.status(400).json({ error: error.message });
     }
   }
 }
