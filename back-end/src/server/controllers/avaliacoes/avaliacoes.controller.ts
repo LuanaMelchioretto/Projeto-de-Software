@@ -5,13 +5,9 @@ class AvaliacoesController {
   
   async criar(req: Request, res: Response) {
     try {
-      // Recebe os dados exatos que o seu Front-end enviou
       const { titulo, embaralharQuestoes, embaralharAlternativas, questoes } = req.body;
-
-      // TODO: Temporário. Quando o sistema de login estiver pronto, pegaremos o ID real do professor autenticado.
       const professorId = 1; 
 
-      // Manda os dados para o Service validar e salvar na base de dados
       const novaAvaliacao = await AvaliacaoService.criarAvaliacao(professorId, {
         titulo,
         embaralharQuestoes,
@@ -19,12 +15,22 @@ class AvaliacoesController {
         questoes
       });
 
-      // Retorna sucesso (201 Created) para a sua tela!
       return res.status(201).json(novaAvaliacao);
 
     } catch (error: any) {
-      // Se o Service barrar alguma regra (ex: sem título), devolve o erro 400 para aparecer na sua tela
       return res.status(400).json({ error: error.message });
+    }
+  }
+
+  // --- NOVO MÉTODO PARA LISTAR AVALIAÇÕES ---
+  async listar(req: Request, res: Response) {
+    try {
+      const professorId = 1; 
+
+      const avaliacoes = await AvaliacaoService.listarAvaliacoes(professorId);
+      return res.status(200).json(avaliacoes);
+    } catch (error: any) {
+      return res.status(500).json({ error: 'Erro ao buscar as avaliações.' });
     }
   }
 
