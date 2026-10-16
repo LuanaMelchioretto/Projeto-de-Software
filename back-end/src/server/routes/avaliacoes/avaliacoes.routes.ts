@@ -3,10 +3,10 @@ import avaliacoesController from '../../controllers/avaliacoes/avaliacoes.contro
 
 const avaliacoesRoutes = Router();
 
-// Rota POST para criar uma nova avaliação
 avaliacoesRoutes.post('/', avaliacoesController.criar);
-
-// --- NOVA ROTA GET PARA LISTAR AVALIAÇÕES ---
 avaliacoesRoutes.get('/', avaliacoesController.listar);
+
+// --- NOVA ROTA GET COM PARÂMETRO ID ---
+avaliacoesRoutes.get('/:id', avaliacoesController.buscarPorId);
 
 export { avaliacoesRoutes };
