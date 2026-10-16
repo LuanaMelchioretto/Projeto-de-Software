@@ -1,15 +1,7 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { ArrowLeft, Search, Plus, Trash2, Check, Shuffle } from 'lucide-react';
 import PageTitle from '../../components/page-title/PageTitle';
-
-// Dados mockados de questões para seleção no banco
-const questoesBancoMock = [
-  { id: 'q1', enunciado: 'Qual comando é utilizado para inicializar um repositório Git?', disciplina: 'Engenharia de Software' },
-  { id: 'q2', enunciado: 'Em SQL, qual cláusula é utilizada para filtrar registros em uma consulta SELECT?', disciplina: 'Banco de Dados' },
-  { id: 'q3', enunciado: 'No React, qual Hook é utilizado para gerenciar estados locais em componentes funcionais?', disciplina: 'Desenvolvimento Web' },
-  { id: 'q4', enunciado: 'O que caracteriza uma arquitetura RESTful em relação às suas rotas?', disciplina: 'Arquitetura de Software' },
-];
 
 export default function NewAssessmentPage() {
   const navigate = useNavigate();
@@ -22,11 +14,31 @@ export default function NewAssessmentPage() {
   const [embaralharAlternativas, setEmbaralharAlternativas] = useState(false);
   const [mensagemSucesso, setMensagemSucesso] = useState(false);
   const [erroValidacao, setErroValidacao] = useState('');
+  
+  // Novo estado para guardar as questões que vêm do Back-end
+  const [bancoQuestoes, setBancoQuestoes] = useState([]);
+
+  // Busca as questões reais da API quando a tela abre
+  useEffect(() => {
+    const carregarQuestoes = async () => {
+      try {
+        // ATENÇÃO: Ajuste a URL abaixo para a porta que o seu back-end roda (ex: 3000, 3333 ou 8080)
+        const response = await fetch('http://localhost:3000/api/questoes'); 
+        if (response.ok) {
+          const dados = await response.json();
+          setBancoQuestoes(dados);
+        }
+      } catch (error) {
+        console.error('Erro ao buscar as questões do banco:', error);
+      }
+    };
+    carregarQuestoes();
+  }, []);
 
   // Filtra as questões do banco pelo termo de busca
-  const questoesFiltradas = questoesBancoMock.filter((q) =>
+  const questoesFiltradas = bancoQuestoes.filter((q) =>
     q.enunciado.toLowerCase().includes(searchTerm.toLowerCase()) ||
-    q.disciplina.toLowerCase().includes(searchTerm.toLowerCase())
+    (q.disciplina && q.disciplina.toLowerCase().includes(searchTerm.toLowerCase()))
   );
 
   // Adiciona uma questão à seleção
@@ -41,8 +53,8 @@ export default function NewAssessmentPage() {
     setQuestoesSelecionadas(questoesSelecionadas.filter((q) => q.id !== id));
   };
 
-  // Salva a avaliação com validação
-  const handleSalvar = (e) => {
+  // Salva a avaliação com validação (Agora conectado à API!)
+  const handleSalvar = async (e) => {
     e.preventDefault();
     setErroValidacao('');
 
@@ -56,10 +68,36 @@ export default function NewAssessmentPage() {
       return;
     }
 
-    setMensagemSucesso(true);
-    setTimeout(() => {
-      navigate('/avaliacoes');
-    }, 2000);
+    // Prepara o objeto exatamente como o nosso Service do Back-end espera
+    const payload = {
+      titulo,
+      embaralharQuestoes,
+      embaralharAlternativas,
+      questoes: questoesSelecionadas.map((q) => ({ questaoId: q.id }))
+    };
+
+    try {
+      // Dispara a requisição POST para salvar a prova
+      const response = await fetch('http://localhost:3000/api/avaliacoes', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(payload),
+      });
+
+      if (!response.ok) {
+        const errorData = await response.json();
+        throw new Error(errorData.error || 'Erro ao salvar avaliação no banco.');
+      }
+
+      // Deu tudo certo!
+      setMensagemSucesso(true);
+      setTimeout(() => {
+        navigate('/avaliacoes');
+      }, 2000);
+
+    } catch (error) {
+      setErroValidacao(error.message);
+    }
   };
 
   return (
@@ -67,7 +105,6 @@ export default function NewAssessmentPage() {
       <PageTitle title="Nova avaliação" />
       {typeof window !== 'undefined' && !window.navigator.userAgent.includes('Node.js') && (
         <>
-      {/* Botão Voltar */}
       <button
         onClick={() => navigate('/avaliacoes')}
         style={{ display: 'flex', alignItems: 'center', gap: '6px', background: 'none', border: 'none', cursor: 'pointer', color: '#4b5563', marginBottom: '16px', fontSize: '14px' }}
@@ -77,14 +114,12 @@ export default function NewAssessmentPage() {
 
       <h2 style={{ fontSize: '24px', fontWeight: 'bold', marginBottom: '24px' }}>Nova Avaliação</h2>
 
-      {/* Alerta de Sucesso */}
       {mensagemSucesso && (
         <div style={{ backgroundColor: '#dcfce7', color: '#15803d', padding: '12px 16px', borderRadius: '6px', marginBottom: '20px', display: 'flex', alignItems: 'center', gap: '8px' }}>
           <Check size={18} /> Avaliação salva com sucesso! Redirecionando...
         </div>
       )}
 
-      {/* Alerta de Erro */}
       {erroValidacao && (
         <div style={{ backgroundColor: '#fee2e2', color: '#b91c1c', padding: '12px 16px', borderRadius: '6px', marginBottom: '20px' }}>
           {erroValidacao}
@@ -174,7 +209,7 @@ export default function NewAssessmentPage() {
               return (
                 <div key={q.id} style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '12px 16px', border: '1px solid #e5e7eb', borderRadius: '6px', backgroundColor: selecionada ? '#f3f4f6' : '#fff' }}>
                   <div>
-                    <span style={{ fontSize: '11px', textTransform: 'uppercase', color: '#2563eb', fontWeight: 'bold' }}>{q.disciplina}</span>
+                    <span style={{ fontSize: '11px', textTransform: 'uppercase', color: '#2563eb', fontWeight: 'bold' }}>{q.disciplina || 'Sem disciplina'}</span>
                     <p style={{ margin: '4px 0 0 0', fontSize: '14px', color: '#1f2937' }}>{q.enunciado}</p>
                   </div>
                   <button
