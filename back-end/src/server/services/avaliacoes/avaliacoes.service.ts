@@ -47,6 +47,20 @@ export class AvaliacaoService {
 
     return novaAvaliacao;
   }
+
+  // --- NOVO MÉTODO PARA LISTAR AVALIAÇÕES ---
+  async listarAvaliacoes(professorId: number) {
+    const avaliacoes = await prisma.avaliacao.findMany({
+      where: { professorId },
+      include: {
+        questoes: true, 
+        aplicacoes: true 
+      },
+      orderBy: { dataCriacao: 'desc' } 
+    });
+    
+    return avaliacoes;
+  }
 }
 
 export default new AvaliacaoService();
