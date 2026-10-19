@@ -74,3 +74,9 @@
   margin-top: 18px;
   font-size: 10px;
 }
+
+.login-error {
+  color: #b4232d !important;
+  text-align: left !important;
+  margin: 0 0 15px !important;
+}

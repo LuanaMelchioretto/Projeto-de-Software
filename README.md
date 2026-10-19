@@ -6,43 +6,50 @@
 
 **Links do sistema hospedado:** [Netlify](https://provaplus.netlify.app/) | [GitHub Pages](https://luanamelchioretto.github.io/Projeto-de-Software/)
 
-![Node.js](https://img.shields.io/badge/Node.js-339933?style=for-the-badge&logo=nodedotjs&logoColor=white)
-![Express](https://img.shields.io/badge/Express-000000?style=for-the-badge&logo=express&logoColor=white)
-![MySQL](https://img.shields.io/badge/MySQL-4479A1?style=for-the-badge&logo=mysql&logoColor=white)
+![Node.js](docs/logos/nodejs.svg)
+![Express](docs/logos/express.svg)
+![MySQL](docs/logos/mysql.svg)
 ![Git](https://img.shields.io/badge/Git-F05032?style=for-the-badge&logo=git&logoColor=white)
 ![GitHub](https://img.shields.io/badge/GitHub-181717?style=for-the-badge&logo=github&logoColor=white)
 
 ![Status](https://img.shields.io/badge/status-em%20desenvolvimento-F5A623?style=flat-square)
-![Entrega](https://img.shields.io/badge/entrega%20atual-N1-3D348B?style=flat-square)
+![Entrega](https://img.shields.io/badge/entrega%20atual-N2-3D348B?style=flat-square)
 ![Licenca](https://img.shields.io/badge/licenca-uso%20academico-7B4FA6?style=flat-square)
 
 </div>
 
 ## Equipe
 
-| Nome completo | Papel / principais frentes no projeto |
-|---|---|
-| CAMILA LORENZETTI | Telas de Turmas e Correção de Provas |
-| GUILHERME FRANCIEL MEIRING | Tela de Banco de Questões, build e testes no GitHub Actions e atualizar README |
-| LUAN FERREIRA DO AMARAL | Tela de Relatórios e conteúdo do Dashboard |
-| LUANA MELCHIORETTO | Tela Login e de Resultado da Correção, revisão da navegação e documentação das telas para a entrega |
-| MATHEUS RECK SCHÄFFER | Telas de Avaliações, Nova Avaliação, Detalhes da Avaliação e Provas Geradas |
+| Nome completo              | Papel / principais frentes no projeto                                                                                                                                                                                                                                                                                      |
+| -------------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| CAMILA LORENZETTI          | Telas de Turmas e Correção de Provas; diagrama de sequência                                                                                                                                                                                                                                                                |
+| GUILHERME FRANCIEL MEIRING | Tela de Banco de Questões, build e testes no GitHub Actions, atualização do README e divisão das tarefas da equipe; configurar o back-end com Node.js, TypeScript, Express, MySQL e Prisma, incluindo os modelos e as migrações do banco; implementar o login, a sessão e o logout, protegendo as rotas do React e da API. |
+| LUAN FERREIRA DO AMARAL    | Tela de Relatórios, conteúdo do Dashboard e diagrama de atividades                                                                                                                                                                                                                                                         |
+| LUANA MELCHIORETTO         | Telas de Login e Resultado da Correção, revisão da navegação, documentação das telas e diagrama de casos de uso                                                                                                                                                                                                            |
+| MATHEUS RECK SCHÄFFER      | Telas de Avaliações, Nova Avaliação, Detalhes da Avaliação e Provas Geradas; diagrama de classes                                                                                                                                                                                                                           |
 
 ## Sumário
 
 - [1. Visão Geral](#1-visão-geral)
   - [1.1 Objetivo do Projeto](#11-objetivo-do-projeto)
-  - [1.2 Escopo da N1](#12-escopo-da-n1)
 - [2. Requisitos](#2-requisitos)
   - [2.1 Funcionais (RF)](#21-funcionais-rf)
   - [2.2 Não Funcionais (RNF)](#22-não-funcionais-rnf)
-- [3. Telas do Sistema](#3-telas-do-sistema)
-- [4. Arquitetura de Software](#4-arquitetura-de-software)
-- [5. Stack Tecnológica](#5-stack-tecnológica)
-- [6. Estrutura de Pastas](#6-estrutura-de-pastas)
-- [7. Como Executar o Projeto](#7-como-executar-o-projeto)
-- [8. Testes e Validações](#8-testes-e-validações)
-- [9. Equipe e Contribuições](#9-equipe-e-contribuições)
+- [3. Modelagem (UML)](#3-modelagem-uml)
+  - [3.1 Diagrama de Casos de Uso](#31-diagrama-de-casos-de-uso)
+  - [3.2 Diagrama de Classes](#32-diagrama-de-classes)
+  - [3.3 Diagrama de Sequência](#33-diagrama-de-sequência)
+  - [3.4 Diagrama de Atividades](#34-diagrama-de-atividades)
+- [4. Telas do Sistema](#4-telas-do-sistema)
+- [5. Decisões Arquiteturais (ADRs)](#5-decisões-arquiteturais-adrs)
+- [6. Modelo de Dados](#6-modelo-de-dados)
+- [7. Stack Tecnológica](#7-stack-tecnológica)
+- [8. Estrutura de Pastas](#8-estrutura-de-pastas)
+- [9. Como Executar o Projeto](#9-como-executar-o-projeto)
+  - [Front-end](#front-end)
+  - [Back-end e MySQL local](#back-end-e-mysql-local)
+- [10. Especificação da API](#10-especificação-da-api)
+- [11. Equipe e Contribuições](#11-equipe-e-contribuições)
 
 ---
 
@@ -56,137 +63,261 @@ O objetivo do projeto é automatizar a geração, identificação, correção e 
 
 A partir da entrevista com o cliente, o ponto mais importante é tornar a correção automatizada simples, rápida e confiável. Como melhorias desejadas, o cliente também citou estatísticas por questão, geração de relatórios de notas, prova individualizada por aluno e maior controle sobre o layout da prova gerada.
 
-### 1.2 Escopo da N1
-
-Na N1, o foco é entregar a primeira versão navegável do sistema, com telas principais construídas e conectadas entre si por navegação. A aplicação deve permitir que o cliente visualize o fluxo do sistema tomando forma, mesmo sem conexão real com banco de dados.
-
-Para esta fase, fazem parte do escopo:
-
-- criação das telas principais do sistema;
-- navegação entre as telas;
-- uso de dados estáticos/mock;
-- README v1 conforme o modelo da disciplina;
-- estrutura inicial do repositório;
-- publicação do sistema em serviço de hospedagem gratuito.
-
-Não fazem parte do escopo da N1:
-
-- conexão real com banco de dados;
-- autenticação real;
-- API completa;
-- correção automática real por leitura de imagem;
-- geração definitiva de arquivos de prova ou planilhas.
-
 ## 2. Requisitos
 
 ### 2.1 Funcionais (RF)
 
 Funcionalidades que o sistema deve oferecer ao professor para gerenciar turmas e questões, preparar provas e realizar correções. Cada requisito descreve uma ação específica.
 
-| Código | Prioridade | Requisito | Condição de aceitação |
-|---|---|---|---|
-| RF01 | Essencial | O sistema deve permitir ao professor autenticar-se. | Credenciais válidas dão acesso à área de gestão do professor. |
-| RF02 | Essencial | O sistema deve permitir ao professor cadastrar uma turma. | A turma recebe uma identificação para vínculo com aplicações de provas. |
-| RF03 | Essencial | O sistema deve permitir ao professor consultar suas turmas. | A consulta apresenta os dados das turmas cadastradas pelo professor. |
-| RF04 | Essencial | O sistema deve permitir ao professor editar os dados de uma turma. | A alteração preserva os vínculos com as aplicações existentes. |
-| RF05 | Essencial | O sistema deve permitir ao professor cadastrar uma questão objetiva. | O cadastro contém enunciado, alternativas e indicação de uma alternativa correta. |
-| RF06 | Essencial | O sistema deve permitir ao professor consultar o banco de questões. | A consulta apresenta as questões disponíveis para composição de provas. |
-| RF07 | Essencial | O sistema deve permitir ao professor editar uma questão cadastrada. | A alteração fica disponível para novas versões de provas, preservando versões já geradas. |
-| RF08 | Essencial | O sistema deve permitir ao professor criar uma prova. | A prova é composta por questões selecionadas do banco. |
-| RF09 | Essencial | O sistema deve permitir ao professor consultar suas provas. | A consulta apresenta as provas cadastradas e sua composição. |
-| RF10 | Essencial | O sistema deve permitir ao professor editar uma prova. | A composição pode ser alterada antes da geração de uma nova versão, preservando versões já aplicadas. |
-| RF11 | Essencial | O sistema deve permitir ao professor embaralhar a ordem das questões de uma prova. | Cada versão gerada mantém a correspondência entre a posição da questão e seu gabarito. |
-| RF12 | Essencial | O sistema deve permitir ao professor embaralhar a ordem das alternativas das questões. | Cada versão gerada mantém a alternativa correta associada à sua nova posição. |
-| RF13 | Essencial | O sistema deve permitir ao professor cadastrar uma aplicação de prova. | A aplicação vincula uma prova a uma turma. |
-| RF14 | Essencial | O sistema deve permitir ao professor vincular uma prova aplicada a um aluno. | A identificação informada na aplicação associa o aluno à sua versão da prova e à folha de respostas. |
-| RF15 | Essencial | O sistema deve permitir ao professor consultar as aplicações de provas. | A consulta apresenta a prova, a turma e a situação das correções de cada aplicação. |
-| RF16 | Essencial | O sistema deve permitir ao professor gerar a prova em DOCX. | O arquivo é editável no Word. Cada questão, com enunciado e alternativas, permanece inteira na mesma página. Cada exemplar possui número par de páginas, com uma página em branco ao final quando necessário para impressão frente e verso. |
-| RF17 | Essencial | O sistema deve permitir ao professor gerar uma folha de respostas separada da prova. | A folha contém os campos de marcação e um QR code associado à aplicação, à versão e ao gabarito correspondente, inclusive para provas preparadas fora do sistema. |
-| RF18 | Essencial | O sistema deve permitir ao professor ler o QR code da folha de respostas pela câmera. | A leitura identifica a aplicação, a versão e o gabarito usado na correção. |
-| RF19 | Essencial | O sistema deve permitir ao professor capturar as respostas marcadas na folha pela câmera. | A captura reconhece a alternativa marcada em cada questão e sinaliza marcações ambíguas ou ilegíveis. |
-| RF20 | Essencial | O sistema deve permitir ao professor solicitar a correção automática de uma folha de respostas. | As respostas reconhecidas são comparadas com o gabarito da versão identificada pelo QR code, sem necessidade de conferência manual de cada resposta válida. |
-| RF21 | Essencial | O sistema deve permitir ao professor consultar a nota de uma prova corrigida. | A nota é calculada automaticamente após a correção, com base nos acertos e na regra de pontuação da prova. A escala de notas e os pesos serão validados com o cliente. |
-| RF22 | Importante | O sistema deve permitir ao professor consultar as alternativas marcadas em uma prova corrigida. | O resultado conserva a resposta reconhecida para cada questão. |
-| RF23 | Importante | O sistema deve permitir ao professor consultar os acertos e erros de uma prova corrigida. | O resultado indica a situação de cada questão em relação ao gabarito correspondente. |
-| RF24 | Importante | O sistema deve permitir ao professor consultar o percentual de acertos por questão. | O percentual considera as provas corrigidas da aplicação e identifica a questão original, independentemente do embaralhamento. |
-| RF25 | Importante | O sistema deve permitir ao professor consultar a distribuição das respostas por alternativa. | A distribuição indica a alternativa mais assinalada de cada questão, considerando as alternativas originais antes do embaralhamento. |
-| RF26 | Importante | O sistema deve permitir ao professor exportar as notas em planilha Excel (.xlsx). | A planilha contém a identificação do aluno, a turma, a aplicação e a nota. |
-| RF27 | Importante | O sistema deve permitir ao professor exportar o detalhamento das respostas em planilha Excel (.xlsx). | A planilha contém a alternativa marcada e a indicação de acerto ou erro por questão de cada prova corrigida. |
-| RF28 | Importante | O sistema deve permitir ao professor liberar a visualização da nota ao aluno. | A nota permanece oculta na consulta até a liberação do professor; após a liberação, o link ou código individual dá acesso apenas à nota vinculada a ele. |
+| Código | Prioridade | Requisito                                                                                             | Condição de aceitação                                                                                                                                                                                                                       |
+| ------ | ---------- | ----------------------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| RF01   | Essencial  | O sistema deve permitir ao professor autenticar-se.                                                   | Credenciais válidas dão acesso à área de gestão do professor.                                                                                                                                                                               |
+| RF02   | Essencial  | O sistema deve permitir ao professor cadastrar uma turma.                                             | A turma recebe uma identificação para vínculo com aplicações de provas.                                                                                                                                                                     |
+| RF03   | Essencial  | O sistema deve permitir ao professor consultar suas turmas.                                           | A consulta apresenta os dados das turmas cadastradas pelo professor.                                                                                                                                                                        |
+| RF04   | Essencial  | O sistema deve permitir ao professor editar os dados de uma turma.                                    | A alteração preserva os vínculos com as aplicações existentes.                                                                                                                                                                              |
+| RF05   | Essencial  | O sistema deve permitir ao professor cadastrar uma questão objetiva.                                  | O cadastro contém enunciado, alternativas e indicação de uma alternativa correta.                                                                                                                                                           |
+| RF06   | Essencial  | O sistema deve permitir ao professor consultar o banco de questões.                                   | A consulta apresenta as questões disponíveis para composição de provas.                                                                                                                                                                     |
+| RF07   | Essencial  | O sistema deve permitir ao professor editar uma questão cadastrada.                                   | A alteração fica disponível para novas versões de provas, preservando versões já geradas.                                                                                                                                                   |
+| RF08   | Essencial  | O sistema deve permitir ao professor criar uma prova.                                                 | A prova é composta por questões selecionadas do banco.                                                                                                                                                                                      |
+| RF09   | Essencial  | O sistema deve permitir ao professor consultar suas provas.                                           | A consulta apresenta as provas cadastradas e sua composição.                                                                                                                                                                                |
+| RF10   | Essencial  | O sistema deve permitir ao professor editar uma prova.                                                | A composição pode ser alterada antes da geração de uma nova versão, preservando versões já aplicadas.                                                                                                                                       |
+| RF11   | Essencial  | O sistema deve permitir ao professor embaralhar a ordem das questões de uma prova.                    | Cada versão gerada mantém a correspondência entre a posição da questão e seu gabarito.                                                                                                                                                      |
+| RF12   | Essencial  | O sistema deve permitir ao professor embaralhar a ordem das alternativas das questões.                | Cada versão gerada mantém a alternativa correta associada à sua nova posição.                                                                                                                                                               |
+| RF13   | Essencial  | O sistema deve permitir ao professor cadastrar uma aplicação de prova.                                | A aplicação vincula uma prova a uma turma.                                                                                                                                                                                                  |
+| RF14   | Essencial  | O sistema deve permitir ao professor vincular uma prova aplicada a um aluno.                          | A identificação informada na aplicação associa o aluno à sua versão da prova e à folha de respostas.                                                                                                                                        |
+| RF15   | Essencial  | O sistema deve permitir ao professor consultar as aplicações de provas.                               | A consulta apresenta a prova, a turma e a situação das correções de cada aplicação.                                                                                                                                                         |
+| RF16   | Essencial  | O sistema deve permitir ao professor gerar a prova em DOCX.                                           | O arquivo é editável no Word. Cada questão, com enunciado e alternativas, permanece inteira na mesma página. Cada exemplar possui número par de páginas, com uma página em branco ao final quando necessário para impressão frente e verso. |
+| RF17   | Essencial  | O sistema deve permitir ao professor gerar uma folha de respostas separada da prova.                  | A folha contém os campos de marcação e um QR code associado à aplicação, à versão e ao gabarito correspondente, inclusive para provas preparadas fora do sistema.                                                                           |
+| RF18   | Essencial  | O sistema deve permitir ao professor ler o QR code da folha de respostas pela câmera.                 | A leitura identifica a aplicação, a versão e o gabarito usado na correção.                                                                                                                                                                  |
+| RF19   | Essencial  | O sistema deve permitir ao professor capturar as respostas marcadas na folha pela câmera.             | A captura reconhece a alternativa marcada em cada questão e sinaliza marcações ambíguas ou ilegíveis.                                                                                                                                       |
+| RF20   | Essencial  | O sistema deve permitir ao professor solicitar a correção automática de uma folha de respostas.       | As respostas reconhecidas são comparadas com o gabarito da versão identificada pelo QR code, sem necessidade de conferência manual de cada resposta válida.                                                                                 |
+| RF21   | Essencial  | O sistema deve permitir ao professor consultar a nota de uma prova corrigida.                         | A nota é calculada automaticamente após a correção, com base nos acertos e na regra de pontuação da prova. A escala de notas e os pesos serão validados com o cliente.                                                                      |
+| RF22   | Importante | O sistema deve permitir ao professor consultar as alternativas marcadas em uma prova corrigida.       | O resultado conserva a resposta reconhecida para cada questão.                                                                                                                                                                              |
+| RF23   | Importante | O sistema deve permitir ao professor consultar os acertos e erros de uma prova corrigida.             | O resultado indica a situação de cada questão em relação ao gabarito correspondente.                                                                                                                                                        |
+| RF24   | Importante | O sistema deve permitir ao professor consultar o percentual de acertos por questão.                   | O percentual considera as provas corrigidas da aplicação e identifica a questão original, independentemente do embaralhamento.                                                                                                              |
+| RF25   | Importante | O sistema deve permitir ao professor consultar a distribuição das respostas por alternativa.          | A distribuição indica a alternativa mais assinalada de cada questão, considerando as alternativas originais antes do embaralhamento.                                                                                                        |
+| RF26   | Importante | O sistema deve permitir ao professor exportar as notas em planilha Excel (.xlsx).                     | A planilha contém a identificação do aluno, a turma, a aplicação e a nota.                                                                                                                                                                  |
+| RF27   | Importante | O sistema deve permitir ao professor exportar o detalhamento das respostas em planilha Excel (.xlsx). | A planilha contém a alternativa marcada e a indicação de acerto ou erro por questão de cada prova corrigida.                                                                                                                                |
+| RF28   | Importante | O sistema deve permitir ao professor liberar a visualização da nota ao aluno.                         | A nota permanece oculta na consulta até a liberação do professor; após a liberação, o link ou código individual dá acesso apenas à nota vinculada a ele.                                                                                    |
 
 **Funcionalidades candidatas, dependentes de validação:**
 
-| Código | Prioridade | Requisito proposto | Pendência |
-|---|---|---|---|
-| RF29 | Desejável | O sistema deve permitir ao professor inserir uma imagem em uma questão. | Confirmar a necessidade, os formatos e os limites de tamanho, inclusive na geração do DOCX. |
-| RF30 | Desejável | O sistema deve permitir ao professor importar uma lista de alunos de uma planilha Excel. | Confirmar a necessidade e definir o modelo da planilha e sua associação à turma. |
-| RF31 | Desejável | O sistema deve permitir ao professor gerar exemplares de prova com o nome do aluno impresso. | Confirmar a necessidade de personalização dos cadernos, além da identificação usada na correção. |
-| RF32 | Desejável | O sistema deve permitir ao professor consultar um dashboard de resultados. | Validar os indicadores da proposta apresentada pela equipe; a exportação em planilha já está prevista nos RF26 e RF27. |
+| Código | Prioridade | Requisito proposto                                                                           | Pendência                                                                                                              |
+| ------ | ---------- | -------------------------------------------------------------------------------------------- | ---------------------------------------------------------------------------------------------------------------------- |
+| RF29   | Desejável  | O sistema deve permitir ao professor inserir uma imagem em uma questão.                      | Confirmar a necessidade, os formatos e os limites de tamanho, inclusive na geração do DOCX.                            |
+| RF30   | Desejável  | O sistema deve permitir ao professor importar uma lista de alunos de uma planilha Excel.     | Confirmar a necessidade e definir o modelo da planilha e sua associação à turma.                                       |
+| RF31   | Desejável  | O sistema deve permitir ao professor gerar exemplares de prova com o nome do aluno impresso. | Confirmar a necessidade de personalização dos cadernos, além da identificação usada na correção.                       |
+| RF32   | Desejável  | O sistema deve permitir ao professor consultar um dashboard de resultados.                   | Validar os indicadores da proposta apresentada pela equipe; a exportação em planilha já está prevista nos RF26 e RF27. |
 
 ### 2.2 Não Funcionais (RNF)
 
 Métricas sugeridas para avaliar a facilidade de uso e a confiabilidade do sistema.
 
-| Código | Requisito | Métrica sugerida |
+| Código | Requisito                                                            | Métrica sugerida                                                                                                                                                     |
+| ------ | -------------------------------------------------------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| RNF01  | A navegação deve facilitar o acesso às telas principais.             | Acessar Turmas, Banco, Provas, Aplicações ou Gabarito em até 2 cliques pelo menu.                                                                                    |
+| RNF02  | A interface deve manter um padrão visual entre as telas.             | As 5 telas principais devem usar o mesmo padrão de cores, fontes e botões.                                                                                           |
+| RNF03  | A interface deve se adaptar ao computador e ao celular.              | Nenhum botão ou campo cortado em telas de 1280 px de largura no computador e 360 px no celular, considerando no celular a leitura por câmera e as consultas simples. |
+| RNF04  | O início da correção pelo celular deve exigir poucos passos.         | Abrir a câmera para leitura em até 3 toques a partir da tela da aplicação, com o professor conectado e a câmera autorizada.                                          |
+| RNF05  | O resultado da correção automática deve ser apresentado rapidamente. | Exibir o resultado em até 5 segundos após o reconhecimento válido do QR code e das respostas.                                                                        |
+| RNF06  | O sistema deve manter os resultados das correções corretos e salvos. | Em um teste com 10 provas, as 10 notas devem coincidir com a conferência manual e permanecer iguais após fechar e reabrir o sistema.                                 |
+
+## 3. Modelagem (UML)
+
+Os diagramas existentes representam o domínio e os fluxos previstos para o PROVA+.
+
+### 3.1 Diagrama de Casos de Uso
+
+![Diagrama de Casos de Uso](docs/uml/Caso%20de%20Uso/Diagrama%20de%20caso%20de%20uso%20e%20passo%20a%20passo.jpg)
+
+O diagrama de casos de uso mostra as ações do professor para preparar avaliações, corrigir provas e consultar resultados, além da consulta da nota pelo aluno após a liberação.
+
+Passo a passo e decisões de modelagem: [documentação dos casos de uso](docs/uml/Caso%20de%20Uso/Documenta%C3%A7%C3%A3o%20do%20Passo%20a%20Passo%20e%20Decis%C3%B5es%20de%20Modelagem%20%28UML%20-%20Casos%20de%20Uso%29.docx).
+
+### 3.2 Diagrama de Classes
+
+![Diagrama de Classes](docs/uml/Classes/Diagrama-de-classes.png)
+
+O diagrama de classes descreve as entidades planejadas para o projeto e suas relações: professor, questão, alternativa, avaliação e prova gerada.
+
+Documento de modelagem: [documentação do diagrama de classes](docs/uml/Classes/Documenta%C3%A7%C3%A3o%20de%20Modelagem.docx).
+
+### 3.3 Diagrama de Sequência
+
+![Diagrama de Sequência](docs/uml/Sequ%C3%AAncia/diagrama%20de%20sequencia%20do%20sistema.png)
+
+O diagrama de sequência documenta as interações planejadas entre professor, front-end, API, serviço de QR code e banco de dados.
+
+Documento de apoio: [documentação do diagrama de sequência](docs/uml/Sequ%C3%AAncia/Diagrama%20de%20sequ%C3%AAncia%20do%20sistema.docx).
+
+### 3.4 Diagrama de Atividades
+
+![Diagrama de Atividades](docs/uml/Atividade/Diagrama-de-atividade-Correcao-de-Prova.png)
+
+O diagrama de atividades mostra o fluxo planejado de correção por QR code, incluindo a validação da prova, a conferência de marcações ambíguas e a apresentação do resultado ao professor.
+
+Passo a passo: [documentação do diagrama de atividades](docs/uml/Atividade/Documentacao-Diagrama-de-Atividade.md).
+
+## 4. Telas do Sistema
+
+![Tela de login](docs/telas/tela-login.jpg)
+_Tela de login: Apresenta os campos de e-mail e senha e leva ao dashboard; a autenticação ainda é demonstrativa._
+
+![Dashboard](docs/telas/tela-dashboard.jpg)
+_Dashboard: Resume indicadores e oferece atalhos para as áreas principais._
+
+![Turmas](docs/telas/tela-turma.jpg)
+_Turmas: Lista e pesquisa as turmas cadastradas na sessão._
+
+![Cadastro de turma](docs/telas/tela-cadastrar-turma.jpg)
+_Cadastro de turma: Abre o formulário para criar uma turma a partir da listagem._
+
+![Banco de questões](docs/telas/tela-banco-questao.jpg)
+_Banco de questões: Exibe as questões disponíveis e abre os formulários de cadastro e edição._
+
+![Cadastro de questão, parte superior](docs/telas/tela-cadastro-questao-parte-de-cima.jpg)
+_Cadastro de questão, parte superior: Apresenta os dados iniciais da nova questão._
+
+![Cadastro de questão, parte inferior](docs/telas/tela-cadastro-questao-parte-de-baixo.jpg)
+_Cadastro de questão, parte inferior: Permite preencher alternativas e pré-visualizar a questão._
+
+![Edição de questão, parte superior](docs/telas/tela-editar-questao-parte-de-cima.jpg)
+_Edição de questão, parte superior: Carrega uma questão do banco para edição demonstrativa._
+
+![Edição de questão, parte inferior](docs/telas/tela-editar-questao-parte-de-baixo.jpg)
+_Edição de questão, parte inferior: Mostra as alternativas e ações finais da edição demonstrativa._
+
+![Avaliações](docs/telas/tela-avaliacao.jpg)
+_Avaliações: Lista as avaliações e leva à criação ou aos detalhes de uma avaliação._
+
+![Cadastro de avaliação, parte superior](docs/telas/tela-cadastro-avaliacao-parte-de-cima.jpg)
+_Cadastro de avaliação, parte superior: Inicia a composição de uma nova avaliação._
+
+![Cadastro de avaliação, parte inferior](docs/telas/tela-cadastro-avaliacao-parte-de-baixo.jpg)
+_Cadastro de avaliação, parte inferior: Mostra a seleção de questões e as opções de embaralhamento._
+
+![Detalhes da avaliação](docs/telas/tela-detalhe-avaliacao.jpg)
+_Detalhes da avaliação: Exibe questões, gabarito e o acesso à geração da prova._
+
+![Gerar avaliação](docs/telas/tela-gerar-avaliacao.jpg)
+_Gerar avaliação: Mostra a prévia da prova e da folha de respostas; o download é simulado._
+
+![Correção de prova](docs/telas/tela-correca-prova.jpg)
+_Correção de prova: Seleciona uma avaliação demonstrativa e inicia o fluxo de leitura._
+
+![Escanear QR code](docs/telas/tela-escanear-qrcode.jpg)
+_Escanear QR code: Apresenta a etapa simulada de leitura do QR code da folha._
+
+![Confirmação da prova identificada](docs/telas/tela-confirmacao-resultado-avaliacao.jpg)
+_Confirmação da prova identificada: Confirma o modelo e o gabarito antes de abrir o resultado._
+
+![Resultado da correção, parte superior](docs/telas/tela-resultado-avaliacao-parte-de-cima.jpg)
+_Resultado da correção, parte superior: Mostra aluno, nota, acertos e controle de liberação._
+
+![Resultado da correção, parte inferior](docs/telas/tela-resultado-avaliacao-parte-de-baixo.jpg)
+_Resultado da correção, parte inferior: Detalha as respostas e permite percorrer outras correções demonstrativas._
+
+![Relatório, parte superior](docs/telas/tela-relatorio-parte-de-cima.jpg)
+_Relatório, parte superior: Filtra turma e avaliação e resume os indicadores._
+
+![Relatório, parte inferior](docs/telas/tela-relatorio-parte-de-baixo.jpg)
+_Relatório, parte inferior: Apresenta resultados por aluno e ações demonstrativas de exportação._
+
+## 5. Decisões Arquiteturais (ADRs)
+
+Cada ADR registra o contexto, a decisão e suas consequências. As decisões documentadas até agora são:
+
+- [ADR-001: MySQL e Prisma para persistência](docs/adr/ADR-001-mysql-e-prisma.md)
+- [ADR-002: Organização da API em camadas](docs/adr/ADR-002-organizacao-em-camadas.md)
+- [ADR-003: Autenticação com JWT em cookie e sessão no banco](docs/adr/ADR-003-autenticacao-e-sessao.md)
+
+## 6. Modelo de Dados
+
+Diagrama MER/DER do banco de dados, exportado como imagem e salvo em `docs/modelo-dados/`:
+
+![Modelo Entidade-Relacionamento](docs/modelo-dados/DiagramaMER-DER.png)
+
+### Dicionário de Dados
+
+**Tabela: professores**
+| Campo | Tipo | Descrição |
 |---|---|---|
-| RNF01 | A navegação deve facilitar o acesso às telas principais. | Acessar Turmas, Banco, Provas, Aplicações ou Gabarito em até 2 cliques pelo menu. |
-| RNF02 | A interface deve manter um padrão visual entre as telas. | As 5 telas principais devem usar o mesmo padrão de cores, fontes e botões. |
-| RNF03 | A interface deve se adaptar ao computador e ao celular. | Nenhum botão ou campo cortado em telas de 1280 px de largura no computador e 360 px no celular, considerando no celular a leitura por câmera e as consultas simples. |
-| RNF04 | O início da correção pelo celular deve exigir poucos passos. | Abrir a câmera para leitura em até 3 toques a partir da tela da aplicação, com o professor conectado e a câmera autorizada. |
-| RNF05 | O resultado da correção automática deve ser apresentado rapidamente. | Exibir o resultado em até 5 segundos após o reconhecimento válido do QR code e das respostas. |
-| RNF06 | O sistema deve manter os resultados das correções corretos e salvos. | Em um teste com 10 provas, as 10 notas devem coincidir com a conferência manual e permanecer iguais após fechar e reabrir o sistema. |
+| id | INT (PK) | Identificador único do professor |
+| nome | VARCHAR(100) | Nome completo do professor |
+| email | VARCHAR(100) | E-mail de acesso ao sistema |
+| matricula | VARCHAR(50) | Matrícula institucional única |
 
-## 3. Telas do Sistema
+**Tabela: avaliacoes**
+| Campo | Tipo | Descrição |
+|---|---|---|
+| id | INT (PK) | Identificador único da prova |
+| professor_id | INT (FK) | Relacionamento com o professor criador |
+| titulo | VARCHAR(150) | Título descritivo da avaliação |
+| embaralhar_questoes | BOOLEAN | Flag para randomização de questões |
 
-As telas ainda serão prototipadas e adicionadas em [docs/telas/](docs/telas/).
+**Tabela: versoes_prova**
+| Campo | Tipo | Descrição |
+|---|---|---|
+| id | INT (PK) | Identificador da folha de prova física |
+| aplicacao_id | INT (FK) | Relacionamento com a aplicação da turma |
+| qr_code_hash | VARCHAR(255) | Hash único lido pelo app mobile no QR Code |
 
-## 4. Arquitetura de Software
+**Tabela: resultados_aluno**
+| Campo | Tipo | Descrição |
+|---|---|---|
+| id | INT (PK) | Identificador do resultado |
+| versao_prova_id | INT (FK) | Relacionamento com a prova única do aluno |
+| nota_final | DECIMAL(4,2)| Nota calculada pela correção automática |
+| total_acertos | INT | Quantidade de alternativas corretas assinaladas |
 
-O front-end está organizado por responsabilidade: `main.jsx` inicializa o React e o roteador; `App.jsx` compõe a aplicação; `routes/` define os endereços; `layouts/` contém a estrutura de navegação; e `pages/` reúne as telas por área do sistema.
+## 7. Stack Tecnológica
 
-Os componentes compartilhados ficam em `components/`, os dados demonstrativos em `mocks/` e os estilos específicos acompanham a página ou componente. `styles/` concentra as regras globais e as variáveis visuais. Por enquanto, as páginas internas exibem somente títulos; os componentes, estilos e mocks existentes permanecem disponíveis para a construção das telas. O login mantém sua interface demonstrativa.
+Stack obrigatória da disciplina:
 
-As rotas internas são renderizadas por `<Outlet />` no layout. Avaliações usam `/avaliacoes/:id` e `/avaliacoes/:id/gerar`, com tratamento para identificadores inexistentes. O login é uma tela demonstrativa e não protege as rotas.
+![Node.js](docs/logos/nodejs.svg) ![Express](docs/logos/express.svg) ![MySQL](docs/logos/mysql.svg)
 
-Quando a API for implementada, as chamadas HTTP serão organizadas em `services/` no front-end. Hooks próprios serão extraídos conforme houver lógica reutilizável. O back-end seguirá a estrutura prevista:
+| Tecnologia  | Uso e motivo da escolha                                                             |
+| ----------- | ----------------------------------------------------------------------------------- |
+| **Node.js** | Executa a API e os scripts do projeto com JavaScript no servidor.                   |
+| **Express** | Organiza as rotas HTTP e as respostas da API REST.                                  |
+| **MySQL**   | Armazena dados relacionais, como os usuários da API.                                |
+| React       | Constrói a interface a partir de componentes reutilizáveis.                         |
+| Vite        | Oferece servidor de desenvolvimento e gera o build do front-end.                    |
+| TypeScript  | Adiciona tipos ao back-end para detectar inconsistências durante o desenvolvimento. |
+| Prisma      | Definem os modelos, versionam migrações e conectam a API ao MySQL.                  |
+| Zod 4       | Valida os dados recebidos pela API e as variáveis de ambiente.                      |
+| bcryptjs    | Gera o hash das senhas antes de armazená-las.                                       |
+| dotenv      | Carrega as configurações locais do arquivo `.env`.                                  |
+| cors        | Configura as origens de front-end aceitas pelo navegador nas chamadas à API.        |
 
-```text
-rota -> controle -> serviço -> repositório -> model
-```
+## 8. Estrutura de Pastas
 
-O diagrama de arquitetura será salvo em `docs/arquitetura/`.
-
-
-## 5. Stack Tecnológica
-
-O front-end implementado utiliza React, React Router, Vite e Lucide React para os ícones.
-Stack prevista para o back-end, conforme padrão da disciplina:
-
-![Node.js](https://img.shields.io/badge/Node.js-339933?style=flat-square&logo=nodedotjs&logoColor=white)
-![Express](https://img.shields.io/badge/Express-000000?style=flat-square&logo=express&logoColor=white)
-![MySQL](https://img.shields.io/badge/MySQL-4479A1?style=flat-square&logo=mysql&logoColor=white)
-
-- **Node.js**: ambiente de execução do back-end.
-- **Express**: framework para criação das rotas e da API REST.
-- **MySQL**: banco de dados relacional para armazenar usuários, alunos, questões, provas, respostas e correções.
-- **Git e GitHub**: versionamento do código e colaboração entre os integrantes da equipe.
-
-Outras bibliotecas poderão ser adicionadas conforme o projeto evoluir, como autenticação, geração de arquivos, leitura de QR code e exportação de planilhas.
-
-## 6. Estrutura de Pastas
-
-Estrutura atual do projeto:
+Visão resumida da estrutura atual:
 
 ```text
 Projeto-de-Software/
-│
-├── .github/
-│   └── workflows/
-│       └── ...
-│
+├── .github/workflows/           # automatiza testes, build e publicação do front-end
 ├── back-end/
-│   └── ...
-│
+│   ├── compose.yaml             # configura o MySQL local em Docker
+│   ├── prisma/
+│   │   ├── models/               # define os modelos persistidos
+│   │   ├── migrations/           # versiona as alterações do banco de dados
+│   │   ├── schema.prisma         # configura o Prisma Client e o banco MySQL
+│   │   └── seed.ts               # cria a conta local configurada no .env
+│   ├── src/
+│   │   ├── index.ts              # conecta ao banco e inicia a API
+│   │   └── server/
+│   │       ├── config/           # lê e valida as variáveis de ambiente
+│   │       ├── controllers/      # recebem requisições e enviam respostas
+│   │       ├── lib/              # reúne recursos compartilhados de banco, senhas e erros da API
+│   │       ├── middleware/       # executa etapas entre a requisição e a resposta, como tratar erros
+│   │       ├── repositories/     # consulta e grava dados com o Prisma
+│   │       ├── routes/           # define endpoints e chama os controllers
+│   │       ├── schemas/          # valida os dados de entrada
+│   │       └── services/         # regras de negócio
+│   ├── tests/
+│   ├── .env.example              # mostra as variáveis de ambientesnecessárias à API
+│   └── package.json             # lista scripts e dependências do back-end
 ├── docs/
 │   ├── adr/
 │   ├── api/
@@ -194,131 +325,110 @@ Projeto-de-Software/
 │   ├── modelo-dados/
 │   ├── telas/
 │   └── uml/
-│
 ├── front-end/
-│   │
 │   ├── src/
-│   │   ├── components/
-│   │   │   ├── brand/
-│   │   │   ├── button/
-│   │   │   ├── card/
-│   │   │   ├── empty-state/
-│   │   │   ├── feedback/
-│   │   │   ├── image-field/
-│   │   │   ├── page-title/
-│   │   │   ├── pagination/
-│   │   │   └── search-field/
-│   │   │
-│   │   ├── layouts/
-│   │   │   ├── AppLayout.jsx
-│   │   │   ├── AppLayout.css
-│   │   │   ├── Sidebar.jsx
-│   │   │   └── Topbar.jsx
-│   │   │
-│   │   ├── mocks/
-│   │   │   ├── assessments.js
-│   │   │   ├── classes.js
-│   │   │   ├── corrections.js
-│   │   │   ├── dashboard.js
-│   │   │   ├── questions.js
-│   │   │   ├── reports.js
-│   │   │   └── students.js
-│   │   │
-│   │   ├── pages/
-│   │   │   ├── assessments/
-│   │   │   ├── auth/
-│   │   │   ├── classes/
-│   │   │   ├── corrections/
-│   │   │   ├── dashboard/
-│   │   │   ├── questions/
-│   │   │   ├── reports/
-│   │   │   └── NotFoundPage.jsx
-│   │   │
-│   │   ├── routes/
-│   │   ├── styles/
+│   │   ├── components/          # componentes reutilizáveis
+│   │   ├── layouts/             # navegação e layout
+│   │   ├── mocks/               # dados demonstrativos
+│   │   ├── pages/               # telas
+│   │   ├── routes/              # rotas React Router
+│   │   ├── styles/              # estilos globais
 │   │   ├── App.jsx
 │   │   └── main.jsx
-│   │
 │   ├── tests/
-│   │
-│   ├── index.html
-│   ├── package.json
-│   ├── package-lock.json
-│   └── .gitignore
-│
-├── .gitignore
-├── README.md
-└── package-lock.json
+│   └── package.json
+└── README.md
 ```
 
-Componentes usados por várias telas ficam em `components/`; os exclusivos de uma área ficam próximos das suas páginas. Os arquivos JSX usam nomes em PascalCase, páginas recebem o sufixo `Page` e cada componente é exportado em seu próprio arquivo. Os endereços continuam em português.
+## 9. Como Executar o Projeto
 
-A organização prevista para o back-end continua sendo `src/routes/`, `controllers/`, `services/`, `repositories/` e `models/`.
+Pré-requisitos: Git, Node.js **24.x** com npm e, para o back-end, Docker Desktop em execução com containers Linux. O front-end usa React 18 e Vite 6; o back-end usa Express 5, Prisma 7 e MySQL 8.4. Confira as versões locais com `git --version`, `node --version`, `npm --version` e `docker compose version`.
 
-## 7. Como Executar o Projeto
+1. Clone o repositório:
 
-Pré-requisitos: Node.js e npm instalados.
+   ```bash
+   git clone https://github.com/LuanaMelchioretto/Projeto-de-Software.git
+   ```
 
-Com o repositório clonado, execute a partir da raiz do projeto:
+2. Entre na pasta do projeto:
 
-```sh
-cd front-end
-npm ci
-npm run dev
-```
+   ```bash
+   cd Projeto-de-Software
+   ```
 
-Abra o endereço exibido no terminal, normalmente `http://localhost:5173`. Mantenha o terminal aberto enquanto estiver usando a aplicação e pressione `Ctrl+C` para encerrar o servidor.
+3. Instale as dependências do front-end e inicie a interface:
 
-A versão atual usa dados mock e não requer back-end, banco de dados ou arquivo `.env`.
+   ```bash
+   cd front-end
+   npm ci
+   npm run dev
+   ```
 
-Para gerar o build de produção e visualizá-lo localmente, execute dentro de `front-end/`:
+   Use `npm ci` para instalar as versões do `package-lock.json`. Se estiver trabalhando sem o lockfile, use `npm install`.
 
-```sh
+4. Abra o endereço exibido pelo Vite, normalmente `http://localhost:5173`. Para entrar no sistema, a API também precisa estar em execução: siga os passos abaixo em outro terminal a partir da raiz do repositório.
+
+### Front-end
+
+O front-end chama a API no endereço de `VITE_API_URL`, definido em `front-end/.env` a partir de `front-end/.env.example`; sem esse arquivo, usa `http://localhost:3000`. Para gerar e visualizar o build localmente, execute em `front-end/`:
+
+```bash
 npm run build
 npm run preview
 ```
 
-O build é gerado em `front-end/dist/`. O comando de preview exibe no terminal o endereço para acesso, normalmente `http://localhost:4173`.
+O build fica em `front-end/dist/`; o preview normalmente abre em `http://localhost:4173`.
 
-### CI/CD e hospedagem na Netlify
+### Back-end e MySQL local
 
-O GitHub Actions executa os testes e o build em pull requests para `main` e publica o front-end na Netlify após a validação de pushes na `main`. O pipeline considera alterações em `front-end/` e no workflow.
+Em outro terminal, a partir da raiz do repositório:
 
-## 8. Testes e Validações
+```powershell
+cd back-end
+npm ci
+Copy-Item .env.example .env
+```
 
-Para executar os testes atuais, use `npm test` dentro de `front-end/`. Eles verificam que as páginas internas exibem apenas seus títulos, preservam o layout, mantêm o formulário de login separado e tratam rotas e identificadores inexistentes. Os testes usam o executor nativo do Node.js e o Vite para carregar os componentes JSX.
+Edite `back-end/.env` antes de iniciar. O arquivo não é versionado. Em sistemas Unix, use `cp .env.example .env` no lugar de `Copy-Item`. As variáveis seguem os grupos do `.env.example`:
 
-Verifique também `npm run build` e navegue pelo menu para conferir os títulos e o recolhimento do menu. As páginas de nova avaliação, detalhes, geração e resultado da correção continuam acessíveis pelos seus endereços.
+| Variável                                                                         | Uso                                                                                                                                                                     |
+| -------------------------------------------------------------------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `PORT`                                                                           | Porta da API. Mantenha `3000`, onde o front-end procura a API.                                                                                                          |
+| `FRONTEND_ORIGINS`                                                               | Origens do front-end autorizadas a chamar a API, separadas por vírgula e sem barra no final. O exemplo libera o Vite em desenvolvimento (`5173`) e no preview (`4173`). |
+| `JWT_SECRET`                                                                     | Chave que assina o token da sessão guardado no cookie. Deve ter pelo menos 32 caracteres; troque o valor do exemplo por uma chave aleatória.                            |
+| `COOKIE_SECURE`                                                                  | `false` para usar a API em `http://localhost`. Use `true` só com HTTPS: o cookie passa a ser `Secure` e `SameSite=None`.                                                |
+| `MYSQL_ROOT_PASSWORD`, `DB_PASSWORD`                                             | Senhas dos usuários `root` e `provaplus` do MySQL criado pelo `compose.yaml`, que não sobe sem elas.                                                                    |
+| `DATABASE_URL`, `SHADOW_DATABASE_URL`                                            | Conexões com o banco `provaplus` e com o `provaplus_shadow`, que o `npm run db:migrate` usa para conferir as migrações. Use nelas a senha definida em `DB_PASSWORD`.    |
+| `SEED_USER_NAME`, `SEED_USER_EMAIL`, `SEED_USER_MATRICULA`, `SEED_USER_PASSWORD` | Dados do professor que o seed cria para entrar no sistema. A senha está vazia no exemplo e deve ter pelo menos 8 caracteres e no máximo 64 bytes em UTF-8.              |
 
-A versão atual é uma base de navegação. O login continua demonstrativo, sem autenticação real, e as demais páginas ainda não exibem formulários, tabelas, indicadores ou ações.
+Para gerar o `JWT_SECRET`, execute `node -e "console.log(require('node:crypto').randomBytes(32).toString('hex'))"`.
 
-Na evolução para a N3, os testes deverão validar os principais fluxos reais do sistema:
+Com o Docker Desktop aberto, execute em `back-end/`:
 
-- cadastro de questões;
-- geração de avaliações;
-- embaralhamento de questões e alternativas;
-- identificação correta da prova e do aluno;
-- cálculo de nota;
-- geração de estatísticas;
-- exportação de relatórios.
+```powershell
+npm run dev
+```
 
-Também deverão ser tratados casos de erro, como questão sem alternativa correta, folha de respostas sem identificação, aluno inexistente, avaliação inexistente e tentativa de exportar dados vazios.
+O comando sobe o MySQL, aplica as migrações, gera o Prisma Client, executa o seed da conta local e inicia a API. Para parar o banco sem apagar seus dados, execute `npm run db:stop` em `back-end/`.
 
+## 10. Especificação da API
 
-## 9. Equipe e Contribuições
+A tabela de endpoints está em [docs/api/especificacao.md](docs/api/especificacao.md).
+
+## 11. Equipe e Contribuições
 
 A divisão atual de tarefas segue a organização do quadro no Trello:
 
-- **CAMILA LORENZETTI**: criar a tela de Turmas e a tela de Correção de Provas.
-- **GUILHERME FRANCIEL MEIRING**: criar Tela de Banco de Questões, adicionar build e testes no GitHub Actions e atualizar README.
-- **LUAN FERREIRA DO AMARAL**: criar a tela de Relatórios e o conteúdo do Dashboard.
-- **LUANA MELCHIORETTO**: criar a tela de Login e Resultado da Correção, revisar a navegação e documentar as telas para a entrega.
-- **MATHEUS RECK SCHÄFFER**: criar as telas de Avaliações, Nova Avaliação, Detalhes da Avaliação e Provas Geradas.
+- **CAMILA LORENZETTI**: criar a tela de Turmas e a tela de Correção de Provas; elaborar o diagrama de sequência.
+- **GUILHERME FRANCIEL MEIRING**: criar a tela de Banco de Questões, adicionar build e testes no GitHub Actions, atualizar o README e dividir as tarefas da equipe; configurar o back-end com Node.js, TypeScript, Express, MySQL e Prisma, incluindo os modelos e as migrações do banco; implementar o login, a sessão e o logout, protegendo as rotas do React e da API.
+- **LUAN FERREIRA DO AMARAL**: criar a tela de Relatórios e o conteúdo do Dashboard; elaborar o diagrama de atividades.
+- **LUANA MELCHIORETTO**: criar a tela de Login e Resultado da Correção, revisar a navegação, documentar as telas para a entrega e elaborar o diagrama de casos de uso.
+- **MATHEUS RECK SCHÄFFER**: criar as telas de Avaliações, Nova Avaliação, Detalhes da Avaliação e Provas Geradas; elaborar o diagrama de classes.
 
 ---
 
 <div align="center">
 
-*README elaborado para a disciplina de Projeto e Arquitetura de Software*
+_README elaborado para a disciplina de Projeto e Arquitetura de Software_
 
 </div>

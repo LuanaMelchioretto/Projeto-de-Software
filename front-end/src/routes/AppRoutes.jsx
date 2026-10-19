@@ -1,5 +1,6 @@
 import React from "react";
-import { Route, Routes } from "react-router-dom";
+import { Navigate, Outlet, Route, Routes, useLocation } from "react-router-dom";
+import { useAuth } from "../auth/AuthContext";
 import AppLayout from "../layouts/AppLayout";
 import LoginPage from "../pages/auth/LoginPage";
 import DashboardPage from "../pages/dashboard/DashboardPage";
@@ -15,26 +16,37 @@ import CorrectionResultPage from "../pages/corrections/CorrectionResultPage";
 import ReportsPage from "../pages/reports/ReportsPage";
 import NotFoundPage from "../pages/NotFoundPage";
 
+function ProtectedRoutes() {
+  const { user, loading } = useAuth();
+  const location = useLocation();
+
+  if (loading) return <p role="status">Validando sessão...</p>;
+  
+  return user ? <Outlet /> : <Navigate to="/login" state={{ from: location }} replace />;
+}
+
 export default function AppRoutes() {
   return (
     <Routes>
       <Route path="/login" element={<LoginPage />} />
-      <Route element={<AppLayout />}>
-        <Route index element={<DashboardPage />} />
-        <Route path="questoes" element={<QuestionsPage />} />
-        <Route path="avaliacoes">
-          <Route index element={<AssessmentsPage />} />
-          <Route path="nova" element={<NewAssessmentPage />} />
-          <Route path=":id" element={<AssessmentRoute />}>
-            <Route index element={<AssessmentDetailPage />} />
-            <Route path="gerar" element={<GenerateAssessmentPage />} />
+      <Route element={<ProtectedRoutes />}>
+        <Route element={<AppLayout />}>
+          <Route index element={<DashboardPage />} />
+          <Route path="questoes" element={<QuestionsPage />} />
+          <Route path="avaliacoes">
+            <Route index element={<AssessmentsPage />} />
+            <Route path="nova" element={<NewAssessmentPage />} />
+            <Route path=":id" element={<AssessmentRoute />}>
+              <Route index element={<AssessmentDetailPage />} />
+              <Route path="gerar" element={<GenerateAssessmentPage />} />
+            </Route>
           </Route>
+          <Route path="turmas" element={<ClassesPage />} />
+          <Route path="correcoes" element={<CorrectionsPage />} />
+          <Route path="correcoes/resultado" element={<CorrectionResultPage />} />
+          <Route path="relatorios" element={<ReportsPage />} />
+          <Route path="*" element={<NotFoundPage />} />
         </Route>
-        <Route path="turmas" element={<ClassesPage />} />
-        <Route path="correcoes" element={<CorrectionsPage />} />
-        <Route path="correcoes/resultado" element={<CorrectionResultPage />} />
-        <Route path="relatorios" element={<ReportsPage />} />
-        <Route path="*" element={<NotFoundPage />} />
       </Route>
     </Routes>
   );

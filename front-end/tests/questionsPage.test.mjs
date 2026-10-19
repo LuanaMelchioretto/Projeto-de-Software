@@ -5,14 +5,33 @@ import { questions } from "../src/mocks/questions.js";
 import { installDom } from "./helpers/dom.js";
 import { createComponentServer } from "./helpers/vite.js";
 
-let dom, server, render, screen, within, waitFor, cleanup, userEvent, restoreDom;
+let dom,
+  server,
+  render,
+  screen,
+  within,
+  waitFor,
+  cleanup,
+  userEvent,
+  restoreDom;
+
 let QuestionsPage, PAGE_SIZE, App, MemoryRouter;
 
 before(async () => {
-  ({ dom, render, screen, within, waitFor, cleanup, userEvent, restore: restoreDom } =
-    await installDom("http://localhost/questoes"));
+  ({
+    dom,
+    render,
+    screen,
+    within,
+    waitFor,
+    cleanup,
+    userEvent,
+    restore: restoreDom,
+  } = await installDom("http://localhost/questoes"));
   server = await createComponentServer();
-  ({ default: QuestionsPage, PAGE_SIZE } = await server.ssrLoadModule("/src/pages/questions/QuestionsPage.jsx"));
+  ({ default: QuestionsPage, PAGE_SIZE } = await server.ssrLoadModule(
+    "/src/pages/questions/QuestionsPage.jsx",
+  ));
   App = (await server.ssrLoadModule("/src/App.jsx")).default;
   ({ MemoryRouter } = await server.ssrLoadModule("react-router-dom"));
 });
@@ -26,13 +45,21 @@ after(async () => {
 
 function setup(bank = questions) {
   render(React.createElement(QuestionsPage, { questions: bank }));
+
   return userEvent.setup({ document: dom.window.document });
 }
 
 test("exibe a lista demonstrativa com os controles ativos", () => {
   setup();
-  assert.ok(screen.getByRole("heading", { name: "Banco de questões", level: 1 }));
-  assert.equal(screen.getByRole("button", { name: "Nova questão" }).disabled, false);
+
+  assert.ok(
+    screen.getByRole("heading", { name: "Banco de questões", level: 1 }),
+  );
+  assert.equal(
+    screen.getByRole("button", { name: "Nova questão" }).disabled,
+    false,
+  );
+
   assert.equal(screen.getByRole("searchbox").disabled, false);
   assert.equal(screen.getAllByRole("article").length, questions.length);
   assert.equal(screen.queryByRole("form"), null);
@@ -41,28 +68,54 @@ test("exibe a lista demonstrativa com os controles ativos", () => {
 test("visualiza e recolhe o enunciado completo e suas alternativas", async () => {
   const longText = `${"Leia o texto com atenção. ".repeat(12)}Qual é a conclusão?`;
   const user = setup([{ ...questions[0], text: longText }]);
+
   assert.equal(screen.queryByText(longText), null);
 
-  await user.click(screen.getByRole("button", { name: "Visualizar questão 1" }));
+  await user.click(
+    screen.getByRole("button", { name: "Visualizar questão 1" }),
+  );
+
   assert.ok(screen.getByText(longText));
+
   const options = screen.getByRole("list", { name: "Alternativas da questão" });
-  assert.equal(within(options).getAllByRole("listitem").length, questions[0].options.length);
-  assert.match(within(options).getByText("Correta").closest("li").textContent, /Habeas data/);
+
+  assert.equal(
+    within(options).getAllByRole("listitem").length,
+    questions[0].options.length,
+  );
+  assert.match(
+    within(options).getByText("Correta").closest("li").textContent,
+    /Habeas data/,
+  );
 
   await user.click(screen.getByRole("button", { name: "Recolher questão 1" }));
-  assert.equal(screen.queryByRole("list", { name: "Alternativas da questão" }), null);
+
+  assert.equal(
+    screen.queryByRole("list", { name: "Alternativas da questão" }),
+    null,
+  );
 });
 
 test("abre e cancela o cadastro, descarta o rascunho e restaura o foco", async () => {
   const user = setup();
   await user.click(screen.getByRole("button", { name: "Nova questão" }));
+
   assert.ok(screen.getByRole("form", { name: "Nova questão" }));
-  await user.type(screen.getByRole("textbox", { name: "Enunciado" }), "Rascunho de uma questão.");
+
+  await user.type(
+    screen.getByRole("textbox", { name: "Enunciado" }),
+    "Rascunho de uma questão.",
+  );
   await user.click(screen.getByRole("button", { name: "Cancelar" }));
 
   assert.equal(screen.getAllByRole("article").length, questions.length);
-  assert.equal(document.activeElement, screen.getByRole("button", { name: "Nova questão" }));
+  assert.equal(
+    document.activeElement,
+    screen.getByRole("button", { name: "Nova questão" }),
+  );
+
   await user.click(screen.getByRole("button", { name: "Nova questão" }));
+
   assert.equal(screen.getByRole("textbox", { name: "Enunciado" }).value, "");
 });
 
@@ -110,69 +163,201 @@ test("cadastra uma nova questao valida na lista", async () => {
 test("busca sem acentos, mostra ausência de resultados e limpa o filtro", async () => {
   const user = setup();
   await user.type(screen.getByRole("searchbox"), "PRESCRICAO");
+
   assert.equal(screen.getAllByRole("article").length, 1);
   assert.ok(screen.getByText(questions[1].text));
+
   await user.click(screen.getByRole("button", { name: "Limpar busca" }));
+
   assert.equal(screen.getAllByRole("article").length, questions.length);
+
   await user.type(screen.getByRole("searchbox"), "inexistente");
-  assert.ok(screen.getByRole("heading", { name: "Nenhuma questão encontrada" }));
+
+  assert.ok(
+    screen.getByRole("heading", { name: "Nenhuma questão encontrada" }),
+  );
 });
 
 test("navega pela paginação, preserva a página ao cancelar e reinicia ao buscar", async () => {
   const bank = Array.from({ length: PAGE_SIZE + 2 }, (_, index) => ({
-    ...questions[0], id: index + 1, text: `Enunciado número ${index + 1}.`,
+    ...questions[0],
+    id: index + 1,
+    text: `Enunciado número ${index + 1}.`,
   }));
+
   const user = setup(bank);
   await user.click(screen.getByRole("button", { name: "Página 2" }));
+
   assert.equal(screen.getAllByRole("article").length, 2);
-  await user.click(screen.getByRole("button", { name: `Editar questão ${PAGE_SIZE + 1}` }));
+
+  await user.click(
+    screen.getByRole("button", { name: `Editar questão ${PAGE_SIZE + 1}` }),
+  );
   await user.click(screen.getByRole("button", { name: "Cancelar" }));
   assert.ok(screen.getByRole("article", { name: `Questão ${PAGE_SIZE + 1}` }));
 
   await user.type(screen.getByRole("searchbox"), "número 1.");
   assert.ok(screen.getByRole("article", { name: "Questão 1" }));
-  assert.equal(screen.queryByRole("navigation", { name: "Paginação do banco de questões" }), null);
+  assert.equal(
+    screen.queryByRole("navigation", {
+      name: "Paginação do banco de questões",
+    }),
+    null,
+  );
   await user.click(screen.getByRole("button", { name: "Limpar busca" }));
+
   assert.equal(screen.getAllByRole("article").length, PAGE_SIZE);
 });
 
 test("adiciona, remove e marca alternativas no formulário visual", async () => {
   const user = setup();
   await user.click(screen.getByRole("button", { name: "Nova questão" }));
-  assert.ok(screen.getByRole("button", { name: "Adicionar alternativa" }).disabled);
-  await user.click(screen.getByRole("radio", { name: "Marcar alternativa C como correta" }));
-  await user.click(screen.getByRole("button", { name: "Remover alternativa A" }));
-  assert.ok(screen.getByRole("radio", { name: "Marcar alternativa B como correta" }).checked);
 
-  await user.click(screen.getByRole("button", { name: "Adicionar alternativa" }));
+  assert.ok(
+    screen.getByRole("button", { name: "Adicionar alternativa" }).disabled,
+  );
+  await user.click(
+    screen.getByRole("radio", { name: "Marcar alternativa C como correta" }),
+  );
+  await user.click(
+    screen.getByRole("button", { name: "Remover alternativa A" }),
+  );
+  assert.ok(
+    screen.getByRole("radio", { name: "Marcar alternativa B como correta" })
+      .checked,
+  );
+
+  await user.click(
+    screen.getByRole("button", { name: "Adicionar alternativa" }),
+  );
+
   assert.equal(screen.getAllByRole("radio").length, 5);
-  assert.equal(document.activeElement, screen.getByRole("textbox", { name: "Alternativa E" }));
-  await user.click(screen.getByRole("button", { name: "Remover alternativa B" }));
-  assert.equal(screen.getAllByRole("radio").filter((radio) => radio.checked).length, 0);
-  await user.click(screen.getByRole("button", { name: "Remover alternativa D" }));
-  await user.click(screen.getByRole("button", { name: "Remover alternativa C" }));
+  assert.equal(
+    document.activeElement,
+    screen.getByRole("textbox", { name: "Alternativa E" }),
+  );
+  await user.click(
+    screen.getByRole("button", { name: "Remover alternativa B" }),
+  );
+  assert.equal(
+    screen.getAllByRole("radio").filter((radio) => radio.checked).length,
+    0,
+  );
+
+  await user.click(
+    screen.getByRole("button", { name: "Remover alternativa D" }),
+  );
+  await user.click(
+    screen.getByRole("button", { name: "Remover alternativa C" }),
+  );
+
   assert.equal(screen.getAllByRole("radio").length, 2);
-  assert.equal(screen.queryAllByRole("button", { name: /^Remover alternativa/ }).length, 0);
+  assert.equal(
+    screen.queryAllByRole("button", { name: /^Remover alternativa/ }).length,
+    0,
+  );
 });
 
 test("anexa e remove a prévia de imagem", async () => {
   const user = setup();
   await user.click(screen.getByRole("button", { name: "Nova questão" }));
-  const file = new dom.window.File(["imagem demonstrativa"], "grafico.png", { type: "image/png" });
+  const file = new dom.window.File(["imagem demonstrativa"], "grafico.png", {
+    type: "image/png",
+  });
+
   await user.upload(screen.getByLabelText("Imagem (opcional)"), file);
-  await waitFor(() => assert.ok(screen.getByRole("img", { name: "Pré-visualização da imagem anexada à questão" })));
+
+  await waitFor(() =>
+    assert.ok(
+      screen.getByRole("img", {
+        name: "Pré-visualização da imagem anexada à questão",
+      }),
+    ),
+  );
   await user.click(screen.getByRole("button", { name: "Remover imagem" }));
+
   assert.equal(screen.queryByRole("img"), null);
 });
 
 test("a rota de questões mantém as interações dentro do layout da aplicação", async () => {
-  render(React.createElement(MemoryRouter, { initialEntries: ["/questoes"] }, React.createElement(App)));
-  const user = userEvent.setup({ document: dom.window.document });
-  await user.click(screen.getByRole("button", { name: "Nova questão" }));
-  assert.ok(screen.getByRole("form", { name: "Nova questão" }));
-  await user.click(screen.getByRole("link", { name: "Turmas" }));
-  await user.click(screen.getByRole("link", { name: "Questões" }));
-  assert.equal(screen.getAllByRole("article").length, questions.length);
+  const originalFetch = globalThis.fetch;
+  globalThis.fetch = async () => ({
+    ok: true,
+    status: 200,
+    json: async () => ({
+      user: { id: 1, nome: "Ana", email: "ana@example.com", status: 1 },
+      expiresAt: Date.now() + 60_000,
+    }),
+  });
+  
+  try {
+    render(
+      React.createElement(
+        MemoryRouter,
+        { initialEntries: ["/questoes"] },
+        React.createElement(App),
+      ),
+    );
+
+    const user = userEvent.setup({ document: dom.window.document });
+    await user.click(
+      await screen.findByRole("button", { name: "Nova questão" }),
+    );
+
+    assert.ok(screen.getByRole("form", { name: "Nova questão" }));
+
+    await user.click(screen.getByRole("link", { name: "Turmas" }));
+    await user.click(screen.getByRole("link", { name: "Questões" }));
+    
+    assert.equal(screen.getAllByRole("article").length, questions.length);
+  } finally {
+    globalThis.fetch = originalFetch;
+  }
+});
+
+
+test("exclui uma questao apos confirmar", async () => {
+  const question = questions[0];
+  const user = setup([question]);
+  const originalConfirm = dom.window.confirm;
+  let confirmationMessage = "";
+
+  dom.window.confirm = (message) => {
+    confirmationMessage = message;
+    return true;
+  };
+
+  try {
+    await user.click(screen.getByRole("button", { name: /^Excluir quest/ }));
+
+    assert.match(confirmationMessage, /questao/i);
+    assert.equal(screen.queryAllByRole("article").length, 0);
+    assert.equal(screen.queryByText(question.text), null);
+  } finally {
+    dom.window.confirm = originalConfirm;
+  }
+});
+
+test("mantem a questao quando a exclusao e cancelada", async () => {
+  const question = questions[0];
+  const user = setup([question]);
+  const originalConfirm = dom.window.confirm;
+  let confirmationRequested = false;
+
+  dom.window.confirm = () => {
+    confirmationRequested = true;
+    return false;
+  };
+
+  try {
+    await user.click(screen.getByRole("button", { name: /^Excluir quest/ }));
+
+    assert.equal(confirmationRequested, true);
+    assert.equal(screen.getAllByRole("article").length, 1);
+    assert.ok(screen.getByText(question.text));
+  } finally {
+    dom.window.confirm = originalConfirm;
+  }
 });
 
 

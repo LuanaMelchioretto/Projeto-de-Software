@@ -1,0 +1,11 @@
+model Alternativa {
+  id        Int             @id @default(autoincrement())
+  questaoId Int             @map("questao_id")
+  questao   Questao         @relation(fields: [questaoId], references: [id], onDelete: Cascade)
+  texto     String          @db.Text
+  ehCorreta Boolean         @default(false) @map("eh_correta")
+  respostas RespostaAluno[]
+
+  @@index([questaoId])
+  @@map("alternativas")
+}

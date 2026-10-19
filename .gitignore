@@ -1,2 +1,21 @@
 .netlify/
 .npm-cache/
+
+# Dependencies
+node_modules/
+
+# Build output and test coverage
+dist/
+coverage/
+*.tsbuildinfo
+
+# Local environment variables
+.env
+.env.*
+!.env.example
+!.env.*.example
+
+# Logs and operating system files
+*.log
+.DS_Store
+Thumbs.db

@@ -1,0 +1,16 @@
+model Professor {
+  id           Int         @id @default(autoincrement())
+  nome         String      @db.VarChar(100)
+  email        String      @unique @db.VarChar(100)
+  senhaHash    String      @map("senha_hash") @db.VarChar(255)
+  matricula    String      @unique @db.VarChar(50)
+  status       Int         @default(1) @db.TinyInt
+  criadoEm     DateTime    @default(now()) @map("criado_em")
+  atualizadoEm DateTime    @updatedAt @map("atualizado_em")
+  sessions     Session[]
+  turmas       Turma[]
+  questoes     Questao[]
+  avaliacoes   Avaliacao[]
+
+  @@map("professores")
+}

@@ -1,0 +1,36 @@
+{
+  "name": "back-end",
+  "version": "1.0.0",
+  "type": "commonjs",
+  "scripts": {
+    "dev": "npm run db:setup && tsx watch src/index.ts",
+    "typecheck": "prisma generate && tsc --noEmit",
+    "build": "prisma generate && tsc",
+    "start": "node dist/index.js",
+    "db:seed": "prisma db seed",
+    "db:setup": "docker compose up -d --wait && prisma migrate deploy && prisma generate && prisma db seed",
+    "db:deploy": "prisma migrate deploy",
+    "db:stop": "docker compose stop",
+    "db:migrate": "prisma migrate dev",
+    "test": "npm run build && node --test"
+  },
+  "devDependencies": {
+    "@types/cors": "^2.8.19",
+    "@types/express": "^5.0.6",
+    "@types/jsonwebtoken": "^9.0.10",
+    "@types/node": "^26.6.5",
+    "prisma": "^7.10.0",
+    "tsx": "^4.23.15",
+    "typescript": "^7.0.2"
+  },
+  "dependencies": {
+    "@prisma/adapter-mariadb": "^7.10.0",
+    "@prisma/client": "^7.10.0",
+    "bcryptjs": "^3.0.3",
+    "cors": "^2.8.6",
+    "dotenv": "^18.0.7",
+    "express": "^5.3.0",
+    "jsonwebtoken": "^9.0.3",
+    "zod": "^4.6.5"
+  }
+}

@@ -1,0 +1,14 @@
+model RespostaAluno {
+  id                       Int         @id @default(autoincrement())
+  versaoProvaId            Int         @map("versao_prova_id")
+  versaoProva              VersaoProva @relation(fields: [versaoProvaId], references: [id], onDelete: Cascade)
+  questaoId                Int         @map("questao_id")
+  questao                  Questao     @relation(fields: [questaoId], references: [id], onDelete: Restrict)
+  alternativaSelecionadaId Int         @map("alternativa_selecionada_id")
+  alternativaSelecionada   Alternativa @relation(fields: [alternativaSelecionadaId], references: [id], onDelete: Restrict)
+
+  @@index([versaoProvaId])
+  @@index([questaoId])
+  @@index([alternativaSelecionadaId])
+  @@map("respostas_aluno")
+}
