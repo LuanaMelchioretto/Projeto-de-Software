@@ -15,15 +15,15 @@ export default function NewAssessmentPage() {
   const [mensagemSucesso, setMensagemSucesso] = useState(false);
   const [erroValidacao, setErroValidacao] = useState('');
   
-  // Novo estado para guardar as questões que vêm do Back-end
+  
   const [bancoQuestoes, setBancoQuestoes] = useState([]);
 
   // Busca as questões reais da API quando a tela abre
   useEffect(() => {
     const carregarQuestoes = async () => {
-      try {
-        // ATENÇÃO: Ajuste a URL abaixo para a porta que o seu back-end roda (ex: 3000, 3333 ou 8080)
-        const response = await fetch('http://localhost:3000/api/questoes'); 
+     try {
+        const apiBaseUrl = import.meta.env.VITE_API_URL;
+        const response = await fetch(`${apiBaseUrl}/api/questoes`);
         if (response.ok) {
           const dados = await response.json();
           setBancoQuestoes(dados);
@@ -77,8 +77,8 @@ export default function NewAssessmentPage() {
     };
 
     try {
-      // Dispara a requisição POST para salvar a prova
-      const response = await fetch('http://localhost:3000/api/avaliacoes', {
+      const apiBaseUrl = import.meta.env.VITE_API_URL;
+      const response = await fetch(`${apiBaseUrl}/api/avaliacoes`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(payload),

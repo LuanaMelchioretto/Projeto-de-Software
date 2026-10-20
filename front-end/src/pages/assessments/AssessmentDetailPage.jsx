@@ -7,7 +7,7 @@ export default function AssessmentDetailPage() {
   const { id } = useParams();
   const navigate = useNavigate();
 
-  // Estados reais da API
+  
   const [avaliacao, setAvaliacao] = useState(null);
   const [carregando, setCarregando] = useState(true);
   const [erro, setErro] = useState(false);
@@ -16,7 +16,8 @@ export default function AssessmentDetailPage() {
   useEffect(() => {
     const buscarDetalhes = async () => {
       try {
-        const response = await fetch(`http://localhost:3000/api/avaliacoes/${id}`);
+        const apiBaseUrl = import.meta.env.VITE_API_URL;
+        const response = await fetch(`${apiBaseUrl}/api/avaliacoes/${id}`);
         
         if (!response.ok) {
           throw new Error('Avaliação não encontrada');

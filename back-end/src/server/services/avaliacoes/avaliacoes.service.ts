@@ -55,7 +55,7 @@ export class AvaliacaoService {
     return avaliacao;
   }
 
-  // --- NOVAS FUNÇÕES: ATUALIZAR E EXCLUIR ---
+ 
   
   async atualizarAvaliacao(id: string, professorId: number, dados: any) {
     const { titulo, embaralharQuestoes, embaralharAlternativas, questoes } = dados;
@@ -67,7 +67,7 @@ export class AvaliacaoService {
 
     if (!avaliacaoAtual || avaliacaoAtual.professorId !== professorId) throw new Error('Avaliação não encontrada.');
     
-    // Regra do Trello: Preservar aplicações já emitidas (Não deixa editar se já aplicou)
+    
     if (avaliacaoAtual.aplicacoes.length > 0) {
       throw new Error('Não é possível editar uma prova que já foi aplicada aos alunos.');
     }

@@ -33,8 +33,7 @@ class AvaliacoesController {
     }
   }
 
-  // --- NOVAS FUNÇÕES: ATUALIZAR E EXCLUIR ---
-
+  
   async atualizar(req: Request, res: Response) {
     try {
       const { titulo, embaralharQuestoes, embaralharAlternativas, questoes } = req.body;
