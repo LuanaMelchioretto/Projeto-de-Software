@@ -1,22 +1,44 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { Plus, Search, FileText, ChevronRight } from 'lucide-react';
+import { Plus, Search, FileText, ChevronRight, Loader2 } from 'lucide-react';
 import PageTitle from '../../components/page-title/PageTitle';
 import './AssessmentsPage.css';
-
-// Dados demonstrativos embutidos para evitar erros de importação
-const avaliacoesMock = [
-  { id: '1', titulo: 'Prova Parcial - Programação Web', qtdQuestoes: 10, situacao: 'Concluída' },
-  { id: '2', titulo: 'Avaliação Regimental - Banco de Dados', qtdQuestoes: 15, situacao: 'Em andamento' },
-  { id: '3', titulo: 'Simulado de Estrutura de Dados', qtdQuestoes: 8, situacao: 'Em rascunho' },
-];
 
 export default function AssessmentsPage() {
   const navigate = useNavigate();
   const [searchTerm, setSearchTerm] = useState('');
+  
+  // Novos estados para a integração com a API
+  const [avaliacoes, setAvaliacoes] = useState([]);
+  const [carregando, setCarregando] = useState(true);
+  const [erro, setErro] = useState('');
 
-  // Filtra as avaliações com base na busca do usuário
-  const avaliacoesFiltradas = avaliacoesMock.filter((avaliacao) =>
+  // Busca as avaliações reais do banco de dados quando a página carrega
+  useEffect(() => {
+    const buscarAvaliacoes = async () => {
+      try {
+        // ATENÇÃO: Ajusta a URL para a porta correta do teu back-end
+        const response = await fetch('http://localhost:3000/api/avaliacoes');
+        
+        if (!response.ok) {
+          throw new Error('Falha ao carregar as avaliações.');
+        }
+
+        const dados = await response.json();
+        setAvaliacoes(dados);
+      } catch (err) {
+        console.error('Erro na API:', err);
+        setErro('Não foi possível carregar as avaliações. Tenta novamente mais tarde.');
+      } finally {
+        setCarregando(false);
+      }
+    };
+
+    buscarAvaliacoes();
+  }, []);
+
+  // Filtra as avaliações com base na busca do utilizador
+  const avaliacoesFiltradas = avaliacoes.filter((avaliacao) =>
     avaliacao.titulo.toLowerCase().includes(searchTerm.toLowerCase())
   );
 
@@ -33,18 +55,7 @@ export default function AssessmentsPage() {
         </div>
         <button
           onClick={() => navigate('/avaliacoes/nova')}
-          style={{
-            backgroundColor: '#2563eb',
-            color: '#fff',
-            border: 'none',
-            padding: '10px 16px',
-            borderRadius: '6px',
-            cursor: 'pointer',
-            display: 'flex',
-            alignItems: 'center',
-            gap: '8px',
-            fontWeight: '500'
-          }}
+          style={{ backgroundColor: '#2563eb', color: '#fff', border: 'none', padding: '10px 16px', borderRadius: '6px', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '8px', fontWeight: '500' }}
         >
           <Plus size={18} /> Nova avaliação
         </button>
@@ -58,19 +69,20 @@ export default function AssessmentsPage() {
           placeholder="Buscar pelo nome da avaliação..."
           value={searchTerm}
           onChange={(e) => setSearchTerm(e.target.value)}
-          style={{
-            width: '100%',
-            padding: '10px 10px 10px 40px',
-            borderRadius: '6px',
-            border: '1px solid #d1d5db',
-            fontSize: '14px',
-            boxSizing: 'border-box'
-          }}
+          style={{ width: '100%', padding: '10px 10px 10px 40px', borderRadius: '6px', border: '1px solid #d1d5db', fontSize: '14px', boxSizing: 'border-box' }}
         />
       </div>
 
-      {/* Lista de Avaliações / Casos Vazio */}
-      {avaliacoesMock.length === 0 ? (
+      {/* Tratamento de Estados: Carregando, Erro e Listagem */}
+      {carregando ? (
+        <div style={{ display: 'flex', justifyContent: 'center', padding: '40px', color: '#6b7280' }}>
+          <Loader2 size={32} className="animate-spin" style={{ animation: 'spin 1s linear infinite' }} />
+        </div>
+      ) : erro ? (
+        <div style={{ textAlign: 'center', padding: '40px', backgroundColor: '#fee2e2', borderRadius: '8px', color: '#b91c1c' }}>
+          <p style={{ margin: 0, fontWeight: '500' }}>{erro}</p>
+        </div>
+      ) : avaliacoes.length === 0 ? (
         <div style={{ textAlign: 'center', padding: '40px', backgroundColor: '#f9fafb', borderRadius: '8px', border: '1px dashed #d1d5db' }}>
           <FileText size={48} style={{ color: '#9ca3af', marginBottom: '12px' }} />
           <p style={{ margin: 0, color: '#4b5563', fontWeight: '500' }}>Nenhuma avaliação cadastrada.</p>
@@ -86,23 +98,18 @@ export default function AssessmentsPage() {
             <div
               key={item.id}
               onClick={() => navigate(`/avaliacoes/${item.id}`)}
-              style={{
-                display: 'flex',
-                justify: 'space-between',
-                alignItems: 'center',
-                padding: '16px 20px',
-                backgroundColor: '#fff',
-                border: '1px solid #e5e7eb',
-                borderRadius: '8px',
-                cursor: 'pointer'
-              }}
+              style={{ display: 'flex', justify: 'space-between', alignItems: 'center', padding: '16px 20px', backgroundColor: '#fff', border: '1px solid #e5e7eb', borderRadius: '8px', cursor: 'pointer' }}
             >
               <div>
                 <h3 style={{ margin: '0 0 6px 0', fontSize: '16px', fontWeight: '600', color: '#111827' }}>{item.titulo}</h3>
                 <div style={{ display: 'flex', gap: '16px', fontSize: '13px', color: '#6b7280' }}>
-                  <span>{item.qtdQuestoes} questões</span>
+                  {/* O Prisma retorna as questões dentro de um array, então usamos o .length dele */}
+                  <span>{item.questoes?.length || 0} questões</span>
                   <span>•</span>
-                  <span>Situação: <strong style={{ color: '#374151' }}>{item.situacao}</strong></span>
+                  {/* O Trello pede para separar rascunhos de provas aplicadas. Verificamos se há aplicações */}
+                  <span>Situação: <strong style={{ color: '#374151' }}>
+                    {item.aplicacoes?.length > 0 ? 'Concluída / Aplicada' : 'Em rascunho'}
+                  </strong></span>
                 </div>
               </div>
               <ChevronRight size={20} style={{ color: '#9ca3af' }} />
