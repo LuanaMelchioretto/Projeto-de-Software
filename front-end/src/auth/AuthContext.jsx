@@ -127,9 +127,15 @@ export function AuthProvider({ children }) {
     setSession(null);
   }, []);
 
+  const updateUser = useCallback((user) => {
+    setSession((current) => current ? { ...current, user } : current);
+  }, []);
+
+  const endSession = useCallback(() => setSession(null), []);
+
   return (
     <AuthContext.Provider
-      value={{ user: session?.user ?? null, loading, authError, login, logout }}
+      value={{ user: session?.user ?? null, loading, authError, login, logout, updateUser, endSession }}
     >
       {children}
     </AuthContext.Provider>

@@ -160,11 +160,23 @@ Passo a passo: [documentação do diagrama de atividades](docs/uml/Atividade/Doc
 
 ## 4. Telas do Sistema
 
-![Tela de login](docs/telas/tela-login.jpg)
-_Tela de login: Apresenta os campos de e-mail e senha e leva ao dashboard; a autenticação ainda é demonstrativa._
+![Tela de login](docs/telas/tela-log.jpg)
+_Tela de login: Autentica o professor por e-mail e senha, com acesso ao cadastro e à recuperação de senha._
+
+![Criar conta](docs/telas/tela-criar-conta.jpg)
+_Criar conta: Cadastra o professor com nome, e-mail, matrícula e senha._
+
+![Esqueci minha senha](docs/telas/tela-esqueci-minha-senha.jpg)
+_Esqueci minha senha: Solicita por e-mail um link para redefinir a senha._
+
+![Redefinir senha](docs/telas/tela-redefinir-senha.jpg)
+_Redefinir senha: Permite escolher e confirmar uma nova senha pelo link recebido._
 
 ![Dashboard](docs/telas/tela-dashboard.jpg)
 _Dashboard: Resume indicadores e oferece atalhos para as áreas principais._
+
+![Minha conta](docs/telas/tela-minha-conta.jpg)
+_Minha conta: Permite atualizar os dados do professor, trocar a senha e excluir o acesso à conta._
 
 ![Turmas](docs/telas/tela-turma.jpg)
 _Turmas: Lista e pesquisa as turmas cadastradas na sessão._
@@ -396,10 +408,12 @@ Edite `back-end/.env` antes de iniciar. O arquivo não é versionado. Em sistema
 | `PORT`                                                                           | Porta da API. Mantenha `3000`, onde o front-end procura a API.                                                                                                          |
 | `FRONTEND_ORIGINS`                                                               | Origens do front-end autorizadas a chamar a API, separadas por vírgula e sem barra no final. O exemplo libera o Vite em desenvolvimento (`5173`) e no preview (`4173`). |
 | `JWT_SECRET`                                                                     | Chave que assina o token da sessão guardado no cookie. Deve ter pelo menos 32 caracteres; troque o valor do exemplo por uma chave aleatória.                            |
+| `SMTP_HOST`, `SMTP_PORT`, `SMTP_USER`, `SMTP_PASSWORD`, `SMTP_FROM`, `SMTP_REQUIRE_TLS` | Servidor SMTP para enviar links de recuperação. O exemplo usa Mailpit local (`127.0.0.1:1025`, sem TLS); abra `http://localhost:8025` para ver os e-mails. Para entregar e-mails reais, configure um provedor SMTP, normalmente porta `587` com `SMTP_REQUIRE_TLS=true` ou porta `465` com SSL. Sem `SMTP_HOST` e `SMTP_FROM`, a recuperação responde `503`. |
+| `PASSWORD_RESET_URL`                                                             | Endereço obrigatório da página de redefinição no front-end, por exemplo `http://localhost:5173/Projeto-de-Software/redefinir-senha`. O caminho deve acompanhar o `base` do Vite. |
 | `COOKIE_SECURE`                                                                  | `false` para usar a API em `http://localhost`. Use `true` só com HTTPS: o cookie passa a ser `Secure` e `SameSite=None`.                                                |
 | `MYSQL_ROOT_PASSWORD`, `DB_PASSWORD`                                             | Senhas dos usuários `root` e `provaplus` do MySQL criado pelo `compose.yaml`, que não sobe sem elas.                                                                    |
 | `DATABASE_URL`, `SHADOW_DATABASE_URL`                                            | Conexões com o banco `provaplus` e com o `provaplus_shadow`, que o `npm run db:migrate` usa para conferir as migrações. Use nelas a senha definida em `DB_PASSWORD`.    |
-| `SEED_USER_NAME`, `SEED_USER_EMAIL`, `SEED_USER_MATRICULA`, `SEED_USER_PASSWORD` | Dados do professor que o seed cria para entrar no sistema. A senha está vazia no exemplo e deve ter pelo menos 8 caracteres e no máximo 64 bytes em UTF-8.              |
+| `SEED_USER_NAME`, `SEED_USER_EMAIL`, `SEED_USER_MATRICULA`, `SEED_USER_PASSWORD` | Dados do professor que o seed cria para entrar no sistema. A senha está vazia no exemplo e deve ter pelo menos 8 caracteres, no máximo 64 bytes em UTF-8, uma letra maiúscula e um símbolo especial. |
 
 Para gerar o `JWT_SECRET`, execute `node -e "console.log(require('node:crypto').randomBytes(32).toString('hex'))"`.
 
@@ -409,7 +423,9 @@ Com o Docker Desktop aberto, execute em `back-end/`:
 npm run dev
 ```
 
-O comando sobe o MySQL, aplica as migrações, gera o Prisma Client, executa o seed da conta local e inicia a API. Para parar o banco sem apagar seus dados, execute `npm run db:stop` em `back-end/`.
+O comando sobe o MySQL e o Mailpit, aplica as migrações, gera o Prisma Client, executa o seed da conta local e inicia a API. Para parar os serviços sem apagar os dados do banco, execute `npm run db:stop` em `back-end/`.
+
+Em localhost, os e-mails de **Esqueci minha senha** vão para a caixa de entrada do [Mailpit](http://localhost:8025). Abra esse endereço para acessar o link de redefinição. O Mailpit não entrega mensagens à caixa de e-mail real do professor; para isso, configure um provedor SMTP no `back-end/.env`.
 
 ## 10. Especificação da API
 

@@ -3,6 +3,10 @@ import { Navigate, Outlet, Route, Routes, useLocation } from "react-router-dom";
 import { useAuth } from "../auth/AuthContext";
 import AppLayout from "../layouts/AppLayout";
 import LoginPage from "../pages/auth/LoginPage";
+import ForgotPasswordPage from "../pages/auth/ForgotPasswordPage";
+import ResetPasswordPage from "../pages/auth/ResetPasswordPage";
+import RegisterPage from "../pages/auth/RegisterPage";
+import AccountPage from "../pages/account/AccountPage";
 import DashboardPage from "../pages/dashboard/DashboardPage";
 import QuestionsPage from "../pages/questions/QuestionsPage";
 import AssessmentsPage from "../pages/assessments/AssessmentsPage";
@@ -29,6 +33,9 @@ export default function AppRoutes() {
   return (
     <Routes>
       <Route path="/login" element={<LoginPage />} />
+      <Route path="/esqueci-senha" element={<ForgotPasswordPage />} />
+      <Route path="/redefinir-senha" element={<ResetPasswordPage />} />
+      <Route path="/cadastro" element={<RegisterPage />} />
       <Route element={<ProtectedRoutes />}>
         <Route element={<AppLayout />}>
           <Route index element={<DashboardPage />} />
@@ -45,6 +52,7 @@ export default function AppRoutes() {
           <Route path="correcoes" element={<CorrectionsPage />} />
           <Route path="correcoes/resultado" element={<CorrectionResultPage />} />
           <Route path="relatorios" element={<ReportsPage />} />
+          <Route path="conta" element={<AccountPage />} />
           <Route path="*" element={<NotFoundPage />} />
         </Route>
       </Route>
