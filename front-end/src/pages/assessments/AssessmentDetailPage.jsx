@@ -1,61 +1,60 @@
-import React from 'react';
+import React, { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
-import { ArrowLeft, Edit, Play, Shuffle, FileText, AlertTriangle } from 'lucide-react';
+import { ArrowLeft, Edit, Play, Shuffle, FileText, AlertTriangle, Loader2 } from 'lucide-react';
 import PageTitle from '../../components/page-title/PageTitle';
-
-// Dados mockados de avaliações para exibição do detalhe
-const avaliacoesDetalheMock = {
-  '1': {
-    id: '1',
-    titulo: 'Prova Parcial - Programação Web',
-    embaralharQuestoes: true,
-    embaralharAlternativas: false,
-    questoes: [
-      {
-        id: 'q1',
-        enunciado: 'Qual Hook no React é utilizado para gerenciar efeitos colaterais?',
-        alternativas: ['a) useState', 'b) useEffect', 'c) useContext', 'd) useReducer'],
-        respostaCorreta: 'b) useEffect'
-      },
-      {
-        id: 'q2',
-        enunciado: 'Para que serve a chave "key" ao renderizar listas no React?',
-        alternativas: ['a) Estilizar os elementos', 'b) Identificar de forma única os elementos no DOM Virtual', 'c) Redirecionar rotas', 'd) Criar conexões com o banco'],
-        respostaCorreta: 'b) Identificar de forma única os elementos no DOM Virtual'
-      }
-    ]
-  },
-  '2': {
-    id: '2',
-    titulo: 'Avaliação Regimental - Banco de Dados',
-    embaralharQuestoes: false,
-    embaralharAlternativas: true,
-    questoes: [
-      {
-        id: 'q1',
-        enunciado: 'Qual cláusula SQL é utilizada para agrupar registros?',
-        alternativas: ['a) ORDER BY', 'b) GROUP BY', 'c) WHERE', 'd) HAVING'],
-        respostaCorreta: 'b) GROUP BY'
-      }
-    ]
-  }
-};
 
 export default function AssessmentDetailPage() {
   const { id } = useParams();
   const navigate = useNavigate();
 
-  const avaliacao = avaliacoesDetalheMock[id];
+  
+  const [avaliacao, setAvaliacao] = useState(null);
+  const [carregando, setCarregando] = useState(true);
+  const [erro, setErro] = useState(false);
 
-  // Tratamento para id inválido ou avaliação não encontrada
-  if (!avaliacao) {
+  // Busca os dados da avaliação específica no banco de dados
+  useEffect(() => {
+    const buscarDetalhes = async () => {
+      try {
+        const apiBaseUrl = import.meta.env.VITE_API_URL;
+        const response = await fetch(`${apiBaseUrl}/api/avaliacoes/${id}`);
+        
+        if (!response.ok) {
+          throw new Error('Avaliação não encontrada');
+        }
+
+        const dados = await response.json();
+        setAvaliacao(dados);
+      } catch (err) {
+        console.error('Erro ao buscar detalhes:', err);
+        setErro(true);
+      } finally {
+        setCarregando(false);
+      }
+    };
+
+    buscarDetalhes();
+  }, [id]);
+
+  // Tela de Carregamento
+  if (carregando) {
+    return (
+      <div style={{ padding: '40px', textAlign: 'center', color: '#6b7280' }}>
+        <Loader2 size={32} className="animate-spin" style={{ animation: 'spin 1s linear infinite', margin: '0 auto' }} />
+        <p>Carregando detalhes da avaliação...</p>
+      </div>
+    );
+  }
+
+  // Tratamento para id inválido ou avaliação não encontrada (Seu layout mantido!)
+  if (erro || !avaliacao) {
     return (
       <div style={{ padding: '24px', maxWidth: '800px', margin: '0 auto', textAlign: 'center' }}>
         <PageTitle title="Avaliação não encontrada" />
         <div style={{ backgroundColor: '#fff1f2', border: '1px solid #fecdd3', padding: '32px', borderRadius: '8px', marginTop: '16px' }}>
           <AlertTriangle size={48} style={{ color: '#e11d48', marginBottom: '12px' }} />
           <h2 style={{ fontSize: '20px', fontWeight: 'bold', color: '#881337', margin: '0 0 8px 0' }}>Avaliação não encontrada</h2>
-          <p style={{ color: '#9f1239', marginBottom: '20px' }}>O identificador da avaliação buscada é inválido ou não existe.</p>
+          <p style={{ color: '#9f1239', marginBottom: '20px' }}>O identificador da avaliação buscada é inválido ou ela foi removida.</p>
           <button
             onClick={() => navigate('/avaliacoes')}
             style={{ backgroundColor: '#be123c', color: '#fff', border: 'none', padding: '10px 20px', borderRadius: '6px', cursor: 'pointer', fontWeight: '500' }}
@@ -83,11 +82,11 @@ export default function AssessmentDetailPage() {
       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '24px', flexWrap: 'wrap', gap: '12px' }}>
         <div>
           <h2 style={{ fontSize: '24px', fontWeight: 'bold', margin: 0 }}>{avaliacao.titulo}</h2>
-          <span style={{ fontSize: '14px', color: '#6b7280' }}>Total: {avaliacao.questoes.length} questões cadastradas</span>
+          <span style={{ fontSize: '14px', color: '#6b7280' }}>Total: {avaliacao.questoes?.length || 0} questões cadastradas</span>
         </div>
         <div style={{ display: 'flex', gap: '12px' }}>
           <button
-            onClick={() => navigate('/avaliacoes/nova')}
+            onClick={() => navigate(`/avaliacoes/${id}/editar`)}
             style={{ display: 'flex', alignItems: 'center', gap: '8px', padding: '10px 16px', border: '1px solid #d1d5db', borderRadius: '6px', backgroundColor: '#fff', cursor: 'pointer', fontSize: '14px', fontWeight: '500' }}
           >
             <Edit size={16} /> Editar composição
@@ -118,27 +117,35 @@ export default function AssessmentDetailPage() {
           <FileText size={18} /> Questões da Prova
         </h3>
         <div style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
-          {avaliacao.questoes.map((q, index) => (
-            <div key={q.id} style={{ backgroundColor: '#fff', border: '1px solid #e5e7eb', borderRadius: '8px', padding: '16px' }}>
-              <p style={{ margin: '0 0 12px 0', fontWeight: '600', fontSize: '15px', color: '#111827' }}>
-                {index + 1}. {q.enunciado}
-              </p>
-              <div style={{ display: 'flex', flexDirection: 'column', gap: '6px', paddingLeft: '12px' }}>
-                {q.alternativas.map((alt, i) => (
-                  <span
-                    key={i}
-                    style={{
-                      fontSize: '14px',
-                      color: alt === q.respostaCorreta ? '#15803d' : '#4b5563',
-                      fontWeight: alt === q.respostaCorreta ? '600' : 'normal'
-                    }}
-                  >
-                    {alt} {alt === q.respostaCorreta && '(Gabarito)'}
-                  </span>
-                ))}
+          {avaliacao.questoes?.map((item, index) => {
+            // O Prisma retorna a questão dentro de 'item.questao' devido à tabela de relacionamento
+            const q = item.questao || item; 
+
+            return (
+              <div key={q.id || index} style={{ backgroundColor: '#fff', border: '1px solid #e5e7eb', borderRadius: '8px', padding: '16px' }}>
+                <p style={{ margin: '0 0 12px 0', fontWeight: '600', fontSize: '15px', color: '#111827' }}>
+                  {index + 1}. {q.enunciado}
+                </p>
+                {/* Verifica se as alternativas existem antes de renderizar (proteção extra) */}
+                {q.alternativas && (
+                  <div style={{ display: 'flex', flexDirection: 'column', gap: '6px', paddingLeft: '12px' }}>
+                    {q.alternativas.map((alt, i) => (
+                      <span
+                        key={i}
+                        style={{
+                          fontSize: '14px',
+                          color: alt === q.respostaCorreta ? '#15803d' : '#4b5563',
+                          fontWeight: alt === q.respostaCorreta ? '600' : 'normal'
+                        }}
+                      >
+                        {alt} {alt === q.respostaCorreta && '(Gabarito)'}
+                      </span>
+                    ))}
+                  </div>
+                )}
               </div>
-            </div>
-          ))}
+            );
+          })}
         </div>
       </div>
     </div>
