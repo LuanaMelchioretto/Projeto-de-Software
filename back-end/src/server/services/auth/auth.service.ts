@@ -15,7 +15,14 @@ const hashResetToken = (token: string) => createHash("sha256").update(token).dig
 export const forgotPassword = async (input: unknown): Promise<void> => {
   const { email } = authSchemas.forgotPasswordSchema.parse(input);
   if (!mailer.isConfigured() || !env.PASSWORD_RESET_URL) throw new ApiError(503, "Recuperação de senha indisponível no momento");
- 
+
+  try {
+    await mailer.verifyConnection();
+  } catch (error) {
+    console.error("SMTP indisponível para recuperação de senha", error);
+    throw new ApiError(503, "Recuperação de senha indisponível no momento");
+  }
+
   const recipient = await professoresRepository.findResetRecipientByEmail(email);
   if (!recipient || recipient.status !== 1) return;
 
@@ -35,9 +42,9 @@ export const forgotPassword = async (input: unknown): Promise<void> => {
   
   try {
     await mailer.sendPasswordReset(recipient.email, recipient.nome, url.toString());
-  } catch {
+  } catch (error) {
     await passwordResetsRepository.deleteByHash(tokenHash);
-    console.error("Falha ao enviar e-mail de recuperação de senha");
+    console.error("Falha ao enviar e-mail de recuperação de senha", error);
   }
 };
 

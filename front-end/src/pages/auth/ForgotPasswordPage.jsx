@@ -37,7 +37,7 @@ export default function ForgotPasswordPage() {
         <p>Informe seu e-mail para receber um link de redefinição.</p>
 
         {sent ? (
-          <p role="status" className="login-success">Se houver uma conta ativa com este e-mail, enviaremos um link para redefinir sua senha. Confira também a caixa de spam.</p>
+          <p role="status" className="login-success">Solicitação recebida. Se houver uma conta ativa e o e-mail puder ser entregue, você receberá um link para redefinir sua senha. Confira também a caixa de spam.</p>
         ) : (
           <>
             <label>E-mail

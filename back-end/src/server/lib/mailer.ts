@@ -2,26 +2,38 @@ import nodemailer from "nodemailer";
 import { env } from "../config/env";
 import { ApiError } from "./api-error";
 
+const createTransport = () => {
+  if (!env.SMTP_HOST || !env.SMTP_FROM) {
+    throw new ApiError(503, "Recuperação de senha indisponível no momento");
+  }
+  return nodemailer.createTransport({
+    host: env.SMTP_HOST,
+    port: env.SMTP_PORT,
+    secure: env.SMTP_PORT === 465,
+    requireTLS: env.SMTP_REQUIRE_TLS && env.SMTP_PORT !== 465,
+    ...(env.SMTP_USER && env.SMTP_PASSWORD
+      ? { auth: { user: env.SMTP_USER, pass: env.SMTP_PASSWORD } }
+      : {}),
+  });
+};
+
 export const mailer = {
   isConfigured: () => Boolean(env.SMTP_HOST && env.SMTP_FROM),
+  async verifyConnection(): Promise<void> {
+    const transport = createTransport();
+    try {
+      await transport.verify();
+    } finally {
+      transport.close();
+    }
+  },
   async sendPasswordReset(
     to: string,
     name: string,
     url: string,
   ): Promise<void> {
-    if (!env.SMTP_HOST || !env.SMTP_FROM) {
-      throw new ApiError(503, "Recuperação de senha indisponível no momento");
-    }
-    const transport = nodemailer.createTransport({
-      host: env.SMTP_HOST,
-      port: env.SMTP_PORT,
-      secure: env.SMTP_PORT === 465,
-      requireTLS: env.SMTP_REQUIRE_TLS && env.SMTP_PORT !== 465,
-      ...(env.SMTP_USER && env.SMTP_PASSWORD
-        ? { auth: { user: env.SMTP_USER, pass: env.SMTP_PASSWORD } }
-        : {}),
-    });
-    
+    const transport = createTransport();
+
     try {
       await transport.sendMail({
         from: env.SMTP_FROM,

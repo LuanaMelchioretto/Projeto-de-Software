@@ -21,7 +21,7 @@ const rows = new Map();
 const sessions = new Map();
 const resetTokens = new Map();
 const sentEmails = [];
-const originals = { professor: {}, session: {}, resetToken: {}, transaction: null, sendPasswordReset: mailer.sendPasswordReset };
+const originals = { professor: {}, session: {}, resetToken: {}, transaction: null, verifyConnection: mailer.verifyConnection, sendPasswordReset: mailer.sendPasswordReset };
 
 let listener;
 let baseUrl;
@@ -214,6 +214,7 @@ before(async () => {
     prisma.passwordResetToken[name] = implementation;
   }
 
+  mailer.verifyConnection = async () => {};
   mailer.sendPasswordReset = async (to, name, url) => sentEmails.push({ to, name, url });
 
   originals.transaction = prisma.$transaction;
@@ -226,6 +227,8 @@ before(async () => {
 });
 
 beforeEach(async () => {
+  mailer.verifyConnection = async () => {};
+  mailer.sendPasswordReset = async (to, name, url) => sentEmails.push({ to, name, url });
   rows.clear();
   sessions.clear();
   resetTokens.clear();
@@ -266,6 +269,7 @@ after(async () => {
   for (const [name, implementation] of Object.entries(originals.resetToken))
     prisma.passwordResetToken[name] = implementation;
 
+  mailer.verifyConnection = originals.verifyConnection;
   mailer.sendPasswordReset = originals.sendPasswordReset;
 
   prisma.$transaction = originals.transaction;
@@ -450,6 +454,36 @@ test("recuperação responde sem revelar se o e-mail existe", async () => {
   assert.equal(inactive.status, 202);
   assert.deepEqual(await inactive.json(), await unknown.json());
   assert.equal(sentEmails.length, 0);
+});
+
+test("SMTP indisponível responde 503 para e-mail cadastrado ou desconhecido", async () => {
+  mailer.verifyConnection = async () => { throw new Error("SMTP indisponível"); };
+
+  for (const email of ["ana@example.com", "ninguem@example.com"]) {
+    const response = await request("/auth/forgot-password", {
+      method: "POST", body: { email },
+    });
+    assert.equal(response.status, 503);
+    assert.deepEqual(await response.json(), { erro: "Recuperação de senha indisponível no momento" });
+  }
+  assert.equal(sentEmails.length, 0);
+  assert.equal(resetTokens.size, 0);
+});
+
+test("falha ao enviar uma mensagem remove o link e mantém resposta genérica", async () => {
+  mailer.sendPasswordReset = async () => { throw new Error("Envio recusado"); };
+
+  const known = await request("/auth/forgot-password", {
+    method: "POST", body: { email: "ana@example.com" },
+  });
+  const unknown = await request("/auth/forgot-password", {
+    method: "POST", body: { email: "ninguem@example.com" },
+  });
+
+  assert.equal(known.status, 202);
+  assert.equal(unknown.status, 202);
+  assert.deepEqual(await known.json(), await unknown.json());
+  assert.equal(resetTokens.size, 0);
 });
 
 test("link de recuperação expira, é usado uma vez e revoga sessões", async () => {
