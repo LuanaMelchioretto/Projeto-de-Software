@@ -4,6 +4,7 @@ import { env } from "./config/env";
 import { authRouter, healthRouter, professoresRouter } from "./routes";
 import { requireAllowedOrigin } from "./middleware/origin.middleware";
 import { errorMiddleware, notFoundMiddleware } from "./middleware";
+import { aplicacoesRoutes } from './routes';
 
 export const app = express();
 
@@ -19,3 +20,4 @@ app.use("/api/health", healthRouter);
 app.use("/api/professores", professoresRouter);
 app.use(notFoundMiddleware);
 app.use(errorMiddleware);
+app.use('/api/aplicacoes', aplicacoesRoutes);
