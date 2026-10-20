@@ -7,14 +7,21 @@ import jwt from "jsonwebtoken";
 process.env.DATABASE_URL = "mysql://test:test@127.0.0.1:3306/test";
 process.env.FRONTEND_ORIGINS = "http://localhost:5173";
 process.env.JWT_SECRET = "test-secret-with-at-least-32-characters";
+process.env.SMTP_HOST = "smtp.example.test";
+process.env.SMTP_FROM = "no-reply@example.test";
+process.env.PASSWORD_RESET_URL = "http://localhost:5173/Projeto-de-Software/redefinir-senha";
 
 const { app } = await import("../dist/server/Server.js");
 const { prisma } = await import("../dist/server/lib/prisma.js");
 const { Prisma } = await import("../dist/server/generated/prisma/client.js");
+const { mailer } = await import("../dist/server/lib/mailer.js");
+const professoresService = await import("../dist/server/services/professores/professores.service.js");
 
 const rows = new Map();
 const sessions = new Map();
-const originals = { professor: {}, session: {}, transaction: null };
+const resetTokens = new Map();
+const sentEmails = [];
+const originals = { professor: {}, session: {}, resetToken: {}, transaction: null, verifyConnection: mailer.verifyConnection, sendPasswordReset: mailer.sendPasswordReset };
 
 let listener;
 let baseUrl;
@@ -27,8 +34,27 @@ const project = (row, select) =>
       .map((key) => [key, row[key]]),
   );
 
+const uniqueError = (index) => new Prisma.PrismaClientKnownRequestError(
+  `Unique constraint failed on the constraint: ${index}`,
+  {
+    code: "P2002",
+    clientVersion: "7.10.0",
+    meta: { driverAdapterError: { cause: { kind: "UniqueConstraintViolation", constraint: { index } } } },
+  },
+);
+
 before(async () => {
   for (const [name, implementation] of Object.entries({
+    create: async ({ data, select }) => {
+      if ([...rows.values()].some((item) => item.email === data.email))
+        throw uniqueError("professores_email_key");
+      if ([...rows.values()].some((item) => item.matricula === data.matricula))
+        throw uniqueError("professores_matricula_key");
+      const id = Math.max(0, ...rows.keys()) + 1;
+      const row = { id, ...data, status: 1, criadoEm: new Date(), atualizadoEm: new Date() };
+      rows.set(id, row);
+      return project(row, select);
+    },
     findUnique: async ({ where, select }) => {
       if (dbOffline)
         throw new Prisma.PrismaClientKnownRequestError("Banco indisponível", {
@@ -44,6 +70,8 @@ before(async () => {
 
     update: async ({ where, data, select }) => {
       const row = rows.get(where.id);
+      if (data.email && [...rows.values()].some((item) => item.id !== row.id && item.email === data.email))
+        throw uniqueError("professores_email_key");
       if (
         data.matricula &&
         [...rows.values()].some(
@@ -69,6 +97,14 @@ before(async () => {
       Object.assign(row, data);
 
       return project(row, select);
+    },
+
+    updateMany: async ({ where, data }) => {
+      const row = rows.get(where.id);
+      if (!row || (where.senhaHash && row.senhaHash !== where.senhaHash) || row.status !== where.status)
+        return { count: 0 };
+      Object.assign(row, data);
+      return { count: 1 };
     },
 
     delete: async ({ where, select }) => {
@@ -143,6 +179,44 @@ before(async () => {
     prisma.session[name] = implementation;
   }
 
+  for (const [name, implementation] of Object.entries({
+    findFirst: async ({ where }) =>
+      [...resetTokens.values()].find((item) => item.professorId === where.professorId && item.createdAt > where.createdAt.gt) ?? null,
+    create: async ({ data }) => {
+      resetTokens.set(data.tokenHash, { ...data, usedAt: null, createdAt: new Date() });
+      return resetTokens.get(data.tokenHash);
+    },
+
+    findUnique: async ({ where }) => {
+      const token = resetTokens.get(where.tokenHash);
+      return token ? { ...token, professor: { status: rows.get(token.professorId).status } } : null;
+    },
+
+    updateMany: async ({ where, data }) => {
+      const token = resetTokens.get(where.tokenHash);
+      if (!token || token.usedAt !== null || token.expiresAt <= where.expiresAt.gt) return { count: 0 };
+      Object.assign(token, data);
+      return { count: 1 };
+    },
+
+    deleteMany: async ({ where }) => {
+      let count = 0;
+      for (const [hash, token] of resetTokens) {
+        if (where.tokenHash && hash !== where.tokenHash) continue;
+        if (where.professorId && token.professorId !== where.professorId) continue;
+        resetTokens.delete(hash);
+        count++;
+      }
+      return { count };
+    },
+  })) {
+    originals.resetToken[name] = prisma.passwordResetToken[name];
+    prisma.passwordResetToken[name] = implementation;
+  }
+
+  mailer.verifyConnection = async () => {};
+  mailer.sendPasswordReset = async (to, name, url) => sentEmails.push({ to, name, url });
+
   originals.transaction = prisma.$transaction;
   prisma.$transaction = async (callback) => callback(prisma);
   listener = app.listen(0, "127.0.0.1");
@@ -153,8 +227,12 @@ before(async () => {
 });
 
 beforeEach(async () => {
+  mailer.verifyConnection = async () => {};
+  mailer.sendPasswordReset = async (to, name, url) => sentEmails.push({ to, name, url });
   rows.clear();
   sessions.clear();
+  resetTokens.clear();
+  sentEmails.length = 0;
 
   dbOffline = false;
 
@@ -187,6 +265,12 @@ after(async () => {
 
   for (const [name, implementation] of Object.entries(originals.session))
     prisma.session[name] = implementation;
+
+  for (const [name, implementation] of Object.entries(originals.resetToken))
+    prisma.passwordResetToken[name] = implementation;
+
+  mailer.verifyConnection = originals.verifyConnection;
+  mailer.sendPasswordReset = originals.sendPasswordReset;
 
   prisma.$transaction = originals.transaction;
 
@@ -308,27 +392,198 @@ test("logout invalida apenas a sessão atual", async () => {
   );
 });
 
-test("trocar a senha invalida sessões anteriores", async () => {
+test("trocar a senha exige a atual, invalida sessões e recusa a antiga", async () => {
   const { cookie } = await login();
   const { cookie: otherCookie } = await login();
 
-  const response = await request("/professores/1", {
+  const missing = await request("/professores/1/senha", {
     cookie,
     method: "PATCH",
-    body: { senha: "NovaSenhaSegura123" },
+    body: { novaSenha: "NovaSenhaSegura123!" },
+  });
+  assert.equal(missing.status, 400);
+
+  const wrong = await request("/professores/1/senha", {
+    cookie,
+    method: "PATCH",
+    body: { senhaAtual: "Incorreta", novaSenha: "NovaSenhaSegura123!" },
+  });
+  assert.equal(wrong.status, 400);
+  assert.equal((await request("/auth/me", { cookie })).status, 200);
+
+  for (const novaSenha of ["Curta!", "senhasemaiuscula!", "SenhaSemSimbolo123", "A!".padEnd(65, "x")]) {
+    const invalid = await request("/professores/1/senha", {
+      cookie,
+      method: "PATCH",
+      body: { senhaAtual: "SenhaCorreta123", novaSenha },
+    });
+    assert.equal(invalid.status, 400);
+  }
+  assert.equal((await request("/auth/me", { cookie })).status, 200);
+
+  const response = await request("/professores/1/senha", {
+    cookie,
+    method: "PATCH",
+    body: { senhaAtual: "SenhaCorreta123", novaSenha: "NovaSenhaSegura123!" },
   });
 
-  assert.equal(response.status, 200);
-  assert.equal((await response.json()).senhaHash, undefined);
+  assert.equal(response.status, 204);
   assert.equal((await request("/auth/me", { cookie })).status, 401);
   assert.equal(
     (await request("/auth/me", { cookie: otherCookie })).status,
     401,
   );
+  assert.equal((await login()).response.status, 401);
   assert.equal(
-    (await login("ana@example.com", "NovaSenhaSegura123")).response.status,
+    (await login("ana@example.com", "NovaSenhaSegura123!")).response.status,
     200,
   );
+});
+
+test("recuperação responde sem revelar se o e-mail existe", async () => {
+  const unknown = await request("/auth/forgot-password", {
+    method: "POST", body: { email: "ninguem@example.com" },
+  });
+  assert.equal(unknown.status, 202);
+  assert.equal(sentEmails.length, 0);
+
+  rows.get(1).status = 0;
+  const inactive = await request("/auth/forgot-password", {
+    method: "POST", body: { email: "ana@example.com" },
+  });
+  assert.equal(inactive.status, 202);
+  assert.deepEqual(await inactive.json(), await unknown.json());
+  assert.equal(sentEmails.length, 0);
+});
+
+test("SMTP indisponível responde 503 para e-mail cadastrado ou desconhecido", async () => {
+  mailer.verifyConnection = async () => { throw new Error("SMTP indisponível"); };
+
+  for (const email of ["ana@example.com", "ninguem@example.com"]) {
+    const response = await request("/auth/forgot-password", {
+      method: "POST", body: { email },
+    });
+    assert.equal(response.status, 503);
+    assert.deepEqual(await response.json(), { erro: "Recuperação de senha indisponível no momento" });
+  }
+  assert.equal(sentEmails.length, 0);
+  assert.equal(resetTokens.size, 0);
+});
+
+test("falha ao enviar uma mensagem remove o link e mantém resposta genérica", async () => {
+  mailer.sendPasswordReset = async () => { throw new Error("Envio recusado"); };
+
+  const known = await request("/auth/forgot-password", {
+    method: "POST", body: { email: "ana@example.com" },
+  });
+  const unknown = await request("/auth/forgot-password", {
+    method: "POST", body: { email: "ninguem@example.com" },
+  });
+
+  assert.equal(known.status, 202);
+  assert.equal(unknown.status, 202);
+  assert.deepEqual(await known.json(), await unknown.json());
+  assert.equal(resetTokens.size, 0);
+});
+
+test("link de recuperação expira, é usado uma vez e revoga sessões", async () => {
+  const { cookie } = await login();
+  const requested = await request("/auth/forgot-password", {
+    method: "POST", body: { email: " ANA@EXAMPLE.COM " },
+  });
+
+  assert.equal(requested.status, 202);
+  assert.equal(sentEmails.length, 1);
+  assert.equal(sentEmails[0].to, "ana@example.com");
+
+  const token = new URL(sentEmails[0].url).searchParams.get("token");
+
+  assert.equal(new URL(sentEmails[0].url).pathname, "/Projeto-de-Software/redefinir-senha");
+  assert.equal(token.length, 64);
+  assert.equal(resetTokens.has(token), false);
+
+  const repeated = await request("/auth/forgot-password", {
+    method: "POST", body: { email: "ana@example.com" },
+  });
+  assert.equal(repeated.status, 202);
+  assert.equal(sentEmails.length, 1);
+
+  assert.equal((await request("/auth/reset-password", {
+    method: "POST", body: { token: "a".repeat(64), novaSenha: "NovaSenhaSegura123!" },
+  })).status, 400);
+  assert.equal((await request("/auth/reset-password", {
+    method: "POST", body: { token, novaSenha: "senhasemaiuscula123!" },
+  })).status, 400);
+  assert.equal((await request("/auth/me", { cookie })).status, 200);
+
+  const changed = await request("/auth/reset-password", {
+    method: "POST", body: { token, novaSenha: "NovaSenhaSegura123!" },
+  });
+
+  assert.equal(changed.status, 204);
+  assert.equal((await request("/auth/me", { cookie })).status, 401);
+  assert.equal((await login()).response.status, 401);
+  assert.equal((await login("ana@example.com", "NovaSenhaSegura123!")).response.status, 200);
+  assert.equal((await request("/auth/reset-password", {
+    method: "POST", body: { token, novaSenha: "OutraSenhaSegura123!" },
+  })).status, 400);
+});
+
+test("link vencido não altera a senha", async () => {
+  await request("/auth/forgot-password", { method: "POST", body: { email: "ana@example.com" } });
+  
+  const token = new URL(sentEmails[0].url).searchParams.get("token");
+  const stored = [...resetTokens.values()][0];
+  stored.expiresAt = new Date(Date.now() - 1000);
+
+  assert.equal((await request("/auth/reset-password", {
+    method: "POST", body: { token, novaSenha: "NovaSenhaSegura123!" },
+  })).status, 400);
+  assert.equal((await login()).response.status, 200);
+});
+
+test("cadastro valida dados, impede e-mail repetido e persiste a conta", async () => {
+  const data = { nome: "Carla", email: " CARLA@EXAMPLE.COM ", matricula: "PROF-003", senha: "SenhaNova123!" };
+  
+  assert.equal((await request("/auth/register", { method: "POST", body: { ...data, email: "inválido" } })).status, 400);
+  assert.equal((await request("/auth/register", { method: "POST", body: { ...data, nome: "" } })).status, 400);
+  
+  for (const senha of ["Curta!", "senhasemaiuscula!", "SenhaSemSimbolo123", "A!".padEnd(65, "x")]) {
+    assert.equal((await request("/auth/register", { method: "POST", body: { ...data, senha } })).status, 400);
+  }
+  const created = await request("/auth/register", { method: "POST", body: data });
+  
+  assert.equal(created.status, 201);
+  
+  const professor = await created.json();
+  assert.equal(professor.email, "carla@example.com");
+  assert.equal(professor.senhaHash, undefined);
+  assert.equal((await login("carla@example.com", "SenhaNova123!")).response.status, 200);
+  
+  for (const field of [{ papel: "admin" }, { permissoes: ["gerenciar_contas"] }, { status: 1 }]) {
+    assert.equal((await request("/auth/register", {
+      method: "POST",
+      body: { ...data, email: "elevada@example.com", matricula: "PROF-004", ...field },
+    })).status, 400);
+  }
+  assert.equal(rows.size, 3);
+  
+  const duplicate = await request("/auth/register", { method: "POST", body: { ...data, matricula: "PROF-004" } });
+  
+  assert.equal(duplicate.status, 409);
+  assert.equal((await duplicate.json()).erro, "E-mail já cadastrado");
+});
+
+test("inativação preserva o registro e bloqueia login e todas as sessões", async () => {
+  const { cookie } = await login();
+  const { cookie: otherCookie } = await login();
+  const response = await request("/professores/1", { cookie, method: "DELETE" });
+  
+  assert.equal(response.status, 204);
+  assert.equal(rows.get(1).status, 0);
+  assert.equal((await request("/auth/me", { cookie })).status, 401);
+  assert.equal((await request("/auth/me", { cookie: otherCookie })).status, 401);
+  assert.equal((await login()).response.status, 403);
 });
 
 test("professor só consulta e altera o próprio registro", async () => {
@@ -354,6 +609,20 @@ test("professor só consulta e altera o próprio registro", async () => {
     403,
   );
 
+  const otherPasswordHash = rows.get(2).senhaHash;
+  
+  assert.equal(
+    (await request("/professores/2/senha", {
+      cookie,
+      method: "PATCH",
+      body: { senhaAtual: "OutraSenha123", novaSenha: "NovaSenha123!" },
+    })).status,
+    403,
+  );
+  assert.equal(rows.get(2).nome, "Bia");
+  assert.equal(rows.get(2).senhaHash, otherPasswordHash);
+  assert.equal(rows.get(2).status, 1);
+
   const updated = await request("/professores/1", {
     cookie,
     method: "PATCH",
@@ -362,6 +631,20 @@ test("professor só consulta e altera o próprio registro", async () => {
 
   assert.equal(updated.status, 200);
   assert.equal((await updated.json()).nome, "Ana Souza");
+  const persisted = await request("/professores/1", { cookie });
+  assert.equal((await persisted.json()).nome, "Ana Souza");
+
+  assert.equal((await request("/professores/1", { cookie, method: "PATCH", body: { status: 1 } })).status, 400);
+  assert.equal((await request("/professores/1", { cookie, method: "PATCH", body: { senha: "AtalhoInseguro123" } })).status, 400);
+
+  for (const field of [{ papel: "admin" }, { permissoes: ["gerenciar_contas"] }, { administrador: true }]) {
+    assert.equal((await request("/professores/1", {
+      cookie,
+      method: "PATCH",
+      body: { nome: "Nome indevido", ...field },
+    })).status, 400);
+  }
+  assert.equal(rows.get(1).nome, "Ana Souza");
 
   const list = await request("/professores", { cookie });
 
@@ -375,6 +658,41 @@ test("professor só consulta e altera o próprio registro", async () => {
       .status,
     404,
   );
+});
+
+test("serviço recusa operações em outra conta mesmo sem o filtro da rota", async () => {
+  const otherPasswordHash = rows.get(2).senhaHash;
+  
+  for (const operation of [
+    () => professoresService.getById("2", 1),
+    () => professoresService.updateById("2", { nome: "Nome indevido" }, 1),
+    () => professoresService.changePassword("2", { senhaAtual: "OutraSenha123", novaSenha: "NovaSenha123!" }, 1),
+    () => professoresService.deactivateById("2", 1),
+  ]) {
+    await assert.rejects(operation, { status: 403 });
+  }
+  assert.equal(rows.get(2).nome, "Bia");
+  assert.equal(rows.get(2).senhaHash, otherPasswordHash);
+  assert.equal(rows.get(2).status, 1);
+});
+
+test("edição não permite alterar o e-mail", async () => {
+  const { cookie } = await login();
+  const duplicate = await request("/professores/1", {
+    cookie,
+    method: "PATCH",
+    body: { email: " BIA@EXAMPLE.COM " },
+  });
+  assert.equal(duplicate.status, 400);
+  
+  const another = await request("/professores/1", {
+    cookie,
+    method: "PATCH",
+    body: { nome: "Ana Souza", email: "novo@example.com" },
+  });
+  
+  assert.equal(another.status, 400);
+  assert.equal(rows.get(1).email, "ana@example.com");
 });
 
 test("matrícula do professor pode ser trocada, mas não repetida nem apagada", async () => {

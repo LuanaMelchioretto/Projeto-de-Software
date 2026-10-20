@@ -1,0 +1,71 @@
+.account-page { max-width: 920px; margin-inline: auto; }
+.account-grid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 18px; }
+.account-card { background: var(--color-surface); border: 1px solid var(--color-border); border-radius: 12px; padding: 24px; margin-bottom: 18px; }
+.account-card h2 { font-size: 18px; margin: 0 0 18px; }
+.account-card label { display: block; font-size: 13px; font-weight: 700; color: #555d68; margin-bottom: 15px; }
+.account-card input { display: block; width: 100%; height: 43px; margin-top: 7px; padding: 0 12px; border: 1px solid #dfe2e7; border-radius: 8px; }
+.account-card input[readonly] { background: #f3f4f6; color: #646d7b; }
+.account-card p { font-size: 13px; color: var(--color-text-muted); }
+.account-feedback { border-radius: 8px; padding: 12px 14px; margin: 0 0 18px; font-size: 14px; }
+.account-feedback.success { background: #e8f7ed; color: #216b3c; }
+.account-feedback.error { background: #fff0f0; color: #a42b34; }
+.account-danger {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  border-color: #f3d3d6;
+  background: #fffafa;
+}
+.account-danger-icon,
+.account-dialog-icon {
+  flex: none;
+  display: grid;
+  place-items: center;
+  width: 44px;
+  height: 44px;
+  border-radius: 12px;
+  background: #fde8ea;
+  color: #b4232d;
+}
+.account-danger-copy { flex: 1; }
+.account-danger h2 { margin-bottom: 5px; }
+.account-danger p { margin: 0; }
+.account-danger > button,
+.account-dialog-confirm {
+  color: #fff;
+  background: #b4232d;
+  border: 1px solid #b4232d;
+  border-radius: 8px;
+  padding: 10px 15px;
+  font-weight: 700;
+}
+.account-danger > button:hover,
+.account-dialog-confirm:hover { background: #921c25; }
+.account-dialog-backdrop {
+  position: fixed;
+  inset: 0;
+  z-index: 20;
+  display: grid;
+  place-items: center;
+  padding: 20px;
+  background: rgba(20, 25, 35, 0.55);
+}
+.account-dialog {
+  width: min(440px, 100%);
+  padding: 28px;
+  border-radius: 14px;
+  background: #fff;
+  box-shadow: 0 20px 60px rgba(20, 25, 35, 0.2);
+}
+.account-dialog h2 { margin: 18px 0 8px; font-size: 21px; }
+.account-dialog p { margin: 0; color: var(--color-text-muted); line-height: 1.5; }
+.account-dialog-actions { display: flex; justify-content: flex-end; gap: 10px; margin-top: 25px; }
+.account-dialog-cancel { padding: 10px 15px; border: 1px solid var(--color-border); border-radius: 8px; background: #fff; font-weight: 700; }
+.account-dialog-cancel:hover { background: #f3f4f6; }
+.account-dialog button:disabled,
+.account-danger button:disabled { cursor: wait; opacity: 0.6; }
+@media (max-width: 700px) {
+  .account-grid { grid-template-columns: 1fr; }
+  .account-danger { align-items: flex-start; flex-wrap: wrap; }
+  .account-danger > button { width: 100%; }
+}
