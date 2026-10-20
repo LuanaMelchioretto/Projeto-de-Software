@@ -1,7 +1,5 @@
-import { PrismaClient } from '@prisma/client';
+import { prisma } from '../../lib/prisma';
 import { randomUUID } from 'crypto';
-
-const prisma = new PrismaClient();
 
 function embaralharArray<T>(array: T[]): T[] {
   const copia = [...array];
