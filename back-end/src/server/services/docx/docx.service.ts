@@ -1,4 +1,4 @@
-import { Document, Paragraph, TextRun, Packer, Alignment, HeadingLevel } from 'docx';
+import { Document, Paragraph, TextRun, Packer, AlignmentType, HeadingLevel } from 'docx';
 
 export class DocxService {
   async gerarDocumentoProva(versao: any): Promise<Buffer> {
@@ -10,7 +10,7 @@ export class DocxService {
       new Paragraph({
         text: avaliacaoTitulo || 'Avaliação',
         heading: HeadingLevel.HEADING_1,
-        alignment: Alignment.CENTER,
+        alignment: AlignmentType.CENTER,
         spacing: { after: 200 },
       }),
       new Paragraph({
