@@ -1,13 +1,27 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import PageTitle from "../../components/page-title/PageTitle";
+import { api } from "../../auth/api";
 import "./ClassesPage.css";
 
 export default function ClassesPage() {
-  const [turmas, setTurmas] = useState([
-    { id: 1, nome: "Engenharia de Software - Matutino", identificacao: "ESOFT-2026-1M" },
-    { id: 2, nome: "Sistemas de Informação - Noturno", identificacao: "SI-2026-1N" },
-    { id: 3, nome: "Ciência da Computação", identificacao: "CC-2026-1M" }
-  ]);
+  const [turmas, setTurmas] = useState([]);
+  const [carregando, setCarregando] = useState(false);
+
+  const carregarTurmas = async () => {
+    try {
+      setCarregando(true);
+      const data = await api("/turmas");
+      setTurmas(data || []);
+    } catch (error) {
+      setErroFormulario("Erro ao carregar turmas do servidor.");
+    } finally {
+      setCarregando(false);
+    }
+  };
+
+  useEffect(() => {
+    carregarTurmas();
+  }, []);
 
   const [termoBusca, setTermoBusca] = useState("");
   const [mensagemSucesso, setMensagemSucesso] = useState("");
@@ -44,7 +58,7 @@ export default function ClassesPage() {
     setErroFormulario("");
   };
 
-  const salvarTurma = (e) => {
+  const salvarTurma = async (e) => {
     e.preventDefault();
 
     if (!form.nome.trim() || !form.identificacao.trim()) {
@@ -52,20 +66,44 @@ export default function ClassesPage() {
       return;
     }
 
-    if (modoEdicao) {
-      setTurmas(turmas.map(t => t.id === idEdicao ? { ...t, ...form } : t));
-      setMensagemSucesso("Dados da turma atualizados com sucesso!");
-    } else {
-      const novaTurma = {
-        id: Date.now(),
-        nome: form.nome,
-        identificacao: form.identificacao
-      };
-      setTurmas([...turmas, novaTurma]);
-      setMensagemSucesso("Nova turma cadastrada com sucesso!");
-    }
+    try {
+      if (modoEdicao) {
+        await api(`/turmas/${idEdicao}`, {
+          method: "PUT",
+          body: JSON.stringify({
+            nome: form.nome,
+            identificacao: form.identificacao
+          })
+        });
+        setMensagemSucesso("Dados da turma atualizados com sucesso!");
+      } else {
+        await api("/turmas", {
+          method: "POST",
+          body: JSON.stringify({
+            nome: form.nome,
+            identificacao: form.identificacao
+          })
+        });
+        setMensagemSucesso("Nova turma cadastrada com sucesso!");
+      }
 
-    fecharModal();
+      await carregarTurmas();
+      fecharModal();
+    } catch (error) {
+      setErroFormulario(error.message || "Erro ao salvar turma. Tente novamente.");
+    }
+  };
+
+  const excluirTurma = async (id) => {
+    if (!window.confirm("Deseja realmente inativar esta turma?")) return;
+
+    try {
+      await api(`/turmas/${id}`, { method: "DELETE" });
+      setMensagemSucesso("Turma inativada com sucesso!");
+      await carregarTurmas();
+    } catch (error) {
+      setErroFormulario(error.message || "Erro ao inativar turma.");
+    }
   };
 
   return (
@@ -121,12 +159,18 @@ export default function ClassesPage() {
                     <tr key={turma.id} className="hover:bg-blue-50/50 transition">
                       <td className="p-4 font-mono font-semibold text-blue-600">{turma.identificacao}</td>
                       <td className="p-4 font-medium text-gray-800">{turma.nome}</td>
-                      <td className="p-4 text-right">
+                      <td className="p-4 text-right flex justify-end gap-2">
                         <button 
                           onClick={() => abrirModalEditar(turma)} 
                           className="text-blue-600 hover:text-blue-800 font-medium px-3 py-1.5 rounded-md hover:bg-blue-100/50 transition"
                         >
                           Editar
+                        </button>
+                        <button 
+                          onClick={() => excluirTurma(turma.id)} 
+                          className="text-red-600 hover:text-red-800 font-medium px-3 py-1.5 rounded-md hover:bg-red-100/50 transition"
+                        >
+                          Inativar
                         </button>
                       </td>
                     </tr>

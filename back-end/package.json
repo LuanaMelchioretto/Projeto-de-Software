@@ -11,7 +11,7 @@
     "db:setup": "docker compose up -d --wait && prisma migrate deploy && prisma generate && prisma db seed",
     "db:deploy": "prisma migrate deploy",
     "db:stop": "docker compose stop",
-    "db:migrate": "npx prisma migration new",
+    "db:migrate": "prisma migrate dev",
     "test": "npm run build && node --test"
   },
   "devDependencies": {
