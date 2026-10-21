@@ -1,5 +1,5 @@
 import React, { useState } from "react";
-import { Navigate, useLocation, useNavigate } from "react-router-dom";
+import { Link, Navigate, useLocation, useNavigate } from "react-router-dom";
 import { useAuth } from "../../auth/AuthContext";
 import Brand from "../../components/brand/Brand";
 import "./LoginPage.css";
@@ -40,6 +40,12 @@ export default function LoginPage() {
         <Brand centered />
         <h1>Bem-vindo de volta</h1>
         <p>Acesse sua conta para gerenciar suas avaliações.</p>
+
+        {location.state?.registered && <p role="status" className="login-success">Conta criada. Entre para continuar.</p>}
+        {location.state?.passwordChanged && <p role="status" className="login-success">Senha alterada. Entre com a nova senha.</p>}
+        {location.state?.passwordReset && <p role="status" className="login-success">Senha redefinida. Entre com a nova senha.</p>}
+        {location.state?.accountDeleted && <p role="status" className="login-success">Conta excluída. O acesso foi encerrado.</p>}
+        
         <label>
           E-mail
           <input
@@ -51,6 +57,7 @@ export default function LoginPage() {
             placeholder="professor@exemplo.com"
           />
         </label>
+
         <label>
           Senha
           <input
@@ -62,11 +69,17 @@ export default function LoginPage() {
             placeholder="••••••••"
           />
         </label>
+
+        <div className="login-help"><Link to="/esqueci-senha">Esqueci minha senha</Link></div>
         {(error || authError) && <p role="alert" className="login-error">{error || authError}</p>}
+
         <button className="primary full" type="submit" disabled={submitting}>
           Entrar
         </button>
+
+        <p className="login-switch">Ainda não tem conta? <Link to="/cadastro">Cadastre-se</Link></p>
       </form>
+      
     </div>
   );
 }

@@ -11,14 +11,19 @@ export const getAll = async (request: Request, response: Response): Promise<void
 };
 
 export const getById = async (request: Request, response: Response): Promise<void> => {
-  response.json(await professoresService.getById(request.params.id));
+  response.json(await professoresService.getById(request.params.id, response.locals.authUser.id));
 };
 
 export const updateById = async (request: Request, response: Response): Promise<void> => {
-  response.json(await professoresService.updateById(request.params.id, request.body));
+  response.json(await professoresService.updateById(request.params.id, request.body, response.locals.authUser.id));
 };
 
-export const deleteById = async (request: Request, response: Response): Promise<void> => {
-  await professoresService.deleteById(request.params.id);
+export const changePassword = async (request: Request, response: Response): Promise<void> => {
+  await professoresService.changePassword(request.params.id, request.body, response.locals.authUser.id);
+  response.status(204).send();
+};
+
+export const deactivateById = async (request: Request, response: Response): Promise<void> => {
+  await professoresService.deactivateById(request.params.id, response.locals.authUser.id);
   response.status(204).send();
 };

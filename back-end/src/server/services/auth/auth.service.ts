@@ -1,13 +1,59 @@
 import bcrypt from "bcryptjs";
-import { randomUUID } from "node:crypto";
+import { createHash, randomBytes, randomUUID } from "node:crypto";
 import jwt, { type JwtPayload } from "jsonwebtoken";
 import { env } from "../../config/env";
-import { ApiError } from "../../lib";
-import { professoresRepository, sessionsRepository } from "../../repositories";
+import { ApiError, hashPassword, mailer } from "../../lib";
+import { passwordResetsRepository, professoresRepository, sessionsRepository } from "../../repositories";
 import { authSchemas } from "../../schemas";
 
 export const sessionDurationSeconds = 60 * 60;
 export const sessionMaxDurationSeconds = 8 * 60 * 60;
+export const passwordResetDurationMinutes = 30;
+
+const hashResetToken = (token: string) => createHash("sha256").update(token).digest("hex");
+
+export const forgotPassword = async (input: unknown): Promise<void> => {
+  const { email } = authSchemas.forgotPasswordSchema.parse(input);
+  if (!mailer.isConfigured() || !env.PASSWORD_RESET_URL) throw new ApiError(503, "Recuperação de senha indisponível no momento");
+
+  try {
+    await mailer.verifyConnection();
+  } catch (error) {
+    console.error("SMTP indisponível para recuperação de senha", error);
+    throw new ApiError(503, "Recuperação de senha indisponível no momento");
+  }
+
+  const recipient = await professoresRepository.findResetRecipientByEmail(email);
+  if (!recipient || recipient.status !== 1) return;
+
+  const token = randomBytes(32).toString("hex");
+  const tokenHash = hashResetToken(token);
+  const created = await passwordResetsRepository.create(
+    recipient.id,
+    tokenHash,
+    new Date(Date.now() + passwordResetDurationMinutes * 60_000),
+  );
+  
+  if (!created) return;
+
+  const url = new URL(env.PASSWORD_RESET_URL);
+  
+  url.searchParams.set("token", token);
+  
+  try {
+    await mailer.sendPasswordReset(recipient.email, recipient.nome, url.toString());
+  } catch (error) {
+    await passwordResetsRepository.deleteByHash(tokenHash);
+    console.error("Falha ao enviar e-mail de recuperação de senha", error);
+  }
+};
+
+export const resetPassword = async (input: unknown): Promise<void> => {
+  const { token, novaSenha } = authSchemas.resetPasswordSchema.parse(input);
+  const changed = await passwordResetsRepository.consume(hashResetToken(token), await hashPassword(novaSenha));
+  
+  if (!changed) throw new ApiError(400, "Link inválido ou expirado. Solicite outro e-mail.");
+};
 
 const signSessionToken = (professorId: number, jti: string, exp: number) =>
   jwt.sign({ exp }, env.JWT_SECRET, {

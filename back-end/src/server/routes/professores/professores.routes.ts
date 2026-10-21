@@ -8,4 +8,5 @@ professoresRouter.use(requireAuth);
 professoresRouter.get("/", professoresController.getAll);
 professoresRouter.get("/:id", requireOwnUser, professoresController.getById);
 professoresRouter.patch("/:id", requireOwnUser, professoresController.updateById);
-professoresRouter.delete("/:id", requireOwnUser, professoresController.deleteById);
+professoresRouter.patch("/:id/senha", requireOwnUser, professoresController.changePassword);
+professoresRouter.delete("/:id", requireOwnUser, professoresController.deactivateById);

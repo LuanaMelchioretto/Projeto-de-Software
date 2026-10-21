@@ -5,6 +5,7 @@ import {
   LayoutDashboard,
   ScanLine,
   Users,
+  UserRound,
 } from "lucide-react";
 
 export const navigationItems = [
@@ -14,4 +15,5 @@ export const navigationItems = [
   { to: "/turmas", label: "Turmas", icon: Users },
   { to: "/correcoes", label: "Correções", icon: ScanLine },
   { to: "/relatorios", label: "Relatórios", icon: BarChart3 },
+  { to: "/conta", label: "Minha conta", icon: UserRound },
 ];
