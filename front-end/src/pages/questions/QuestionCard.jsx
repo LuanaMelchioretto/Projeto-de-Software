@@ -2,7 +2,7 @@ import React from "react";
 import { CheckCircle2, ChevronUp, Eye, ImageIcon, Pencil, Trash2 } from "lucide-react";
 import { buildStatementPreview, isCompactOptionList, OPTION_LABELS } from "./questionUtils";
 
-export default function QuestionCard({ question, expanded = false, onToggle, onEdit, onDelete }) {
+export default function QuestionCard({ question, expanded = false, onToggle, onEdit, onDelete, isDeleting = false }) {
   const detailsId = `question-${question.id}-details`;
   const preview = buildStatementPreview(question.text);
   const hasTags = Boolean(question.image || question.topic || question.difficulty);
@@ -63,15 +63,17 @@ export default function QuestionCard({ question, expanded = false, onToggle, onE
           >
             <Pencil size={15} aria-hidden="true" /> Editar
           </button>
-
-          <button
-            type="button"
-            className="secondary"
-            onClick={onDelete}
-            aria-label={`Excluir quest?o ${question.id}`}
-          >
-            <Trash2 size={15} aria-hidden="true" /> Excluir
-          </button>
+          {onDelete && (
+            <button
+              type="button"
+              className="secondary question-delete-button"
+              onClick={onDelete}
+              disabled={isDeleting}
+              aria-label={`Excluir questão ${question.id}`}
+            >
+              <Trash2 size={15} aria-hidden="true" /> {isDeleting ? "Excluindo…" : "Excluir"}
+            </button>
+          )}
         </div>
       </footer>
     </article>

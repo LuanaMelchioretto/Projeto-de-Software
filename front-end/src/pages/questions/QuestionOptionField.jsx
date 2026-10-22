@@ -1,5 +1,5 @@
 import React from "react";
-import { Trash2 } from "lucide-react";
+import { ArrowDown, ArrowUp, Trash2 } from "lucide-react";
 import { OPTION_LABELS } from "./questionUtils";
 
 export default function QuestionOptionField({
@@ -7,8 +7,12 @@ export default function QuestionOptionField({
   value,
   isCorrect,
   canRemove,
+  canMoveUp,
+  canMoveDown,
   onChange,
   onSelectCorrect,
+  onMoveUp,
+  onMoveDown,
   onRemove,
 }) {
   const letter = OPTION_LABELS[index];
@@ -22,6 +26,12 @@ export default function QuestionOptionField({
         </label>
 
         <div className="question-option-tools">
+          <button type="button" className="icon-btn" onClick={onMoveUp} disabled={!canMoveUp} aria-label={`Mover alternativa ${letter} para cima`}>
+            <ArrowUp size={15} aria-hidden="true" />
+          </button>
+          <button type="button" className="icon-btn" onClick={onMoveDown} disabled={!canMoveDown} aria-label={`Mover alternativa ${letter} para baixo`}>
+            <ArrowDown size={15} aria-hidden="true" />
+          </button>
           <label className="question-correct-choice">
             <input
               type="radio"

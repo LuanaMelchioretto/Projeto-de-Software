@@ -7,7 +7,7 @@ import { OPTION_LABELS } from "./questionUtils";
 const MIN_OPTIONS = 2;
 const MAX_OPTIONS = OPTION_LABELS.length;
 
-export default function QuestionForm({ question, onSave, onCancel }) {
+export default function QuestionForm({ question, onSave, onCancel, isSaving = false, submitError = "" }) {
   const [draft, setDraft] = useState(() => ({
     text: question?.text ?? "",
     options: question ? [...question.options] : OPTION_LABELS.map(() => ""),
@@ -15,9 +15,9 @@ export default function QuestionForm({ question, onSave, onCancel }) {
     image: question?.image ? { ...question.image } : null,
   }));
 
-  const [errors, setErrors] = useState([]);
   const optionsList = useRef(null);
   const optionToFocus = useRef(null);
+  const [validationError, setValidationError] = useState("");
 
   useEffect(() => {
     if (optionToFocus.current === null) return;
@@ -53,6 +53,18 @@ export default function QuestionForm({ question, onSave, onCancel }) {
     }));
   }
 
+  function moveOption(index, offset) {
+    const target = index + offset;
+    if (target < 0 || target >= draft.options.length) return;
+    const options = [...draft.options];
+    [options[index], options[target]] = [options[target], options[index]];
+    setDraft((current) => ({
+      ...current,
+      options,
+      answer: current.answer === index ? target : current.answer === target ? index : current.answer,
+    }));
+  }
+
   return (
     <form
       className="question-form"
@@ -60,36 +72,18 @@ export default function QuestionForm({ question, onSave, onCancel }) {
       noValidate
       onSubmit={(event) => {
         event.preventDefault();
-        const nextErrors = [];
-
-        if (!draft.text.trim()) {
-          nextErrors.push("Informe o enunciado da questão.");
+        setValidationError("");
+        const text = draft.text.trim();
+        const options = draft.options.map((option) => option.trim());
+        if (!text) return setValidationError("Preencha o enunciado da questão.");
+        if (options.length < MIN_OPTIONS || options.length > MAX_OPTIONS) {
+          return setValidationError(`Use de ${MIN_OPTIONS} a ${MAX_OPTIONS} alternativas.`);
         }
-
-        if (draft.options.some((option) => !option.trim())) {
-          nextErrors.push("Preencha todas as alternativas ou remova as que não utilizar.");
+        if (options.some((option) => !option)) return setValidationError("Preencha todas as alternativas.");
+        if (draft.answer === null || draft.answer >= options.length) {
+          return setValidationError("Marque uma única alternativa correta.");
         }
-
-        if (
-          draft.answer === null ||
-          draft.answer < 0 ||
-          draft.answer >= draft.options.length
-        ) {
-          nextErrors.push("Marque a alternativa correta.");
-        }
-
-        if (nextErrors.length > 0) {
-          setErrors(nextErrors);
-          return;
-        }
-
-        setErrors([]);
-        onSave({
-          text: draft.text.trim(),
-          options: draft.options.map((option) => option.trim()),
-          answer: draft.answer,
-          image: draft.image,
-        });
+        onSave({ text, options, answer: draft.answer, image: draft.image });
       }}
     >
       <header className="question-form-header">
@@ -97,13 +91,7 @@ export default function QuestionForm({ question, onSave, onCancel }) {
         <p>Preencha o enunciado, defina as alternativas e marque a única resposta correta.</p>
       </header>
 
-      {errors.length > 0 && (
-        <div className="question-validation-errors" role="alert">
-          <ul>
-            {errors.map((error) => <li key={error}>{error}</li>)}
-          </ul>
-        </div>
-      )}
+      {(validationError || submitError) && <p className="question-form-error" role="alert">{validationError || submitError}</p>}
 
       <div className="question-field">
         <label htmlFor="question-text">Enunciado</label>
@@ -141,8 +129,12 @@ export default function QuestionForm({ question, onSave, onCancel }) {
               value={option}
               isCorrect={draft.answer === index}
               canRemove={draft.options.length > MIN_OPTIONS}
+              canMoveUp={index > 0}
+              canMoveDown={index < draft.options.length - 1}
               onChange={(value) => updateOption(index, value)}
               onSelectCorrect={() => setDraft({ ...draft, answer: index })}
+              onMoveUp={() => moveOption(index, -1)}
+              onMoveDown={() => moveOption(index, 1)}
               onRemove={() => removeOption(index)}
             />
           ))}
@@ -171,8 +163,8 @@ export default function QuestionForm({ question, onSave, onCancel }) {
 
       <footer className="question-form-footer">
         <button type="button" className="secondary" onClick={onCancel}>Cancelar</button>
-        <button type="submit" className="primary">
-          <Save size={16} aria-hidden="true" /> {question ? "Salvar alterações" : "Cadastrar questão"}
+        <button type="submit" className="primary" disabled={isSaving}>
+          <Save size={16} aria-hidden="true" /> {isSaving ? "Salvando…" : question ? "Salvar alterações" : "Cadastrar questão"}
         </button>
       </footer>
     </form>
