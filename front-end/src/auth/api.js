@@ -21,9 +21,8 @@ export async function api(path, options = {}) {
   }
 
   if (!response.ok) {
-    if (response.status === 401 && !path.startsWith("/auth/")) unauthorizedHandler?.();
-   
     const result = await response.json().catch(() => ({}));
+    if (!path.startsWith("/auth/") && (response.status === 401 || (response.status === 403 && result.erro === "Conta inativa"))) unauthorizedHandler?.();
     const error = new Error(result.erro || "Não foi possível concluir a operação.");
     
     error.status = response.status;

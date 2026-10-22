@@ -1,12 +1,16 @@
 model VersaoProva {
-  id          Int             @id @default(autoincrement())
-  aplicacaoId Int             @map("aplicacao_id")
-  aplicacao   AplicacaoProva  @relation(fields: [aplicacaoId], references: [id], onDelete: Cascade)
-  alunoId     Int             @map("aluno_id")
-  aluno       Aluno           @relation(fields: [alunoId], references: [id], onDelete: Restrict)
-  qrCodeHash  String          @unique @map("qr_code_hash") @db.VarChar(255)
-  respostas   RespostaAluno[]
-  resultado   ResultadoAluno?
+  id               Int            @id @default(autoincrement())
+  aplicacaoId      Int            @map("aplicacao_id")
+  aplicacao        AplicacaoProva @relation(fields: [aplicacaoId], references: [id], onDelete: Cascade)
+  alunoId          Int            @map("aluno_id")
+  aluno            Aluno          @relation(fields: [alunoId], references: [id], onDelete: Restrict)
+  qrCodeHash       String         @unique @map("qr_code_hash") @db.VarChar(255)
+  
+  conteudoSnapshot Json           @map("conteudo_snapshot")
+  caminhoDocx      String?        @map("caminho_docx") @db.VarChar(255)
+
+  respostas        RespostaAluno[]
+  resultado        ResultadoAluno?
 
   @@index([aplicacaoId])
   @@index([alunoId])
