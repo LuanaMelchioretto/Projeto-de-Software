@@ -5,6 +5,9 @@ model Questao {
   disciplinaId Int                @map("disciplina_id")
   disciplina   Disciplina         @relation(fields: [disciplinaId], references: [id], onDelete: Restrict)
   enunciado    String             @db.Text
+  imagemNome   String?            @map("imagem_nome") @db.VarChar(255)
+  imagemData   String?            @map("imagem_data") @db.MediumText
+  ativo        Boolean            @default(true)
   dataCriacao  DateTime           @default(now()) @map("data_criacao")
   alternativas Alternativa[]
   avaliacoes   AvaliacaoQuestao[]

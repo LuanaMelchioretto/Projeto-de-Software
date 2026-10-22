@@ -1,0 +1,7 @@
+ALTER TABLE `questoes`
+  ADD COLUMN `imagem_nome` VARCHAR(255) NULL,
+  ADD COLUMN `imagem_data` MEDIUMTEXT NULL,
+  ADD COLUMN `ativo` BOOLEAN NOT NULL DEFAULT true;
+
+ALTER TABLE `alternativas`
+  ADD COLUMN `ativa` BOOLEAN NOT NULL DEFAULT true;

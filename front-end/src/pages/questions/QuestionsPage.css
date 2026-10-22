@@ -2,6 +2,19 @@
   --question-muted: #646d7b;
 }
 
+.question-form-error {
+  margin: 0 0 16px;
+  padding: 12px 14px;
+  border: 1px solid #e2a4a8;
+  border-radius: 8px;
+  background: #fff4f4;
+  color: #8f222b;
+}
+
+.question-delete-button {
+  color: #9b2932;
+}
+
 .questions-toolbar {
   display: flex;
   align-items: center;

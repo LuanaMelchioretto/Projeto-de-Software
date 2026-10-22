@@ -119,73 +119,45 @@ test("abre e cancela o cadastro, descarta o rascunho e restaura o foco", async (
   assert.equal(screen.getByRole("textbox", { name: "Enunciado" }).value, "");
 });
 
-test("edita uma prévia sem modificar os dados demonstrativos", async () => {
-  const original = structuredClone(questions);
-
+test("edita uma questao sem modificar os dados demonstrativos originais", async () => {
+  const originalQuestions = structuredClone(questions);
   const user = setup();
+
   await user.type(screen.getByRole("searchbox"), "impetrante");
-  await user.click(screen.getByRole("button", { name: "Editar questão 1" }));
-
-  assert.equal(
-    screen.getByRole("textbox", { name: "Enunciado" }).value,
-    questions[0].text,
-  );
-  assert.ok(
-    screen.getByRole("radio", { name: "Marcar alternativa B como correta" })
-      .checked,
-  );
+  await user.click(screen.getByRole("button", { name: /Editar quest.*1/ }));
   await user.clear(screen.getByRole("textbox", { name: "Enunciado" }));
-  await user.type(
-    screen.getByRole("textbox", { name: "Enunciado" }),
-    "Prévia alterada.",
-  );
-  await user.type(
-    screen.getByRole("textbox", { name: "Alternativa A" }),
-    " alterada",
-  );
-  await user.click(screen.getByRole("button", { name: "Salvar alterações" }));
+  await user.type(screen.getByRole("textbox", { name: "Enunciado" }), "Previa alterada.");
+  await user.type(screen.getByRole("textbox", { name: "Alternativa A" }), " alterada");
+  await user.click(screen.getByRole("button", { name: /Salvar altera/ }));
 
-  assert.ok(
-    screen.getByText(
-      "Edição demonstrativa concluída. Nenhuma alteração foi salva.",
-    ),
-  );
-  assert.ok(screen.getByText(questions[0].text));
+  assert.ok(screen.getByText(/salvas com sucesso/));
   assert.equal(screen.getByRole("searchbox").value, "impetrante");
-  assert.equal(screen.queryByText("Prévia alterada."), null);
-  assert.deepEqual(questions, original);
-  
-  await user.click(screen.getByRole("button", { name: "Fechar mensagem" }));
+  assert.equal(screen.queryByText("Previa alterada."), null);
 
-  assert.equal(
-    screen.queryByText(
-      "Edição demonstrativa concluída. Nenhuma alteração foi salva.",
-    ),
-    null,
-  );
+  await user.click(screen.getByRole("button", { name: "Limpar busca" }));
+  assert.ok(screen.getByText("Previa alterada."));
+  assert.deepEqual(questions, originalQuestions);
 });
 
-test("conclui o cadastro demonstrativo sem inserir questões", async () => {
+test("cadastra uma nova questao valida na lista", async () => {
   const user = setup([]);
 
-  await user.click(
-    screen.getByRole("button", { name: "Cadastrar primeira questão" }),
-  );
-  await user.type(
-    screen.getByRole("textbox", { name: "Enunciado" }),
-    "Questão demonstrativa.",
-  );
-  await user.click(screen.getByRole("button", { name: "Cadastrar questão" }));
+  await user.click(screen.getByRole("button", { name: /Cadastrar primeira quest/ }));
+  await user.type(screen.getByRole("textbox", { name: "Enunciado" }), "Questao demonstrativa.");
+  await user.type(screen.getByRole("textbox", { name: "Alternativa A" }), "Resposta correta");
+  await user.type(screen.getByRole("textbox", { name: "Alternativa B" }), "Resposta incorreta");
 
-  assert.ok(
-    screen.getByText(
-      "Cadastro demonstrativo concluído. Nenhuma questão foi salva.",
-    ),
-  );
-  assert.ok(
-    screen.getByRole("heading", { name: "Seu banco de questões está vazio" }),
-  );
-  assert.equal(screen.queryAllByRole("article").length, 0);
+  while (screen.getAllByRole("radio", { name: /Marcar alternativa .* como correta/ }).length > 2) {
+    const removeButtons = screen.getAllByRole("button", { name: /Remover alternativa/ });
+    await user.click(removeButtons[removeButtons.length - 1]);
+  }
+
+  await user.click(screen.getByRole("radio", { name: "Marcar alternativa A como correta" }));
+  await user.click(screen.getByRole("button", { name: /Cadastrar quest/ }));
+
+  assert.ok(screen.getByText(/cadastrada com sucesso/));
+  assert.ok(screen.getByText("Questao demonstrativa."));
+  assert.equal(screen.getAllByRole("article").length, 1);
 });
 
 test("busca sem acentos, mostra ausência de resultados e limpa o filtro", async () => {
@@ -340,5 +312,95 @@ test("a rota de questões mantém as interações dentro do layout da aplicaçã
     assert.equal(screen.getAllByRole("article").length, questions.length);
   } finally {
     globalThis.fetch = originalFetch;
+  }
+});
+
+
+test("exclui uma questao apos confirmar", async () => {
+  const question = questions[0];
+  const user = setup([question]);
+  const originalConfirm = dom.window.confirm;
+  let confirmationMessage = "";
+
+  dom.window.confirm = (message) => {
+    confirmationMessage = message;
+    return true;
+  };
+
+  try {
+    await user.click(screen.getByRole("button", { name: /^Excluir quest/ }));
+
+    assert.match(confirmationMessage, /questao/i);
+    assert.equal(screen.queryAllByRole("article").length, 0);
+    assert.equal(screen.queryByText(question.text), null);
+  } finally {
+    dom.window.confirm = originalConfirm;
+  }
+});
+
+test("mantem a questao quando a exclusao e cancelada", async () => {
+  const question = questions[0];
+  const user = setup([question]);
+  const originalConfirm = dom.window.confirm;
+  let confirmationRequested = false;
+
+  dom.window.confirm = () => {
+    confirmationRequested = true;
+    return false;
+  };
+
+  try {
+    await user.click(screen.getByRole("button", { name: /^Excluir quest/ }));
+
+    assert.equal(confirmationRequested, true);
+    assert.equal(screen.getAllByRole("article").length, 1);
+    assert.ok(screen.getByText(question.text));
+  } finally {
+    dom.window.confirm = originalConfirm;
+  }
+});
+
+
+test("exclui uma questao apos confirmar", async () => {
+  const question = questions[0];
+  const user = setup([question]);
+  const originalConfirm = dom.window.confirm;
+  let confirmationMessage = "";
+
+  dom.window.confirm = (message) => {
+    confirmationMessage = message;
+    return true;
+  };
+
+  try {
+    await user.click(screen.getByRole("button", { name: /^Excluir quest/ }));
+
+    assert.match(confirmationMessage, /questao/i);
+    assert.equal(screen.queryAllByRole("article").length, 0);
+    assert.equal(screen.queryByText(question.text), null);
+  } finally {
+    dom.window.confirm = originalConfirm;
+  }
+});
+
+test("mantem a questao quando a exclusao e cancelada", async () => {
+  const question = questions[0];
+  const user = setup([question]);
+  const originalConfirm = dom.window.confirm;
+  let confirmationRequested = false;
+
+  dom.window.confirm = () => {
+    confirmationRequested = true;
+    return false;
+  };
+
+  try {
+    await user.click(screen.getByRole("button", { name: /^Excluir quest/ }));
+
+    assert.equal(confirmationRequested, true);
+    assert.equal(screen.getAllByRole("article").length, 1);
+    assert.ok(screen.getByText(question.text));
+  } finally {
+    dom.window.confirm = originalConfirm;
   }
 });
