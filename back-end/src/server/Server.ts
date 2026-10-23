@@ -1,7 +1,7 @@
 import express from "express";
 import cors from "cors";
 import { env } from "./config/env";
-import { authRouter, healthRouter, professoresRouter } from "./routes";
+import { authRouter, healthRouter, professoresRouter, resultadosRoutes } from "./routes";
 import { requireAllowedOrigin } from "./middleware/origin.middleware";
 import { errorMiddleware, notFoundMiddleware } from "./middleware";
 import { aplicacoesRoutes } from './routes';
@@ -18,6 +18,7 @@ app.use((request, response, next) => {
 app.use("/api/auth", authRouter);
 app.use("/api/health", healthRouter);
 app.use("/api/professores", professoresRouter);
+app.use('/api/aplicacoes', aplicacoesRoutes);
+app.use("/api/resultados", resultadosRoutes);
 app.use(notFoundMiddleware);
 app.use(errorMiddleware);
-app.use('/api/aplicacoes', aplicacoesRoutes);
