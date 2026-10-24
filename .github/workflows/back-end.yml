@@ -1,0 +1,106 @@
+name: Back-end CI/CD
+
+on:
+  pull_request:
+    paths:
+      - 'back-end/**'
+      - 'compose.production.yaml'
+      - 'deploy/azure/**'
+      - '.github/workflows/back-end.yml'
+  push:
+    branches: [chore/deploy-backend]
+
+permissions:
+  contents: read
+
+jobs:
+  validate:
+    name: Testes e imagem Docker
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    defaults:
+      run:
+        working-directory: back-end
+    steps:
+      - name: Obter o código
+        uses: actions/checkout@v6
+        with:
+          persist-credentials: false
+
+      - name: Configurar o Node.js
+        uses: actions/setup-node@v6
+        with:
+          node-version: 24
+          cache: npm
+          cache-dependency-path: back-end/package-lock.json
+
+      - name: Instalar dependências
+        run: npm ci
+
+      - name: Compilar e testar
+        run: npm test
+
+      - name: Validar a imagem de produção
+        run: docker build --tag provaplus-api:ci .
+
+  deploy:
+    name: Deploy da API no Azure
+    needs: validate
+    if: >-
+      github.event_name == 'push' &&
+      github.ref == 'refs/heads/chore/deploy-backend' &&
+      vars.AZURE_DEPLOY_ENABLED == 'true'
+    runs-on: ubuntu-latest
+    timeout-minutes: 45
+    concurrency:
+      group: provaplus-backend-production
+      cancel-in-progress: false
+    permissions:
+      contents: read
+      id-token: write
+    env:
+      API_URL: https://provaplus-api-gm-2026.canadacentral.cloudapp.azure.com
+      AZURE_RESOURCE_GROUP: rg-provaplus-ca
+      AZURE_VM_NAME: vm-provaplus
+    steps:
+      - name: Obter o código validado
+        uses: actions/checkout@v6
+        with:
+          persist-credentials: false
+
+      - name: Entrar no Azure com OIDC
+        uses: azure/login@v3
+        with:
+          client-id: ${{ secrets.AZURE_CLIENT_ID }}
+          tenant-id: ${{ secrets.AZURE_TENANT_ID }}
+          subscription-id: ${{ secrets.AZURE_SUBSCRIPTION_ID }}
+
+      - name: Atualizar a VM
+        shell: bash
+        run: |
+          set -euo pipefail
+          output=$(az vm run-command invoke \
+            --resource-group "$AZURE_RESOURCE_GROUP" \
+            --name "$AZURE_VM_NAME" \
+            --command-id RunShellScript \
+            --scripts @deploy/azure/bootstrap-vm.sh \
+            --parameters "$GITHUB_SHA" \
+            --query 'value[].message' \
+            --output tsv)
+          if ! grep -Fq "DEPLOY_OK $GITHUB_SHA" <<< "$output"; then
+            printf '%s\n' "$output"
+            echo 'A VM não confirmou o deploy do commit validado.' >&2
+            exit 1
+          fi
+          echo "Deploy do commit $GITHUB_SHA confirmado pela VM."
+
+      - name: Verificar a API e o MySQL
+        shell: bash
+        run: |
+          set -euo pipefail
+          for path in /api/health/ /api/health/db; do
+            curl --fail --silent --show-error \
+              --retry 12 --retry-all-errors --retry-delay 5 \
+              "$API_URL$path" | jq -e '.status == "ok"' > /dev/null
+          done
+          echo "API e MySQL saudáveis em $API_URL" >> "$GITHUB_STEP_SUMMARY"

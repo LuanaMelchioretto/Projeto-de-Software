@@ -1,0 +1,64 @@
+services:
+  mysql:
+    image: mysql:8.4
+    restart: unless-stopped
+    environment:
+      MYSQL_DATABASE: provaplus
+      MYSQL_USER: provaplus
+      MYSQL_PASSWORD: ${DB_PASSWORD:?Defina DB_PASSWORD}
+      MYSQL_ROOT_PASSWORD: ${MYSQL_ROOT_PASSWORD:?Defina MYSQL_ROOT_PASSWORD}
+    volumes:
+      - mysql_data:/var/lib/mysql
+    healthcheck:
+      test:
+        - CMD-SHELL
+        - >-
+          MYSQL_PWD="$$MYSQL_PASSWORD" mysql --protocol=TCP
+          --host=127.0.0.1 --user="$$MYSQL_USER"
+          --database="$$MYSQL_DATABASE" --execute="SELECT 1" --silent
+      interval: 10s
+      timeout: 5s
+      retries: 30
+      start_period: 60s
+
+  api:
+    build: ./back-end
+    restart: unless-stopped
+    environment:
+      DATABASE_URL: mysql://provaplus:${DB_PASSWORD:?Defina DB_PASSWORD}@mysql:3306/provaplus
+      PORT: "3000"
+      FRONTEND_ORIGINS: https://luanamelchioretto.github.io
+      JWT_SECRET: ${JWT_SECRET:?Defina JWT_SECRET}
+      COOKIE_SECURE: "true"
+      PASSWORD_RESET_URL: https://luanamelchioretto.github.io/Projeto-de-Software/redefinir-senha
+      SMTP_HOST: ${SMTP_HOST:-}
+      SMTP_PORT: ${SMTP_PORT:-587}
+      SMTP_REQUIRE_TLS: ${SMTP_REQUIRE_TLS:-true}
+      SMTP_USER: ${SMTP_USER:-}
+      SMTP_PASSWORD: ${SMTP_PASSWORD:-}
+      SMTP_FROM: ${SMTP_FROM:-}
+      AZURE_EMAIL_CONNECTION_STRING: ${AZURE_EMAIL_CONNECTION_STRING:-}
+      AZURE_EMAIL_FROM: ${AZURE_EMAIL_FROM:-}
+    depends_on:
+      mysql:
+        condition: service_healthy
+
+  caddy:
+    image: caddy:2-alpine
+    restart: unless-stopped
+    environment:
+      API_DOMAIN: ${API_DOMAIN:?Defina API_DOMAIN}
+    ports:
+      - "80:80"
+      - "443:443"
+    volumes:
+      - ./deploy/azure/Caddyfile:/etc/caddy/Caddyfile:ro
+      - caddy_data:/data
+      - caddy_config:/config
+    depends_on:
+      - api
+
+volumes:
+  mysql_data:
+  caddy_data:
+  caddy_config:

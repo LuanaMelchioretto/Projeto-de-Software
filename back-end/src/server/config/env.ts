@@ -51,6 +51,14 @@ export const env = z
       (value) => (value === "" ? undefined : value),
       z.email().optional(),
     ),
+    AZURE_EMAIL_CONNECTION_STRING: z.preprocess(
+      (value) => (value === "" ? undefined : value),
+      z.string().min(1).optional(),
+    ),
+    AZURE_EMAIL_FROM: z.preprocess(
+      (value) => (value === "" ? undefined : value),
+      z.email().optional(),
+    ),
     PASSWORD_RESET_URL: z.preprocess(
       (value) => (value === "" ? undefined : value),
       z.string().url().optional(),
