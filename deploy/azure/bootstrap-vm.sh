@@ -2,7 +2,7 @@
 set -euo pipefail
 
 APP_DIR=/opt/provaplus
-BRANCH=chore/deploy-backend
+BRANCH=main
 REPOSITORY=https://github.com/LuanaMelchioretto/Projeto-de-Software.git
 API_DOMAIN=${API_DOMAIN:-provaplus-api-gm-2026.canadacentral.cloudapp.azure.com}
 DEPLOY_SHA=${1:-}

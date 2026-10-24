@@ -8,7 +8,7 @@ on:
       - 'deploy/azure/**'
       - '.github/workflows/back-end.yml'
   push:
-    branches: [chore/deploy-backend]
+    branches: [main]
 
 permissions:
   contents: read
@@ -48,7 +48,7 @@ jobs:
     needs: validate
     if: >-
       github.event_name == 'push' &&
-      github.ref == 'refs/heads/chore/deploy-backend' &&
+      github.ref == 'refs/heads/main' &&
       vars.AZURE_DEPLOY_ENABLED == 'true'
     runs-on: ubuntu-latest
     timeout-minutes: 45
