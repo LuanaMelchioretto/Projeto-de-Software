@@ -18,4 +18,8 @@ O banco está no disco da VM. Faça backup externo regular antes de depender dos
 
 ## Recuperação de senha por e-mail
 
-O serviço `api` recebe `SMTP_HOST`, `SMTP_PORT`, `SMTP_REQUIRE_TLS`, `SMTP_USER`, `SMTP_PASSWORD` e `SMTP_FROM` do arquivo `/opt/provaplus/.env.production`. O Compose também define `PASSWORD_RESET_URL` para a página de redefinição no GitHub Pages. Sem `SMTP_HOST` e `SMTP_FROM`, a rota de recuperação responde 503. Mantenha a senha SMTP apenas no arquivo da VM, com permissão 600; não a adicione ao repositório nem aos logs do GitHub Actions.
+Em produção, o serviço `api` usa Azure Communication Services Email. O domínio gerenciado `@azurecomm.net` do recurso `email-provaplus-gm-2026` está ligado ao recurso `acs-provaplus-gm-2026` na mesma assinatura Azure for Students. O arquivo `/opt/provaplus/.env.production` contém `AZURE_EMAIL_CONNECTION_STRING` e `AZURE_EMAIL_FROM`; o Compose os repassa ao contêiner. `PASSWORD_RESET_URL` aponta para a página de redefinição no GitHub Pages. A string de conexão é um segredo: mantenha o arquivo com permissão 600 e nunca a adicione ao repositório ou aos logs do GitHub Actions. Para configurar ou trocar a chave pela CLI do Azure, obtenha a string de conexão sem exibi-la e execute `deploy/azure/configure-email.sh` via VM Run Command, passando-a codificada em base64 como parâmetro. O script substitui as variáveis sem imprimir a credencial.
+
+Para desenvolvimento local, ainda é possível usar SMTP com `SMTP_HOST`, `SMTP_PORT`, `SMTP_REQUIRE_TLS`, `SMTP_USER`, `SMTP_PASSWORD` e `SMTP_FROM`. Se ambas as opções estiverem completas, o Azure Email tem prioridade. Sem um provedor configurado, a rota de recuperação responde 503.
+
+O Azure Email cobra por destinatário e volume de dados enviados. O domínio gerenciado não tem custo de provisionamento; acompanhe o consumo no portal Azure e o saldo dos créditos estudantis.

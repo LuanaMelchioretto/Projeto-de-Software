@@ -38,6 +38,8 @@ services:
       SMTP_USER: ${SMTP_USER:-}
       SMTP_PASSWORD: ${SMTP_PASSWORD:-}
       SMTP_FROM: ${SMTP_FROM:-}
+      AZURE_EMAIL_CONNECTION_STRING: ${AZURE_EMAIL_CONNECTION_STRING:-}
+      AZURE_EMAIL_FROM: ${AZURE_EMAIL_FROM:-}
     depends_on:
       mysql:
         condition: service_healthy

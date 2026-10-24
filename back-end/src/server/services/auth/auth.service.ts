@@ -19,7 +19,7 @@ export const forgotPassword = async (input: unknown): Promise<void> => {
   try {
     await mailer.verifyConnection();
   } catch (error) {
-    console.error("SMTP indisponível para recuperação de senha", error);
+    console.error("Serviço de e-mail indisponível para recuperação de senha", error);
     throw new ApiError(503, "Recuperação de senha indisponível no momento");
   }
 

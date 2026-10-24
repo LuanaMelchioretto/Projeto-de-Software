@@ -1,3 +1,4 @@
+import { EmailClient } from "@azure/communication-email";
 import nodemailer from "nodemailer";
 import { env } from "../config/env";
 import { ApiError } from "./api-error";
@@ -18,8 +19,12 @@ const createTransport = () => {
 };
 
 export const mailer = {
-  isConfigured: () => Boolean(env.SMTP_HOST && env.SMTP_FROM),
+  isConfigured: () => Boolean(
+    (env.AZURE_EMAIL_CONNECTION_STRING && env.AZURE_EMAIL_FROM) ||
+    (env.SMTP_HOST && env.SMTP_FROM),
+  ),
   async verifyConnection(): Promise<void> {
+    if (env.AZURE_EMAIL_CONNECTION_STRING && env.AZURE_EMAIL_FROM) return;
     const transport = createTransport();
     try {
       await transport.verify();
@@ -32,6 +37,25 @@ export const mailer = {
     name: string,
     url: string,
   ): Promise<void> {
+    const body = `Olá, ${name}.\n\nRecebemos um pedido para redefinir sua senha. Acesse o link abaixo em até 30 minutos:\n${url}\n\nSe você não pediu essa alteração, ignore esta mensagem.`;
+
+    if (env.AZURE_EMAIL_CONNECTION_STRING && env.AZURE_EMAIL_FROM) {
+      const client = new EmailClient(env.AZURE_EMAIL_CONNECTION_STRING);
+      const poller = await client.beginSend({
+        senderAddress: env.AZURE_EMAIL_FROM,
+        recipients: { to: [{ address: to }] },
+        content: {
+          subject: "Redefinição de senha - Prova+",
+          plainText: body,
+        },
+      });
+      const result = await poller.pollUntilDone();
+      if (result.status !== "Succeeded") {
+        throw new Error(`Azure Email: ${result.status}`);
+      }
+      return;
+    }
+
     const transport = createTransport();
 
     try {
@@ -39,7 +63,7 @@ export const mailer = {
         from: env.SMTP_FROM,
         to,
         subject: "Redefinição de senha - Prova+",
-        text: `Olá, ${name}.\n\nRecebemos um pedido para redefinir sua senha. Acesse o link abaixo em até 30 minutos:\n${url}\n\nSe você não pediu essa alteração, ignore esta mensagem.`,
+        text: body,
       });
     } finally {
       transport.close();
