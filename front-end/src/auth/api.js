@@ -31,3 +31,18 @@ export async function api(path, options = {}) {
   }
   return response.status === 204 ? null : response.json();
 }
+
+export function getResultadoPorId(id) {
+  return api(`/resultados/${id}`);
+}
+
+export function alternarLiberacaoResultado(id, liberado) {
+  return api(`/resultados/${id}/liberacao`, {
+    method: "PATCH",
+    body: JSON.stringify({ liberado }),
+  });
+}
+
+export function getResultadoPublico(token) {
+  return api(`/resultados/publico/${token}`);
+}

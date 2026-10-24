@@ -1,6 +1,7 @@
 import React from "react";
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
+import { alternarLiberacaoResultado } from "../../auth/api";
 import "./CorrectionResultPage.css";
 
 const resultados = [

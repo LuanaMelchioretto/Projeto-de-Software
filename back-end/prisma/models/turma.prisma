@@ -1,14 +1,17 @@
 model Turma {
-  id           Int              @id @default(autoincrement())
-  professorId  Int              @map("professor_id")
-  professor    Professor        @relation(fields: [professorId], references: [id], onDelete: Restrict)
-  disciplinaId Int              @map("disciplina_id")
-  disciplina   Disciplina       @relation(fields: [disciplinaId], references: [id], onDelete: Restrict)
-  nome         String           @db.VarChar(100)
-  semestre     String           @db.VarChar(10)
-  matriculas   Matricula[]
-  aplicacoes   AplicacaoProva[]
+  id            Int              @id @default(autoincrement())
+  professorId   Int              @map("professor_id")
+  professor     Professor        @relation(fields: [professorId], references: [id], onDelete: Restrict)
+  disciplinaId  Int              @map("disciplina_id")
+  disciplina    Disciplina       @relation(fields: [disciplinaId], references: [id], onDelete: Restrict)
+  nome          String           @db.VarChar(100)
+  identificacao String           @db.VarChar(50)
+  semestre      String           @db.VarChar(10)
+  ativo         Boolean          @default(true)
+  matriculas    Matricula[]
+  aplicacoes    AplicacaoProva[]
 
+  @@unique([professorId, identificacao])
   @@index([professorId])
   @@index([disciplinaId])
   @@map("turmas")
