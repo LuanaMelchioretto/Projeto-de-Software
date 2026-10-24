@@ -6,7 +6,7 @@ const turmaController = new TurmaController();
 
 turmaRoutes.post('/turmas', turmaController.create);
 turmaRoutes.get('/turmas', turmaController.list);
-turmaRoutes.get('/turmas/:id', turmaController.getById);
+turmaRoutes.get('/turmas/:id', turmaController.findById);
 turmaRoutes.put('/turmas/:id', turmaController.update);
 turmaRoutes.delete('/turmas/:id', turmaController.delete);
 
