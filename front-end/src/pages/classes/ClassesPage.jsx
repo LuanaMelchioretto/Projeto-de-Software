@@ -11,7 +11,10 @@ export default function ClassesPage() {
     try {
       setCarregando(true);
       const data = await api("/turmas");
-      setTurmas(data || []);
+      if (!Array.isArray(data)) {
+        throw new Error("Resposta inválida ao carregar turmas.");
+      }
+      setTurmas(data);
     } catch (error) {
       setErroFormulario("Erro ao carregar turmas do servidor.");
     } finally {
