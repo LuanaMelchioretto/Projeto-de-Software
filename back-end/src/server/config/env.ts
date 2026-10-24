@@ -21,6 +21,10 @@ export const env = z
         (value) => new URL(value).protocol === "mysql:",
         "DATABASE_URL deve usar mysql://",
       ),
+    DB_SSL: z
+      .enum(["true", "false"])
+      .default("false")
+      .transform((value) => value === "true"),
     PORT: z.coerce.number().int().min(1).max(65535).default(3001),
     FRONTEND_ORIGINS: z
       .string()
@@ -48,6 +52,14 @@ export const env = z
     SMTP_USER: z.string().optional(),
     SMTP_PASSWORD: z.string().optional(),
     SMTP_FROM: z.preprocess(
+      (value) => (value === "" ? undefined : value),
+      z.email().optional(),
+    ),
+    AZURE_EMAIL_CONNECTION_STRING: z.preprocess(
+      (value) => (value === "" ? undefined : value),
+      z.string().min(1).optional(),
+    ),
+    AZURE_EMAIL_FROM: z.preprocess(
       (value) => (value === "" ? undefined : value),
       z.email().optional(),
     ),

@@ -66,3 +66,11 @@ test("CORS permite origens configuradas e omite permissão para outras", async (
   const denied = await fetch(baseUrl, { headers: { Origin: "https://outro.example" } });
   assert.equal(denied.headers.get("access-control-allow-origin"), null);
 });
+
+test("avaliações e aplicações exigem sessão", async () => {
+  const origin = baseUrl.replace(/\/api\/health$/, "");
+  for (const path of ["/api/avaliacoes", "/api/aplicacoes/versoes/1"]) {
+    const response = await fetch(`${origin}${path}`);
+    assert.equal(response.status, 401);
+  }
+});
