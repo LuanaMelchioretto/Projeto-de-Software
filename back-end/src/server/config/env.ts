@@ -21,6 +21,10 @@ export const env = z
         (value) => new URL(value).protocol === "mysql:",
         "DATABASE_URL deve usar mysql://",
       ),
+    DB_SSL: z
+      .enum(["true", "false"])
+      .default("false")
+      .transform((value) => value === "true"),
     PORT: z.coerce.number().int().min(1).max(65535).default(3001),
     FRONTEND_ORIGINS: z
       .string()

@@ -10,6 +10,7 @@ const adapter = new PrismaMariaDb({
   password: decodeURIComponent(databaseUrl.password),
   database: decodeURIComponent(databaseUrl.pathname.slice(1)),
   connectionLimit: 5,
+  ssl: env.DB_SSL,
 });
 
 export const prisma = new PrismaClient({ adapter });
