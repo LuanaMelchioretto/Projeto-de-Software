@@ -5,9 +5,15 @@ APP_DIR=/opt/provaplus
 BRANCH=chore/deploy-backend
 REPOSITORY=https://github.com/LuanaMelchioretto/Projeto-de-Software.git
 API_DOMAIN=${API_DOMAIN:-provaplus-api-gm-2026.canadacentral.cloudapp.azure.com}
+DEPLOY_SHA=${1:-}
 
 if [[ $(id -u) -ne 0 ]]; then
   echo 'Execute como root (por exemplo, via Azure Run Command).' >&2
+  exit 1
+fi
+
+if [[ -n "$DEPLOY_SHA" && ! "$DEPLOY_SHA" =~ ^[0-9a-f]{40}$ ]]; then
+  echo 'O SHA do deploy deve ter 40 caracteres hexadecimais.' >&2
   exit 1
 fi
 
@@ -30,10 +36,18 @@ systemctl enable --now docker
 
 if [[ -d "$APP_DIR/.git" ]]; then
   git -C "$APP_DIR" fetch origin "$BRANCH:refs/remotes/origin/$BRANCH"
+  if [[ -n "$DEPLOY_SHA" && $(git -C "$APP_DIR" rev-parse "refs/remotes/origin/$BRANCH") != "$DEPLOY_SHA" ]]; then
+    echo 'A branch avançou após o CI; aguarde o workflow do commit mais recente.' >&2
+    exit 1
+  fi
   git -C "$APP_DIR" checkout -B "$BRANCH" "refs/remotes/origin/$BRANCH"
   git -C "$APP_DIR" branch --set-upstream-to="origin/$BRANCH" "$BRANCH"
 else
   git clone --depth 1 --branch "$BRANCH" "$REPOSITORY" "$APP_DIR"
+  if [[ -n "$DEPLOY_SHA" && $(git -C "$APP_DIR" rev-parse HEAD) != "$DEPLOY_SHA" ]]; then
+    echo 'A branch avançou após o CI; aguarde o workflow do commit mais recente.' >&2
+    exit 1
+  fi
 fi
 
 umask 077
@@ -50,3 +64,4 @@ chmod 600 "$APP_DIR/.env.production"
 cd "$APP_DIR"
 docker compose --env-file .env.production -f compose.production.yaml up -d --build
 docker compose --env-file .env.production -f compose.production.yaml ps
+printf 'DEPLOY_OK %s\n' "$(git rev-parse HEAD)"
