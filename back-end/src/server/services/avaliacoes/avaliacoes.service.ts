@@ -1,6 +1,4 @@
-import { PrismaClient } from '@prisma/client';
-
-const prisma = new PrismaClient();
+import { prisma } from '../../lib/prisma';
 
 export class AvaliacaoService {
   
@@ -42,7 +40,7 @@ export class AvaliacaoService {
 
   async buscarPorId(id: string, professorId: number) {
     const avaliacao = await prisma.avaliacao.findUnique({
-      where: { id },
+      where: { id: Number(id) },
       include: {
         questoes: { include: { questao: true }, orderBy: { ordem: 'asc' } },
         aplicacoes: true
@@ -61,7 +59,7 @@ export class AvaliacaoService {
     const { titulo, embaralharQuestoes, embaralharAlternativas, questoes } = dados;
 
     const avaliacaoAtual = await prisma.avaliacao.findUnique({
-      where: { id },
+      where: { id: Number(id) },
       include: { aplicacoes: true }
     });
 
@@ -76,7 +74,7 @@ export class AvaliacaoService {
     if (!questoes || questoes.length === 0) throw new Error('Selecione pelo menos uma questão.');
 
     return await prisma.avaliacao.update({
-      where: { id },
+      where: { id: Number(id) },
       data: {
         titulo,
         embaralharQuestoes,
@@ -94,14 +92,14 @@ export class AvaliacaoService {
 
   async excluirAvaliacao(id: string, professorId: number) {
     const avaliacaoAtual = await prisma.avaliacao.findUnique({
-      where: { id },
+      where: { id: Number(id) },
       include: { aplicacoes: true }
     });
 
     if (!avaliacaoAtual || avaliacaoAtual.professorId !== professorId) throw new Error('Avaliação não encontrada.');
     if (avaliacaoAtual.aplicacoes.length > 0) throw new Error('Não é possível excluir uma prova que já possui histórico de aplicação.');
 
-    await prisma.avaliacao.delete({ where: { id } });
+    await prisma.avaliacao.delete({ where: { id: Number(id) } });
     return { mensagem: 'Avaliação excluída com sucesso.' };
   }
 }
