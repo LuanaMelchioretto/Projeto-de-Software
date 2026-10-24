@@ -4,6 +4,8 @@ model ResultadoAluno {
   versaoProva   VersaoProva @relation(fields: [versaoProvaId], references: [id], onDelete: Cascade)
   notaFinal     Decimal     @map("nota_final") @db.Decimal(4, 2)
   totalAcertos  Int         @map("total_acertos")
+  liberado      Boolean      @default(false)
+  tokenAcesso   String?      @unique @map("token_acesso")
 
   @@map("resultados_aluno")
 }
