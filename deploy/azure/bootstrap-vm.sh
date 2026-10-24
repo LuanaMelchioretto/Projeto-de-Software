@@ -35,7 +35,8 @@ fi
 systemctl enable --now docker
 
 if [[ -d "$APP_DIR/.git" ]]; then
-  git -C "$APP_DIR" fetch origin "$BRANCH:refs/remotes/origin/$BRANCH"
+  git -C "$APP_DIR" remote set-branches origin "$BRANCH"
+  git -C "$APP_DIR" fetch origin
   if [[ -n "$DEPLOY_SHA" && $(git -C "$APP_DIR" rev-parse "refs/remotes/origin/$BRANCH") != "$DEPLOY_SHA" ]]; then
     echo 'A branch avançou após o CI; aguarde o workflow do commit mais recente.' >&2
     exit 1
