@@ -9,11 +9,6 @@ on:
       - '.github/workflows/back-end.yml'
   push:
     branches: [chore/deploy-backend]
-    paths:
-      - 'back-end/**'
-      - 'compose.production.yaml'
-      - 'deploy/azure/**'
-      - '.github/workflows/back-end.yml'
 
 permissions:
   contents: read
