@@ -29,7 +29,9 @@ fi
 systemctl enable --now docker
 
 if [[ -d "$APP_DIR/.git" ]]; then
-  git -C "$APP_DIR" pull --ff-only origin "$BRANCH"
+  git -C "$APP_DIR" fetch origin "$BRANCH:refs/remotes/origin/$BRANCH"
+  git -C "$APP_DIR" checkout -B "$BRANCH" "refs/remotes/origin/$BRANCH"
+  git -C "$APP_DIR" branch --set-upstream-to="origin/$BRANCH" "$BRANCH"
 else
   git clone --depth 1 --branch "$BRANCH" "$REPOSITORY" "$APP_DIR"
 fi
