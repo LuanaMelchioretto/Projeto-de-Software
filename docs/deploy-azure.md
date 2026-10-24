@@ -14,4 +14,8 @@ A identidade gerenciada `id-provaplus-github-cd` tem uma credencial federada com
 
 Confira `https://provaplus-api-gm-2026.canadacentral.cloudapp.azure.com/api/health/` e `/api/health/db`. Para publicar o front-end, compile com `VITE_API_URL=https://provaplus-api-gm-2026.canadacentral.cloudapp.azure.com` e envie `front-end/dist` à branch `gh-pages` com `npm run deploy`.
 
-O banco está no disco da VM. Faça backup externo regular antes de depender dos dados em produção. A VM, o disco e o IP público podem consumir créditos da assinatura; confira o custo no portal Azure. A recuperação de senha exige configurar SMTP no serviço `api`.
+O banco está no disco da VM. Faça backup externo regular antes de depender dos dados em produção. A VM, o disco e o IP público podem consumir créditos da assinatura; confira o custo no portal Azure.
+
+## Recuperação de senha por e-mail
+
+O serviço `api` recebe `SMTP_HOST`, `SMTP_PORT`, `SMTP_REQUIRE_TLS`, `SMTP_USER`, `SMTP_PASSWORD` e `SMTP_FROM` do arquivo `/opt/provaplus/.env.production`. O Compose também define `PASSWORD_RESET_URL` para a página de redefinição no GitHub Pages. Sem `SMTP_HOST` e `SMTP_FROM`, a rota de recuperação responde 503. Mantenha a senha SMTP apenas no arquivo da VM, com permissão 600; não a adicione ao repositório nem aos logs do GitHub Actions.
