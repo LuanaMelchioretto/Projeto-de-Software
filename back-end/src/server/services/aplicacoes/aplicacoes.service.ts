@@ -40,6 +40,7 @@ export class AplicacaoService {
     const turma = await prisma.turma.findUnique({
       where: { id: turmaId },
       include: { matriculas: { include: { aluno: true } } }
+      include: { matriculas: { include: { aluno: true } } }
     });
 
     if (!turma || turma.professorId !== professorId) {

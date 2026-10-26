@@ -1,5 +1,5 @@
-import { prisma } from '../../lib/prisma';
-import type { Prisma } from '../../generated/prisma/client';
+import { prisma } from "../../lib/prisma";
+import type { Prisma } from "../../generated/prisma/client";
 
 async function validarQuestoesDoProfessor(
   transaction: Prisma.TransactionClient,
@@ -11,21 +11,29 @@ async function validarQuestoesDoProfessor(
   });
 
   if (quantidade !== questoesIds.length) {
-    throw new Error('Uma ou mais questões não existem, não estão disponíveis ou não pertencem a este professor.');
+    throw new Error(
+      "Uma ou mais questões não existem, não estão disponíveis ou não pertencem a este professor.",
+    );
   }
 }
 
 export class AvaliacaoService {
-  
   async criarAvaliacao(professorId: number, dados: any) {
-    const { titulo, embaralharQuestoes, embaralharAlternativas, questoes } = dados;
+    const { titulo, embaralharQuestoes, embaralharAlternativas, questoes } =
+      dados;
 
-    if (!titulo || titulo.trim() === '') throw new Error('O título da avaliação é obrigatório.');
-    if (!questoes || questoes.length === 0) throw new Error('A avaliação precisa ter pelo menos uma questão selecionada.');
+    if (!titulo || titulo.trim() === "")
+      throw new Error("O título da avaliação é obrigatório.");
+    if (!questoes || questoes.length === 0)
+      throw new Error(
+        "A avaliação precisa ter pelo menos uma questão selecionada.",
+      );
 
     const questoesIds = questoes.map((q: any) => q.questaoId);
     if (new Set(questoesIds).size !== questoesIds.length) {
-      throw new Error('Não é permitido adicionar a mesma questão mais de uma vez na prova.');
+      throw new Error(
+        "Não é permitido adicionar a mesma questão mais de uma vez na prova.",
+      );
     }
 
     return await prisma.$transaction(async (transaction) => {
@@ -40,11 +48,11 @@ export class AvaliacaoService {
           questoes: {
             create: questoes.map((q: any, index: number) => ({
               questaoId: q.questaoId,
-              ordem: index + 1
-            }))
-          }
+              ordem: index + 1,
+            })),
+          },
         },
-        include: { questoes: true }
+        include: { questoes: true },
       });
     });
   }
@@ -53,7 +61,7 @@ export class AvaliacaoService {
     return await prisma.avaliacao.findMany({
       where: { professorId },
       include: { questoes: true, aplicacoes: true },
-      orderBy: { dataCriacao: 'desc' } 
+      orderBy: { dataCriacao: "desc" },
     });
   }
 
@@ -62,41 +70,46 @@ export class AvaliacaoService {
     const avaliacao = await prisma.avaliacao.findUnique({
       where: { id: avaliacaoId },
       include: {
-        questoes: { include: { questao: true }, orderBy: { ordem: 'asc' } },
-        aplicacoes: true
-      }
+        questoes: { include: { questao: true }, orderBy: { ordem: "asc" } },
+        aplicacoes: true,
+      },
     });
 
     if (!avaliacao || avaliacao.professorId !== professorId) {
-      throw new Error('Avaliação não encontrada ou sem permissão de acesso.');
+      throw new Error("Avaliação não encontrada ou sem permissão de acesso.");
     }
     return avaliacao;
   }
 
- 
-  
   async atualizarAvaliacao(id: string, professorId: number, dados: any) {
-    const { titulo, embaralharQuestoes, embaralharAlternativas, questoes } = dados;
+    const { titulo, embaralharQuestoes, embaralharAlternativas, questoes } =
+      dados;
     const avaliacaoId = Number(id);
 
     const avaliacaoAtual = await prisma.avaliacao.findUnique({
       where: { id: avaliacaoId },
-      include: { aplicacoes: true }
+      include: { aplicacoes: true },
     });
 
-    if (!avaliacaoAtual || avaliacaoAtual.professorId !== professorId) throw new Error('Avaliação não encontrada.');
-    
-    
+    if (!avaliacaoAtual || avaliacaoAtual.professorId !== professorId)
+      throw new Error("Avaliação não encontrada.");
+
     if (avaliacaoAtual.aplicacoes.length > 0) {
-      throw new Error('Não é possível editar uma prova que já foi aplicada aos alunos.');
+      throw new Error(
+        "Não é possível editar uma prova que já foi aplicada aos alunos.",
+      );
     }
 
-    if (!titulo || titulo.trim() === '') throw new Error('O título é obrigatório.');
-    if (!questoes || questoes.length === 0) throw new Error('Selecione pelo menos uma questão.');
+    if (!titulo || titulo.trim() === "")
+      throw new Error("O título é obrigatório.");
+    if (!questoes || questoes.length === 0)
+      throw new Error("Selecione pelo menos uma questão.");
 
     const questoesIds = questoes.map((q: any) => q.questaoId);
     if (new Set(questoesIds).size !== questoesIds.length) {
-      throw new Error('Não é permitido adicionar a mesma questão mais de uma vez na prova.');
+      throw new Error(
+        "Não é permitido adicionar a mesma questão mais de uma vez na prova.",
+      );
     }
 
     return await prisma.$transaction(async (transaction) => {
@@ -112,10 +125,10 @@ export class AvaliacaoService {
             deleteMany: {}, // Limpa a ordem antiga
             create: questoes.map((q: any, index: number) => ({
               questaoId: q.questaoId,
-              ordem: index + 1
-            }))
-          }
-        }
+              ordem: index + 1,
+            })),
+          },
+        },
       });
     });
   }
@@ -124,14 +137,18 @@ export class AvaliacaoService {
     const avaliacaoId = Number(id);
     const avaliacaoAtual = await prisma.avaliacao.findUnique({
       where: { id: avaliacaoId },
-      include: { aplicacoes: true }
+      include: { aplicacoes: true },
     });
 
-    if (!avaliacaoAtual || avaliacaoAtual.professorId !== professorId) throw new Error('Avaliação não encontrada.');
-    if (avaliacaoAtual.aplicacoes.length > 0) throw new Error('Não é possível excluir uma prova que já possui histórico de aplicação.');
+    if (!avaliacaoAtual || avaliacaoAtual.professorId !== professorId)
+      throw new Error("Avaliação não encontrada.");
+    if (avaliacaoAtual.aplicacoes.length > 0)
+      throw new Error(
+        "Não é possível excluir uma prova que já possui histórico de aplicação.",
+      );
 
     await prisma.avaliacao.delete({ where: { id: avaliacaoId } });
-    return { mensagem: 'Avaliação excluída com sucesso.' };
+    return { mensagem: "Avaliação excluída com sucesso." };
   }
 }
 
