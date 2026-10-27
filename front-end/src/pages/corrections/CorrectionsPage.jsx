@@ -1,33 +1,90 @@
-import React, { useState } from "react";
-import { useNavigate } from "react-router-dom";
+import React, { useEffect, useRef, useState } from "react";
+import { BrowserQRCodeReader } from "@zxing/browser";
 import PageTitle from "../../components/page-title/PageTitle";
+import { api } from "../../auth/api";
 import "./CorrectionsPage.css";
 
 export default function CorrectionsPage() {
-  const navigate = useNavigate();
-
   const [etapa, setEtapa] = useState("selecao");
   const [avaliacaoSelecionada, setAvaliacaoSelecionada] =
     useState("ESOFT-N1");
   const [carregando, setCarregando] = useState(false);
-  const [simularErro, setSimularErro] = useState(false);
+  const [erroLeitura, setErroLeitura] = useState("");
+  const [provaIdentificada, setProvaIdentificada] = useState(null);
+  const [scanNonce, setScanNonce] = useState(0);
+  const videoRef = useRef(null);
+  const leitorRef = useRef(null);
+  const controlesCameraRef = useRef(null);
+
+  const pararCamera = () => {
+    controlesCameraRef.current?.stop();
+    controlesCameraRef.current = null;
+    leitorRef.current?.reset();
+    const video = videoRef.current;
+    video?.srcObject?.getTracks().forEach((track) => track.stop());
+    if (video) video.srcObject = null;
+  };
 
   const iniciarLeitura = () => {
     setEtapa("camera");
-    setSimularErro(false);
+    setErroLeitura("");
+    setProvaIdentificada(null);
+    setScanNonce((nonce) => nonce + 1);
   };
 
-  const capturarGabarito = () => {
+  useEffect(() => {
+    if (etapa !== "camera" || !videoRef.current) return undefined;
+
+    const leitor = new BrowserQRCodeReader();
+    leitorRef.current = leitor;
+    let ativo = true;
     setCarregando(true);
-
-    setTimeout(() => {
+    leitor.decodeFromVideoDevice(undefined, videoRef.current, async (resultado) => {
+      if (!ativo || !resultado) return;
+      controlesCameraRef.current?.stop();
+      setCarregando(true);
+      try {
+        const identificacao = await api(`/avaliacoes/qr/${encodeURIComponent(resultado.getText())}`);
+        if (!ativo) return;
+        setProvaIdentificada(identificacao);
+        setEtapa("resultado");
+      } catch (error) {
+        if (ativo) setErroLeitura(error.message);
+      } finally {
+        if (ativo) setCarregando(false);
+      }
+    }).then((controles) => {
+      if (!ativo) controles.stop();
+      else controlesCameraRef.current = controles;
+    }).catch((error) => {
+      if (!ativo) return;
+      setErroLeitura(error.message || "Não foi possível acessar a câmera.");
       setCarregando(false);
-      setEtapa("resultado");
-    }, 1500);
+    });
+
+    return () => {
+      ativo = false;
+      pararCamera();
+    };
+  }, [etapa, scanNonce]);
+
+  const cancelarLeitura = () => {
+    pararCamera();
+    setCarregando(false);
+    setErroLeitura("");
+    setProvaIdentificada(null);
+    setEtapa("selecao");
   };
 
-  const irParaResultado = () => {
-    navigate("/correcoes/resultado");
+  const voltarParaCorrecoes = () => {
+    cancelarLeitura();
+  };
+
+  const tentarNovamente = () => {
+    setErroLeitura("");
+    setCarregando(false);
+    setScanNonce((nonce) => nonce + 1);
+    setEtapa("camera");
   };
 
   return (
@@ -77,14 +134,13 @@ export default function CorrectionsPage() {
         <div className="corrections-camera-flow">
           <div className="camera-box">
             <div
-              className={`camera-frame ${
-                simularErro ? "frame-error" : ""
-              }`}
+              className={`camera-frame ${erroLeitura ? "frame-error" : ""}`}
             >
               <span className="camera-tag">
                 ÁREA DO QR CODE
               </span>
 
+              <video ref={videoRef} className="camera-video" autoPlay muted playsInline />
               {carregando ? (
                 <p className="camera-status">
                   Lendo QR Code e identificando modelo...
@@ -97,32 +153,20 @@ export default function CorrectionsPage() {
               )}
             </div>
 
-            <button
-              type="button"
-              onClick={() => setSimularErro(!simularErro)}
-              className="btn-toggle-state"
-            >
-              Simular estado:{" "}
-              {simularErro ? "Falha na Leitura" : "Sucesso"}
-            </button>
+            {erroLeitura && <p className="camera-status">{erroLeitura}</p>}
           </div>
 
           <div className="actions-row">
             <button
-              onClick={() => setEtapa("selecao")}
+              type="button"
+              onClick={cancelarLeitura}
               className="btn-secondary"
             >
-              Voltar
+              Cancelar e fechar câmera
             </button>
 
-            <button
-              onClick={capturarGabarito}
-              disabled={carregando}
-              className="btn-success"
-            >
-              {carregando
-                ? "Processando..."
-                : "Escanear QR Code"}
+            <button type="button" onClick={tentarNovamente} disabled={carregando} className="btn-success">
+              {carregando ? "Lendo QR Code..." : "Tentar novamente"}
             </button>
           </div>
         </div>
@@ -131,7 +175,7 @@ export default function CorrectionsPage() {
       {/* ETAPA 3: Confirmação do Modelo / Gabarito */}
       {etapa === "resultado" && (
         <div className="corrections-result">
-          {simularErro ? (
+          {!provaIdentificada ? (
             <div className="result-card-error">
               <h3>⚠️ Falha ao Ler QR Code</h3>
 
@@ -141,7 +185,7 @@ export default function CorrectionsPage() {
               </p>
 
               <button
-                onClick={() => setEtapa("camera")}
+                onClick={tentarNovamente}
                 className="btn-danger"
               >
                 Tentar Novamente
@@ -154,43 +198,34 @@ export default function CorrectionsPage() {
                   PROVA IDENTIFICADA VIA QR CODE
                 </span>
 
-                <h3 className="result-student-name">
-                  Prova: Engenharia de Software
-                </h3>
+                <h3 className="result-student-name">Prova: {provaIdentificada.titulo}</h3>
 
                 <p className="result-student-id">
-                  Modelo: Versão A (Embaralhada) | Aluno:
-                  João Silva (Matrícula: 20261099)
+                  Modelo: {provaIdentificada.modelo}. Identificação confirmada pela API.
                 </p>
               </div>
 
-              <div className="answers-section">
-                <h4 className="answers-title">
-                  Gabarito Oficial de Referência (Carregado):
-                </h4>
+                <div className="answers-section">
+                <h4 className="answers-title">Questões da prova identificada:</h4>
 
-                <div className="answers-grid">
-                  <div className="answer-item">Q1: A</div>
-                  <div className="answer-item">Q2: C</div>
-                  <div className="answer-item">Q3: B</div>
-                  <div className="answer-item">Q4: D</div>
+                <div className="identified-questions">
+                  {provaIdentificada.questoes?.length ? provaIdentificada.questoes.map((questao) => (
+                    <div className="identified-question" key={questao.numero}>
+                      <strong>{questao.numero}. {questao.enunciado}</strong>
+                      <span>{(Array.isArray(questao.alternativas) ? questao.alternativas : []).map((alternativa) => `${alternativa.letra}) ${alternativa.texto}`).join(" | ") || "Alternativas indisponíveis."}</span>
+                    </div>
+                  )) : <p className="camera-status">A prova foi identificada, mas não possui questões disponíveis.</p>}
                 </div>
               </div>
 
               <div className="result-actions">
                 {/* AGORA VAI PARA A SUA TELA */}
                 <button
-                  onClick={irParaResultado}
-                  className="btn-primary"
-                >
-                  Prosseguir para Resultado da Correção →
-                </button>
-
-                <button
-                  onClick={() => setEtapa("camera")}
+                  type="button"
+                  onClick={voltarParaCorrecoes}
                   className="btn-outline"
                 >
-                  Escanear Outro QR Code
+                  Voltar para Correções
                 </button>
               </div>
             </div>

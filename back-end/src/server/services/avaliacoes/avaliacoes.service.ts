@@ -53,6 +53,26 @@ export class AvaliacaoService {
     return avaliacao;
   }
 
+  async buscarParaGeracao(id: string, professorId: number) {
+    const avaliacao = await prisma.avaliacao.findUnique({
+      where: { id: Number(id) },
+      include: {
+        questoes: {
+          include: { questao: { include: { alternativas: true, disciplina: true } } },
+          orderBy: { ordem: 'asc' },
+        },
+      },
+    });
+
+    if (!avaliacao || avaliacao.professorId !== professorId) {
+      throw new Error('Avaliação não encontrada ou sem permissão de acesso.');
+    }
+    if (avaliacao.questoes.length === 0) {
+      throw new Error('A avaliação precisa ter pelo menos uma questão.');
+    }
+    return avaliacao;
+  }
+
  
   
   async atualizarAvaliacao(id: string, professorId: number, dados: any) {

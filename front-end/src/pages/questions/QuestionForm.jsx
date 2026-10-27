@@ -59,13 +59,13 @@ export default function QuestionForm({ question, onPreview, onCancel }) {
       noValidate
       onSubmit={(event) => {
         event.preventDefault();
-        onPreview();
+        onPreview(draft);
       }}
     >
       <header className="question-form-header">
         <h2 id="question-form-title">{question ? "Editar questão" : "Nova questão"}</h2>
         <p>Preencha o enunciado, defina as alternativas e marque a única resposta correta.</p>
-        <p>Formulário demonstrativo: os dados preenchidos não serão salvos.</p>
+        <p>Cadastre o enunciado e as alternativas para usar esta questão em uma avaliação.</p>
       </header>
 
       <div className="question-field">

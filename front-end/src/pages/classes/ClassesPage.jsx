@@ -33,7 +33,7 @@ export default function ClassesPage() {
   const [modoEdicao, setModoEdicao] = useState(false);
   const [idEdicao, setIdEdicao] = useState(null);
 
-  const [form, setForm] = useState({ nome: "", identificacao: "" });
+  const [form, setForm] = useState({ nome: "", identificacao: "", disciplina: "", semestre: "" });
 
   const turmasFiltradas = turmas.filter(turma =>
     turma.nome.toLowerCase().includes(termoBusca.toLowerCase()) ||
@@ -43,7 +43,7 @@ export default function ClassesPage() {
   const abrirModalCriar = () => {
     setModoEdicao(false);
     setIdEdicao(null);
-    setForm({ nome: "", identificacao: "" });
+    setForm({ nome: "", identificacao: "", disciplina: "", semestre: "" });
     setErroFormulario("");
     setExibirModal(true);
   };
@@ -51,7 +51,12 @@ export default function ClassesPage() {
   const abrirModalEditar = (turma) => {
     setModoEdicao(true);
     setIdEdicao(turma.id);
-    setForm({ nome: turma.nome, identificacao: turma.identificacao });
+    setForm({
+      nome: turma.nome,
+      identificacao: turma.identificacao,
+      disciplina: turma.disciplina?.nome ?? "",
+      semestre: turma.semestre ?? "",
+    });
     setErroFormulario("");
     setExibirModal(true);
   };
@@ -64,7 +69,7 @@ export default function ClassesPage() {
   const salvarTurma = async (e) => {
     e.preventDefault();
 
-    if (!form.nome.trim() || !form.identificacao.trim()) {
+    if (!form.nome.trim() || !form.identificacao.trim() || !form.disciplina.trim() || !form.semestre.trim()) {
       setErroFormulario("Por favor, preencha todos os campos obrigatórios (*).");
       return;
     }
@@ -75,7 +80,9 @@ export default function ClassesPage() {
           method: "PUT",
           body: JSON.stringify({
             nome: form.nome,
-            identificacao: form.identificacao
+            identificacao: form.identificacao,
+            disciplina: form.disciplina,
+            semestre: form.semestre,
           })
         });
         setMensagemSucesso("Dados da turma atualizados com sucesso!");
@@ -84,7 +91,9 @@ export default function ClassesPage() {
           method: "POST",
           body: JSON.stringify({
             nome: form.nome,
-            identificacao: form.identificacao
+            identificacao: form.identificacao,
+            disciplina: form.disciplina,
+            semestre: form.semestre,
           })
         });
         setMensagemSucesso("Nova turma cadastrada com sucesso!");
@@ -206,6 +215,32 @@ export default function ClassesPage() {
                       onChange={(e) => setForm({ ...form, nome: e.target.value })}
                       type="text" 
                       placeholder="Ex: Engenharia de Software 2026/1" 
+                      className="w-full p-2.5 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-blue-500 focus:outline-none"
+                    />
+                  </div>
+
+                  <div>
+                    <label className="block text-xs font-semibold text-gray-700 mb-1">
+                      Disciplina <span className="text-red-500">*</span>
+                    </label>
+                    <input
+                      value={form.disciplina}
+                      onChange={(e) => setForm({ ...form, disciplina: e.target.value })}
+                      type="text"
+                      placeholder="Ex: Engenharia de Software"
+                      className="w-full p-2.5 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-blue-500 focus:outline-none"
+                    />
+                  </div>
+
+                  <div>
+                    <label className="block text-xs font-semibold text-gray-700 mb-1">
+                      Semestre <span className="text-red-500">*</span>
+                    </label>
+                    <input
+                      value={form.semestre}
+                      onChange={(e) => setForm({ ...form, semestre: e.target.value })}
+                      type="text"
+                      placeholder="Ex: 2026.2"
                       className="w-full p-2.5 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-blue-500 focus:outline-none"
                     />
                   </div>
