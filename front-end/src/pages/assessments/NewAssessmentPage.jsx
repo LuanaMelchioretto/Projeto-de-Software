@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { ArrowLeft, Search, Plus, Trash2, Check, Shuffle } from 'lucide-react';
 import PageTitle from '../../components/page-title/PageTitle';
+import { api } from '../../auth/api';
 
 export default function NewAssessmentPage() {
   const navigate = useNavigate();
@@ -22,12 +23,8 @@ export default function NewAssessmentPage() {
   useEffect(() => {
     const carregarQuestoes = async () => {
      try {
-        const apiBaseUrl = import.meta.env.VITE_API_URL;
-        const response = await fetch(`${apiBaseUrl}/api/questoes`);
-        if (response.ok) {
-          const dados = await response.json();
-          setBancoQuestoes(dados);
-        }
+        const dados = await api('/questoes');
+        setBancoQuestoes(dados);
       } catch (error) {
         console.error('Erro ao buscar as questões do banco:', error);
       }
@@ -77,17 +74,10 @@ export default function NewAssessmentPage() {
     };
 
     try {
-      const apiBaseUrl = import.meta.env.VITE_API_URL;
-      const response = await fetch(`${apiBaseUrl}/api/avaliacoes`, {
+      await api('/avaliacoes', {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(payload),
       });
-
-      if (!response.ok) {
-        const errorData = await response.json();
-        throw new Error(errorData.error || 'Erro ao salvar avaliação no banco.');
-      }
 
       // Deu tudo certo!
       setMensagemSucesso(true);

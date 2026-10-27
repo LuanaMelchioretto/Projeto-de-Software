@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { ArrowLeft, Edit, Play, Shuffle, FileText, AlertTriangle, Loader2 } from 'lucide-react';
 import PageTitle from '../../components/page-title/PageTitle';
+import { api } from '../../auth/api';
 
 export default function AssessmentDetailPage() {
   const { id } = useParams();
@@ -16,14 +17,7 @@ export default function AssessmentDetailPage() {
   useEffect(() => {
     const buscarDetalhes = async () => {
       try {
-        const apiBaseUrl = import.meta.env.VITE_API_URL;
-        const response = await fetch(`${apiBaseUrl}/api/avaliacoes/${id}`);
-        
-        if (!response.ok) {
-          throw new Error('Avaliação não encontrada');
-        }
-
-        const dados = await response.json();
+        const dados = await api(`/avaliacoes/${id}`);
         setAvaliacao(dados);
       } catch (err) {
         console.error('Erro ao buscar detalhes:', err);
