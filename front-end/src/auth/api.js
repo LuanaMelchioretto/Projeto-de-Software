@@ -1,4 +1,7 @@
-const apiBase = (import.meta.env.VITE_API_URL || "http://localhost:3000").replace(/\/$/, "");
+const defaultApiUrl = import.meta.env.PROD
+  ? "https://provaplus-api-gm-2026.canadacentral.cloudapp.azure.com"
+  : "http://localhost:3000";
+const apiBase = (import.meta.env.VITE_API_URL || defaultApiUrl).replace(/\/$/, "");
 let unauthorizedHandler = null;
 
 export function onUnauthorized(handler) {
