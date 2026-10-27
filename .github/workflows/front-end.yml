@@ -102,7 +102,7 @@ jobs:
         id: deploy
         shell: bash
         run: |
-          deployment_json=$(netlify deploy --prod --dir=front-end/dist --message "Deploy do commit ${GITHUB_SHA}" --json)
+          deployment_json=$(netlify deploy --prod --no-build --dir=front-end/dist --message "Deploy do commit ${GITHUB_SHA}" --json)
           deployment_url=$(node -e 'process.stdout.write(JSON.parse(process.argv[1]).url)' "$deployment_json")
           echo "url=$deployment_url" >> "$GITHUB_OUTPUT"
           echo "Front-end publicado na Netlify: $deployment_url" >> "$GITHUB_STEP_SUMMARY"
