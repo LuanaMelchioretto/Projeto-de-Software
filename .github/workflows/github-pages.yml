@@ -1,0 +1,57 @@
+name: Front-end no GitHub Pages
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - "front-end/**"
+      - ".github/workflows/github-pages.yml"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  pages: write
+  id-token: write
+
+concurrency:
+  group: github-pages
+  cancel-in-progress: true
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: front-end
+    steps:
+      - name: Obter o código
+        uses: actions/checkout@v6
+
+      - name: Configurar o Node.js
+        uses: actions/setup-node@v6
+        with:
+          node-version: 24
+          cache: npm
+          cache-dependency-path: front-end/package-lock.json
+
+      - name: Instalar dependências
+        run: npm ci
+
+      - name: Gerar o build
+        run: npm run build
+
+      - name: Guardar o site
+        uses: actions/upload-pages-artifact@v4
+        with:
+          path: front-end/dist
+
+  deploy:
+    needs: build
+    runs-on: ubuntu-latest
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    steps:
+      - name: Publicar no GitHub Pages
+        id: deployment
+        uses: actions/deploy-pages@v4
