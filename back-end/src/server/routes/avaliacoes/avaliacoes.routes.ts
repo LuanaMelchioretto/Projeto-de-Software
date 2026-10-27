@@ -1,7 +1,10 @@
 import { Router } from 'express';
 import avaliacoesController from '../../controllers/avaliacoes/avaliacoes.controller';
+import { requireAuth } from '../../middleware/auth.middleware';
 
 const avaliacoesRoutes = Router();
+
+avaliacoesRoutes.use(requireAuth);
 
 avaliacoesRoutes.post('/', avaliacoesController.criar);
 avaliacoesRoutes.get('/', avaliacoesController.listar);

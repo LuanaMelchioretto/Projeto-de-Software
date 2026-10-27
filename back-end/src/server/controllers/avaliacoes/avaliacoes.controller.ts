@@ -5,7 +5,7 @@ class AvaliacoesController {
   async criar(req: Request, res: Response) {
     try {
       const { titulo, embaralharQuestoes, embaralharAlternativas, questoes } = req.body;
-      const novaAvaliacao = await AvaliacaoService.criarAvaliacao(1, {
+      const novaAvaliacao = await AvaliacaoService.criarAvaliacao(res.locals.authUser.id, {
         titulo,
         embaralharQuestoes,
         embaralharAlternativas,
@@ -19,7 +19,7 @@ class AvaliacoesController {
 
   async listar(req: Request, res: Response) {
     try {
-      const avaliacoes = await AvaliacaoService.listarAvaliacoes(1);
+      const avaliacoes = await AvaliacaoService.listarAvaliacoes(res.locals.authUser.id);
       return res.status(200).json(avaliacoes);
     } catch (error: any) {
       return res.status(500).json({ error: 'Erro ao buscar as avaliações.' });
@@ -31,7 +31,7 @@ class AvaliacoesController {
       const { id } = req.params;
       if (!id) return res.status(400).json({ error: 'ID é obrigatório.' });
 
-      const avaliacao = await AvaliacaoService.buscarPorId(String(id), 1);
+      const avaliacao = await AvaliacaoService.buscarPorId(String(id), res.locals.authUser.id);
       return res.status(200).json(avaliacao);
     } catch (error: any) {
       return res.status(404).json({ error: error.message });
@@ -44,7 +44,7 @@ class AvaliacoesController {
       if (!id) return res.status(400).json({ error: 'ID é obrigatório.' });
 
       const { titulo, embaralharQuestoes, embaralharAlternativas, questoes } = req.body;
-      const avaliacaoAtualizada = await AvaliacaoService.atualizarAvaliacao(String(id), 1, {
+      const avaliacaoAtualizada = await AvaliacaoService.atualizarAvaliacao(String(id), res.locals.authUser.id, {
         titulo,
         embaralharQuestoes,
         embaralharAlternativas,
@@ -61,7 +61,7 @@ class AvaliacoesController {
       const { id } = req.params;
       if (!id) return res.status(400).json({ error: 'ID é obrigatório.' });
 
-      const resultado = await AvaliacaoService.excluirAvaliacao(String(id), 1);
+      const resultado = await AvaliacaoService.excluirAvaliacao(String(id), res.locals.authUser.id);
       return res.status(200).json(resultado);
     } catch (error: any) {
       return res.status(400).json({ error: error.message });

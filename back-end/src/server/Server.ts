@@ -6,8 +6,7 @@ import { requireAllowedOrigin } from "./middleware/origin.middleware";
 import { errorMiddleware, notFoundMiddleware } from "./middleware";
 import { aplicacoesRoutes } from './routes';
 import { avaliacoesRoutes } from "./routes/avaliacoes/avaliacoes.routes";
-// (Se houver uma rota de questões, importe-a também, ex:)
-// import { questoesRouter } from "./routes/questoes/questoes.routes";
+import { questoesRoutes } from "./routes/questoes/questoes.routes";
 
 export const app = express();
 
@@ -21,7 +20,7 @@ app.use((request, response, next) => {
 app.use("/api/auth", authRouter);
 app.use("/api/health", healthRouter);
 app.use("/api/avaliacoes", avaliacoesRoutes);
-// app.use("/api/questoes", questoesRouter);
+app.use("/api/questoes", questoesRoutes);
 app.use("/api/professores", professoresRouter);
 app.use('/api/aplicacoes', aplicacoesRoutes);
 app.use("/api/resultados", resultadosRoutes);
