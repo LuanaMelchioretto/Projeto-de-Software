@@ -12,7 +12,7 @@ export default function ResetPasswordPage() {
   const [searchParams] = useSearchParams();
 
   const { endSession } = useAuth();
-  const token = searchParams.get("token");
+  const token = searchParams.get("token") || new URLSearchParams(window.location.search).get("token");
 
   const [password, setPassword] = useState("");
   const [confirmation, setConfirmation] = useState("");

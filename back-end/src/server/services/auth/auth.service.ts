@@ -37,8 +37,13 @@ export const forgotPassword = async (input: unknown): Promise<void> => {
   if (!created) return;
 
   const url = new URL(env.PASSWORD_RESET_URL);
-  
-  url.searchParams.set("token", token);
+  if (url.hash.startsWith("#/")) {
+    const route = new URL(url.hash.slice(1), url.origin);
+    route.searchParams.set("token", token);
+    url.hash = `${route.pathname}${route.search}`;
+  } else {
+    url.searchParams.set("token", token);
+  }
   
   try {
     await mailer.sendPasswordReset(recipient.email, recipient.nome, url.toString());
