@@ -4,7 +4,7 @@
 
 **Sistema para gerar, identificar, corrigir e analisar provas objetivas, reduzindo o tempo gasto pelos professores na correção manual.**
 
-**Links do sistema hospedado:** [Netlify](https://provaplus.netlify.app/) | [GitHub Pages](https://luanamelchioretto.github.io/Projeto-de-Software/)
+**Sistema hospedado:** [GitHub Pages](https://luanamelchioretto.github.io/Projeto-de-Software/)
 
 ![Node.js](docs/logos/nodejs.svg)
 ![Express](docs/logos/express.svg)

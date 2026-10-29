@@ -15,6 +15,7 @@ const { app } = await import("../dist/server/Server.js");
 const { prisma } = await import("../dist/server/lib/prisma.js");
 const { Prisma } = await import("../dist/server/generated/prisma/client.js");
 const { mailer } = await import("../dist/server/lib/mailer.js");
+const { env } = await import("../dist/server/config/env.js");
 const professoresService = await import("../dist/server/services/professores/professores.service.js");
 
 const rows = new Map();
@@ -527,6 +528,27 @@ test("link de recuperação expira, é usado uma vez e revoga sessões", async (
   assert.equal((await request("/auth/reset-password", {
     method: "POST", body: { token, novaSenha: "OutraSenhaSegura123!" },
   })).status, 400);
+});
+
+test("link do GitHub Pages coloca o token na rota com hash", async () => {
+  const originalUrl = env.PASSWORD_RESET_URL;
+  env.PASSWORD_RESET_URL = "https://luanamelchioretto.github.io/Projeto-de-Software/#/redefinir-senha";
+
+  try {
+    const response = await request("/auth/forgot-password", {
+      method: "POST", body: { email: "ana@example.com" },
+    });
+
+    assert.equal(response.status, 202);
+    assert.equal(sentEmails.length, 1);
+
+    const url = new URL(sentEmails[0].url);
+    assert.equal(url.search, "");
+    assert.equal(url.hash.startsWith("#/redefinir-senha?token="), true);
+    assert.equal(new URLSearchParams(url.hash.split("?")[1]).get("token")?.length, 64);
+  } finally {
+    env.PASSWORD_RESET_URL = originalUrl;
+  }
 });
 
 test("link vencido não altera a senha", async () => {
