@@ -15,6 +15,59 @@ export default function CorrectionsPage() {
   const videoRef = useRef(null);
   const leitorRef = useRef(null);
   const controlesCameraRef = useRef(null);
+ const [questoesRespostas, setQuestoesRespostas] = useState([]);
+  const [enviando, setEnviando] = useState(false);
+
+  // Inicializa a lista de respostas quando a prova é identificada pelo QR Code
+  useEffect(() => {
+    if (provaIdentificada?.questoes) {
+      const iniciais = provaIdentificada.questoes.map((q) => ({
+        numero: q.numero,
+        respostaMarcada: q.respostaSugerida || '',
+        status: q.statusSugerido || 'OK'
+      }));
+      setQuestoesRespostas(iniciais);
+    }
+  }, [provaIdentificada]);
+
+  // Atualiza a opção marcada ou o status (rasura, em branco, etc.)
+  const handleAlterarResposta = (index, resposta, status) => {
+    const atualizadas = [...questoesRespostas];
+    atualizadas[index] = {
+      ...atualizadas[index],
+      respostaMarcada: resposta,
+      status: status
+    };
+    setQuestoesRespostas(atualizadas);
+  };
+
+  // Envia o payload de respostas para a API calcular a nota
+  const handleEnviarParaCorrecao = async () => {
+    setEnviando(true);
+    try {
+      const payload = {
+        alunoId: provaIdentificada.alunoId,
+        avaliacaoId: provaIdentificada.avaliacaoId,
+        versaoId: provaIdentificada.versaoId,
+        respostas: questoesRespostas.map((q) => ({
+          numero: q.numero,
+          resposta: q.respostaMarcada,
+          status: q.status
+        }))
+      };
+
+      await api('/correcoes/processar', {
+        method: 'POST',
+        body: JSON.stringify(payload)
+      });
+
+      navigate(`/correcoes/resultado/${provaIdentificada.alunoId}`);
+    } catch (err) {
+      setErroLeitura(err.message || "Erro ao enviar a correção.");
+    } finally {
+      setEnviando(false);
+    }
+  };
 
   const pararCamera = () => {
     controlesCameraRef.current?.stop();
@@ -172,64 +225,100 @@ export default function CorrectionsPage() {
         </div>
       )}
 
-      {/* ETAPA 3: Confirmação do Modelo / Gabarito */}
-      {etapa === "resultado" && (
-        <div className="corrections-result">
-          {!provaIdentificada ? (
-            <div className="result-card-error">
-              <h3>⚠️ Falha ao Ler QR Code</h3>
+      {/* ETAPA 3: Conferência e Envio do Gabarito Reconhecido */}
+      {etapa === "resultado" && provaIdentificada && (
+        <div className="correction-recognition-section" style={{ marginTop: '20px', paddingTop: '15px', borderTop: '1px solid #eee' }}>
+          <h4>Conferência do Gabarito Reconhecido</h4>
+          <p style={{ fontSize: '13px', color: '#666' }}>Confirme as alternativas da folha antes de calcular a nota final.</p>
 
-              <p>
-                Não foi possível reconhecer o QR Code da prova.
-                Verifique o enquadramento e a iluminação.
-              </p>
+          <div className="questions-review-list" style={{ marginTop: '10px' }}>
+            {questoesRespostas.map((q, idx) => {
+              const temDuvida = q.status === "ILEGIVEL" || q.status === "MULTIPLA";
 
-              <button
-                onClick={tentarNovamente}
-                className="btn-danger"
-              >
-                Tentar Novamente
-              </button>
-            </div>
-          ) : (
-            <div className="result-card">
-              <div className="result-header">
-                <span className="result-badge">
-                  PROVA IDENTIFICADA VIA QR CODE
-                </span>
+              return (
+                <div key={q.numero} style={{ border: temDuvida ? '1px solid #f39c12' : '1px solid #ddd', padding: '8px 12px', marginBottom: '8px', borderRadius: '6px' }}>
+                  <span style={{ fontWeight: 'bold', marginRight: '10px' }}>Q{q.numero}:</span>
+                  
+                  {['A', 'B', 'C', 'D'].map((alt) => (
+                    <button
+                      key={alt}
+                      type="button"
+                      style={{ 
+                        fontWeight: q.respostaMarcada === alt ? 'bold' : 'normal',
+                        backgroundColor: q.respostaMarcada === alt ? '#007bff' : '#f8f9fa',
+                        color: q.respostaMarcada === alt ? '#fff' : '#333',
+                        border: '1px solid #ccc',
+                        margin: '0 3px',
+                        padding: '2px 8px',
+                        borderRadius: '4px',
+                        cursor: 'pointer'
+                      }}
+                      onClick={() => handleAlterarResposta(idx, alt, 'OK')}
+                    >
+                      {alt}
+                    </button>
+                  ))}
 
-                <h3 className="result-student-name">Prova: {provaIdentificada.titulo}</h3>
+                  <button
+                    type="button"
+                    style={{ 
+                      margin: '0 3px',
+                      padding: '2px 8px',
+                      backgroundColor: q.status === 'EM_BRANCO' ? '#6c757d' : '#fff',
+                      color: q.status === 'EM_BRANCO' ? '#fff' : '#333',
+                      border: '1px solid #ccc',
+                      borderRadius: '4px',
+                      cursor: 'pointer'
+                    }}
+                    onClick={() => handleAlterarResposta(idx, '', 'EM_BRANCO')}
+                  >
+                    Branco
+                  </button>
 
-                <p className="result-student-id">
-                  Modelo: {provaIdentificada.modelo}. Identificação confirmada pela API.
-                </p>
-              </div>
+                  <button
+                    type="button"
+                    style={{ 
+                      margin: '0 3px',
+                      padding: '2px 8px',
+                      backgroundColor: temDuvida ? '#dc3545' : '#fff',
+                      color: temDuvida ? '#fff' : '#dc3545',
+                      border: '1px solid #dc3545',
+                      borderRadius: '4px',
+                      cursor: 'pointer'
+                    }}
+                    onClick={() => handleAlterarResposta(idx, 'MUL', 'MULTIPLA')}
+                  >
+                    Rasura
+                  </button>
 
-                <div className="answers-section">
-                <h4 className="answers-title">Questões da prova identificada:</h4>
-
-                <div className="identified-questions">
-                  {provaIdentificada.questoes?.length ? provaIdentificada.questoes.map((questao) => (
-                    <div className="identified-question" key={questao.numero}>
-                      <strong>{questao.numero}. {questao.enunciado}</strong>
-                      <span>{(Array.isArray(questao.alternativas) ? questao.alternativas : []).map((alternativa) => `${alternativa.letra}) ${alternativa.texto}`).join(" | ") || "Alternativas indisponíveis."}</span>
-                    </div>
-                  )) : <p className="camera-status">A prova foi identificada, mas não possui questões disponíveis.</p>}
+                  {temDuvida && (
+                    <small style={{ color: '#e67e22', display: 'block', marginTop: '4px' }}>
+                      ⚠️ Dúvida na leitura: confirme a alternativa assinalada na folha.
+                    </small>
+                  )}
                 </div>
-              </div>
+              );
+            })}
+          </div>
 
-              <div className="result-actions">
-                {/* AGORA VAI PARA A SUA TELA */}
-                <button
-                  type="button"
-                  onClick={voltarParaCorrecoes}
-                  className="btn-outline"
-                >
-                  Voltar para Correções
-                </button>
-              </div>
-            </div>
-          )}
+          <div style={{ marginTop: '15px', display: 'flex', gap: '10px' }}>
+            <button 
+              type="button" 
+              className="btn-primary"
+              onClick={handleEnviarParaCorrecao}
+              disabled={enviando}
+            >
+              {enviando ? "A processar..." : "Salvar e Calcular Nota"}
+            </button>
+
+            <button
+              type="button"
+              className="btn-outline"
+              onClick={voltarParaCorrecoes}
+            >
+              Voltar
+            </button>
+          </div>
         </div>
       )}
     </div>
