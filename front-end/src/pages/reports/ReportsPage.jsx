@@ -1,200 +1,93 @@
-﻿import React, { useMemo, useState } from "react";
+import React, { useEffect, useMemo, useState } from "react";
 import PageTitle from "../../components/page-title/PageTitle";
-import { classes } from "../../mocks/classes";
-import { reportData } from "../../mocks/reports";
+import { api } from "../../auth/api";
+import { downloadGradesXlsx } from "./xlsx";
 import "./ReportsPage.css";
 
+const number = new Intl.NumberFormat("pt-BR", { maximumFractionDigits: 2 });
+
 export default function ReportsPage() {
-  const [classId, setClassId] = useState("1");
-  const [assessmentId, setAssessmentId] = useState("1");
-  const [message, setMessage] = useState("");
+  const [classes, setClasses] = useState([]);
+  const [assessments, setAssessments] = useState([]);
+  const [classId, setClassId] = useState("");
+  const [assessmentId, setAssessmentId] = useState("");
+  const [rows, setRows] = useState([]);
+  const [loadingOptions, setLoadingOptions] = useState(true);
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState("");
 
-  const currentReport = useMemo(
-    () =>
-      reportData.find(
-        (item) =>
-          item.classId === classId &&
-          item.assessmentId === assessmentId
-      ),
-    [classId, assessmentId]
-  );
+  useEffect(() => {
+    Promise.all([api("/turmas"), api("/avaliacoes")]).then(([classData, assessmentData]) => {
+      setClasses(Array.isArray(classData) ? classData : []);
+      setAssessments(Array.isArray(assessmentData) ? assessmentData : []);
+    }).catch((e) => setError(e.message)).finally(() => setLoadingOptions(false));
+  }, []);
 
-  function handleExport(type) {
-    setMessage(
-      type === "grades"
-        ? "Exportação demonstrativa das notas em Excel realizada."
-        : "Exportação demonstrativa do detalhamento das respostas realizada."
-    );
-    setTimeout(() => setMessage(""), 3000);
-  }
+  useEffect(() => {
+    if (!classId || !assessmentId) { setRows([]); return; }
+    let active = true;
+    setLoading(true); setError("");
+    api(`/relatorios?classId=${encodeURIComponent(classId)}&assessmentId=${encodeURIComponent(assessmentId)}`)
+      .then((data) => { if (active) setRows(Array.isArray(data) ? data : []); })
+      .catch((e) => { if (active) setError(e.message); })
+      .finally(() => { if (active) setLoading(false); });
+    return () => { active = false; };
+  }, [classId, assessmentId]);
 
-  return (
-    <div className="reports-page">
-      <PageTitle title="Relatórios" />
+  const stats = useMemo(() => {
+    if (!rows.length) return null;
+    const scores = rows.map((row) => Number(row.score) || 0);
+    const answers = rows.flatMap((row) => row.answers || []);
+    const correct = answers.filter((answer) => answer.correct).length;
+    return { average: scores.reduce((sum, score) => sum + score, 0) / scores.length, high: Math.max(...scores), low: Math.min(...scores), accuracy: answers.length ? (correct / answers.length) * 100 : 0 };
+  }, [rows]);
 
-      <section className="reports-filters">
-        <div className="reports-field">
-          <label htmlFor="class-select">Turma</label>
-          <select
-            id="class-select"
-            value={classId}
-            onChange={(e) => setClassId(e.target.value)}
-          >
-            {classes.map((schoolClass) => (
-              <option key={schoolClass.id} value={schoolClass.id}>
-                {schoolClass.name}
-              </option>
-            ))}
-          </select>
-        </div>
+  const questionStats = useMemo(() => {
+    const groups = new Map();
+    for (const row of rows) for (const answer of row.answers || []) {
+      const group = groups.get(answer.questaoId) || { id: answer.questaoId, text: answer.enunciado, correct: 0, total: 0 };
+      group.total++; if (answer.correct) group.correct++;
+      groups.set(answer.questaoId, group);
+    }
+    return [...groups.values()];
+  }, [rows]);
 
-        <div className="reports-field">
-          <label htmlFor="assessment-select">Avaliação</label>
-          <select
-            id="assessment-select"
-            value={assessmentId}
-            onChange={(e) => setAssessmentId(e.target.value)}
-          >
-            <option value="1">Prova 1 - Fundamentos</option>
-            <option value="2">Prova 2 - Revisão</option>
-          </select>
-        </div>
+  const exportGrades = () => downloadGradesXlsx(rows.map((row) => [
+    row.student.matricula, row.student.nome, row.class.nome, row.assessment.titulo,
+    Number(row.score), Number(row.correct), Number(row.errors),
+  ]));
+
+  return <div className="reports-page">
+    <PageTitle title="Relatórios" />
+    <section className="reports-filters">
+      <div className="reports-field"><label htmlFor="class-select">Turma</label><select id="class-select" value={classId} disabled={loadingOptions} onChange={(event) => setClassId(event.target.value)}>
+        <option value="">Selecione uma turma</option>{classes.map((item) => <option key={item.id} value={item.id}>{item.nome} ({item.identificacao})</option>)}
+      </select></div>
+      <div className="reports-field"><label htmlFor="assessment-select">Avaliação</label><select id="assessment-select" value={assessmentId} disabled={loadingOptions} onChange={(event) => setAssessmentId(event.target.value)}>
+        <option value="">Selecione uma avaliação</option>{assessments.map((item) => <option key={item.id} value={item.id}>{item.titulo}</option>)}
+      </select></div>
+    </section>
+
+    {loadingOptions && <p role="status">Carregando turmas e avaliações…</p>}
+    {error && <div className="reports-message" role="alert">{error}</div>}
+    {loading && <p role="status">Carregando resultados…</p>}
+    {!loadingOptions && !loading && !error && classId && assessmentId && rows.length === 0 && <section className="reports-empty"><h2>Nenhuma correção encontrada</h2><p>Não existem resultados para esta turma e avaliação.</p></section>}
+    {stats && !loading && <>
+      <section className="reports-summary">
+        <div className="summary-card"><span>Média da turma</span><strong>{number.format(stats.average)}</strong></div>
+        <div className="summary-card"><span>Percentual de acertos</span><strong>{number.format(stats.accuracy)}%</strong></div>
+        <div className="summary-card"><span>Maior nota</span><strong>{number.format(stats.high)}</strong></div>
+        <div className="summary-card"><span>Menor nota</span><strong>{number.format(stats.low)}</strong></div>
       </section>
-
-      {!currentReport ? (
-        <section className="reports-empty">
-          <h2>Nenhuma correção encontrada</h2>
-          <p>Não existem provas corrigidas para esta seleção.</p>
-        </section>
-      ) : (
-        <>
-          <section className="reports-summary">
-            <div className="summary-card">
-              <span>Média da turma</span>
-              <strong>{currentReport.summary.average}</strong>
-            </div>
-            <div className="summary-card">
-              <span>Percentual de acertos</span>
-              <strong>{currentReport.summary.accuracy}</strong>
-            </div>
-            <div className="summary-card">
-              <span>Maior nota</span>
-              <strong>{currentReport.summary.highestScore}</strong>
-            </div>
-            <div className="summary-card">
-              <span>Menor nota</span>
-              <strong>{currentReport.summary.lowestScore}</strong>
-            </div>
-          </section>
-
-          <section className="reports-section">
-            <div className="reports-section-header">
-              <div>
-                <h2>Resultados dos alunos</h2>
-                <p>Notas, acertos, erros e respostas marcadas.</p>
-              </div>
-
-              <div className="reports-actions">
-                <button onClick={() => handleExport("grades")}>
-                  Exportar notas em Excel
-                </button>
-                <button onClick={() => handleExport("details")}>
-                  Exportar detalhamento
-                </button>
-              </div>
-            </div>
-
-            {message && <div className="reports-message">{message}</div>}
-
-            <div className="reports-table-wrapper">
-              <table className="reports-table">
-                <thead>
-                  <tr>
-                    <th>Aluno</th>
-                    <th>Nota</th>
-                    <th>Acertos</th>
-                    <th>Erros</th>
-                    <th>Alternativas marcadas</th>
-                  </tr>
-                </thead>
-                <tbody>
-                  {currentReport.students.map((student) => (
-                    <tr key={student.id}>
-                      <td>
-                        <strong>{student.name}</strong>
-                        <small>{student.id}</small>
-                      </td>
-                      <td>{student.score}</td>
-                      <td>{student.correct}</td>
-                      <td>{student.errors}</td>
-                      <td>{student.answers.join(" • ")}</td>
-                    </tr>
-                  ))}
-                </tbody>
-              </table>
-            </div>
-          </section>
-
-          <section className="reports-section">
-            <div className="reports-section-header">
-              <div>
-                <h2>Análise por questão</h2>
-                <p>Percentual de acertos e distribuição das respostas.</p>
-              </div>
-            </div>
-
-            <div className="questions-grid">
-              {currentReport.questions.map((question) => {
-                const highestValue = Math.max(
-                  ...Object.values(question.distribution)
-                );
-
-                return (
-                  <article className="question-card" key={question.id}>
-                    <div className="question-title">
-                      <div>
-                        <h3>Questão {question.number}</h3>
-                        <span>
-                          Alternativa correta:{" "}
-                          <strong>{question.correctOption}</strong>
-                        </span>
-                      </div>
-
-                      <div className="accuracy-badge">
-                        {question.accuracy}% de acertos
-                      </div>
-                    </div>
-
-                    <div className="bars">
-                      {Object.entries(question.distribution).map(
-                        ([option, value]) => {
-                          const isMostMarked = value === highestValue;
-
-                          return (
-                            <div
-                              className={`bar-row ${
-                                isMostMarked ? "most-marked" : ""
-                              }`}
-                              key={option}
-                            >
-                              <strong>{option}</strong>
-                              <div className="bar">
-                                <span style={{ width: `${value}%` }} />
-                              </div>
-                              <span>{value}%</span>
-                              {isMostMarked && <em>Mais marcada</em>}
-                            </div>
-                          );
-                        }
-                      )}
-                    </div>
-                  </article>
-                );
-              })}
-            </div>
-          </section>
-        </>
-      )}
-    </div>
-  );
+      <section className="reports-section"><div className="reports-section-header"><div><h2>Resultados dos alunos</h2><p>Dados das correções vinculadas à sua conta.</p></div><button className="reports-export" onClick={exportGrades}>Exportar notas em Excel</button></div>
+        <div className="reports-table-wrapper"><table className="reports-table"><thead><tr><th>Aluno</th><th>Nota</th><th>Acertos</th><th>Erros</th></tr></thead><tbody>
+          {rows.map((row) => <tr key={row.id}><td><strong>{row.student.nome}</strong><small>{row.student.matricula}</small></td><td>{number.format(row.score)}</td><td>{row.correct}</td><td>{row.errors}</td></tr>)}
+        </tbody></table></div>
+      </section>
+      <section className="reports-section"><div className="reports-section-header"><div><h2>Análise por questão</h2><p>Percentual de respostas corretas.</p></div></div><div className="questions-grid">
+        {questionStats.map((question) => <article className="question-card" key={question.id}><h3>Questão {question.id}</h3><p>{question.text}</p><strong>{number.format(question.total ? question.correct / question.total * 100 : 0)}% de acertos</strong></article>)}
+      </div></section>
+    </>}
+    {!classId && !loadingOptions && <p>Selecione uma turma e uma avaliação para consultar os resultados.</p>}
+  </div>;
 }
