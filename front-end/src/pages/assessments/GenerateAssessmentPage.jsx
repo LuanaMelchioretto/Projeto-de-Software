@@ -1,7 +1,8 @@
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { ArrowLeft, Download, FileText, QrCode, Check, Printer, AlertCircle } from 'lucide-react';
 import PageTitle from '../../components/page-title/PageTitle';
+import { api, downloadApiFile } from '../../auth/api';
 
 export default function GenerateAssessmentPage() {
   const { id } = useParams();
@@ -9,14 +10,33 @@ export default function GenerateAssessmentPage() {
 
   const [downloadConcluido, setDownloadConcluido] = useState(false);
   const [mensagemFeedback, setMensagemFeedback] = useState('');
+  const [avaliacao, setAvaliacao] = useState(null);
+  const [erro, setErro] = useState('');
 
-  // Simulação da ação de download do arquivo DOCX
-  const handleDownloadDocx = () => {
+  useEffect(() => {
+    api(`/avaliacoes/${id}`)
+      .then(setAvaliacao)
+      .catch((error) => setErro(error.message));
+  }, [id]);
+
+  const handleDownloadDocx = async () => {
+    setErro('');
     setMensagemFeedback('Gerando e baixando arquivo em formato DOCX...');
-    setTimeout(() => {
+    try {
+      const { blob, filename } = await downloadApiFile(`/avaliacoes/${id}/docx`);
+      const url = URL.createObjectURL(blob);
+      const link = document.createElement('a');
+      link.href = url;
+      link.download = filename;
+      link.click();
+      URL.revokeObjectURL(url);
       setDownloadConcluido(true);
       setMensagemFeedback('Download concluído com sucesso!');
-    }, 1500);
+    } catch (error) {
+      setDownloadConcluido(false);
+      setMensagemFeedback('');
+      setErro(error.message);
+    }
   };
 
   return (
@@ -36,7 +56,7 @@ export default function GenerateAssessmentPage() {
         <div>
           <h2 style={{ fontSize: '22px', fontWeight: 'bold', margin: 0 }}>Prévia para Impressão e Download</h2>
           <p style={{ color: '#6b7280', margin: '4px 0 0 0', fontSize: '14px' }}>
-            Avaliação ID: #{id} — Layout formatado sem quebra de questões.
+            Avaliação ID: #{id} — campos de identificação e nota para preenchimento manual.
           </p>
         </div>
         <button
@@ -53,6 +73,7 @@ export default function GenerateAssessmentPage() {
           <Check size={18} /> {mensagemFeedback}
         </div>
       )}
+      {erro && <div style={{ backgroundColor: '#fee2e2', color: '#b91c1c', padding: '12px 16px', borderRadius: '6px', marginBottom: '24px' }}>{erro}</div>}
 
       {/* Grade de Prévias: Caderno de Prova + Folha de Respostas */}
       <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(400px, 1fr))', gap: '24px' }}>
@@ -61,31 +82,20 @@ export default function GenerateAssessmentPage() {
         <div style={{ backgroundColor: '#fff', border: '1px solid #d1d5db', borderRadius: '8px', padding: '24px', boxShadow: '0 1px 3px rgba(0,0,0,0.1)' }}>
           <div style={{ borderBottom: '2px solid #111827', paddingBottom: '12px', marginBottom: '16px' }}>
             <span style={{ fontSize: '11px', fontWeight: 'bold', color: '#6b7280', textTransform: 'uppercase' }}>Caderno de Questões</span>
-            <h3 style={{ margin: '4px 0 0 0', fontSize: '16px', fontWeight: 'bold' }}>PROVA+: Avaliação Institucional</h3>
-            <p style={{ margin: '4px 0 0 0', fontSize: '12px', color: '#4b5563' }}>Nome do Aluno: _____________________________________________</p>
+            <h3 style={{ margin: '4px 0 0 0', fontSize: '16px', fontWeight: 'bold' }}>PROVA+: {avaliacao?.titulo || 'Avaliação'}</h3>
+            <p style={{ margin: '4px 0 0 0', fontSize: '12px', color: '#4b5563' }}>Nome: ________________________________</p>
+            <p style={{ margin: '4px 0 0 0', fontSize: '12px', color: '#4b5563' }}>Data: ____/____/________ &nbsp; Disciplina: __________________</p>
+            <p style={{ margin: '4px 0 0 0', fontSize: '12px', color: '#4b5563' }}>Nota: ____________</p>
           </div>
 
-          {/* Questão 1 (representada inteira na página) */}
-          <div style={{ marginBottom: '20px', padding: '12px', backgroundColor: '#f9fafb', borderRadius: '6px', pageBreakInside: 'avoid' }}>
-            <p style={{ margin: '0 0 8px 0', fontSize: '13px', fontWeight: '600' }}>1. Qual Hook do React gerencia efeitos colaterais?</p>
-            <div style={{ fontSize: '12px', color: '#374151', display: 'flex', flexDirection: 'column', gap: '4px' }}>
-              <span>( A ) useState</span>
-              <span>( B ) useEffect</span>
-              <span>( C ) useContext</span>
-              <span>( D ) useReducer</span>
+          {avaliacao?.questoes?.map((item, index) => (
+            <div key={item.questaoId || index} style={{ marginBottom: '20px', padding: '12px', backgroundColor: '#f9fafb', borderRadius: '6px', pageBreakInside: 'avoid' }}>
+              <p style={{ margin: '0 0 8px 0', fontSize: '13px', fontWeight: '600' }}>{index + 1}. {item.questao?.enunciado}</p>
+              <div style={{ fontSize: '12px', color: '#374151', display: 'flex', flexDirection: 'column', gap: '4px' }}>
+                {item.questao?.alternativas?.map((alternativa, alternativaIndex) => <span key={alternativa.id}>( {String.fromCharCode(65 + alternativaIndex)} ) {alternativa.texto}</span>)}
+              </div>
             </div>
-          </div>
-
-          {/* Questão 2 */}
-          <div style={{ marginBottom: '20px', padding: '12px', backgroundColor: '#f9fafb', borderRadius: '6px', pageBreakInside: 'avoid' }}>
-            <p style={{ margin: '0 0 8px 0', fontSize: '13px', fontWeight: '600' }}>2. Para que serve a prop "key" em listas?</p>
-            <div style={{ fontSize: '12px', color: '#374151', display: 'flex', flexDirection: 'column', gap: '4px' }}>
-              <span>( A ) Estilizar os componentes</span>
-              <span>( B ) Identificar de forma única os elementos no DOM Virtual</span>
-              <span>( C ) Redirecionar a rota da página</span>
-              <span>( D ) Salvar no localStorage</span>
-            </div>
-          </div>
+          ))}
 
           {/* Indicador de Página em Branco para Impressão Frente e Verso */}
           <div style={{ marginTop: '24px', padding: '12px', backgroundColor: '#f3f4f6', border: '1px dashed #9ca3af', borderRadius: '6px', textAlign: 'center', fontSize: '12px', color: '#6b7280' }}>

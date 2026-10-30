@@ -74,17 +74,10 @@ export default function NewAssessmentPage() {
     };
 
     try {
-      const apiBaseUrl = import.meta.env.VITE_API_URL;
-      const response = await fetch(`${apiBaseUrl}/api/avaliacoes`, {
+      await api('/avaliacoes', {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(payload),
       });
-
-      if (!response.ok) {
-        const errorData = await response.json();
-        throw new Error(errorData.error || 'Erro ao salvar avaliação no banco.');
-      }
 
       // Deu tudo certo!
       setMensagemSucesso(true);

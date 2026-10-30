@@ -89,6 +89,7 @@ export default function QuestionForm({ question, onSave, onCancel, isSaving = fa
       <header className="question-form-header">
         <h2 id="question-form-title">{question ? "Editar questão" : "Nova questão"}</h2>
         <p>Preencha o enunciado, defina as alternativas e marque a única resposta correta.</p>
+        <p>Cadastre o enunciado e as alternativas para usar esta questão em uma avaliação.</p>
       </header>
 
       {(validationError || submitError) && <p className="question-form-error" role="alert">{validationError || submitError}</p>}

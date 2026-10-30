@@ -33,6 +33,17 @@ class AplicacoesController {
     }
   }
 
+  async resolverQrCode(req: Request, res: Response) {
+    try {
+      const codigo = Array.isArray(req.params.codigo) ? req.params.codigo[0] : req.params.codigo;
+      if (!codigo) return res.status(400).json({ erro: 'Código QR ausente.' });
+      const resultado = await AplicacaoService.resolverQrCode(codigo, res.locals.authUser.id);
+      return res.json(resultado);
+    } catch (error: any) {
+      return res.status(404).json({ erro: error.message });
+    }
+  }
+
   // NOVA FUNÇÃO: Gera o Buffer do DOCX e força o download no navegador
   async baixarDocx(req: Request, res: Response) {
     try {

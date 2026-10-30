@@ -4,14 +4,18 @@ import { prisma } from '../../lib/prisma';
 export class TurmaController {
   async create(req: Request, res: Response) {
     try {
-      const { identificacao, nome, semestre, disciplinaId, professorId } = req.body;
+      const { identificacao, nome, semestre, disciplina } = req.body;
+      const professorId = res.locals.authUser.id;
 
-      if (!identificacao || !disciplinaId || !professorId) {
+      if (!identificacao || !nome || !semestre || !disciplina) {
         return res.status(400).json({ error: 'Campos obrigatórios ausentes.' });
       }
 
+      const nomeDisciplina = String(disciplina).trim();
+      const codigoDisciplina = nomeDisciplina.toUpperCase().replace(/[^A-Z0-9]+/g, '-').slice(0, 20) || 'GERAL';
+
       const turmaExistente = await prisma.turma.findFirst({
-        where: { professorId: Number(professorId), identificacao, ativo: true }
+        where: { professorId, identificacao, ativo: true }
       });
 
       if (turmaExistente) {
@@ -22,23 +26,30 @@ export class TurmaController {
         data: {
           identificacao,
           nome: nome || identificacao,
-          semestre: semestre || '2026.2',
-          disciplinaId: Number(disciplinaId),
-          professorId: Number(professorId),
+          semestre,
+          disciplina: {
+            connectOrCreate: {
+              where: { codigo: codigoDisciplina },
+              create: { nome: nomeDisciplina, codigo: codigoDisciplina },
+            },
+          },
+          professor: { connect: { id: professorId } },
           ativo: true,
         },
+        include: { disciplina: true },
       });
 
       return res.status(201).json(novaTurma);
     } catch (error) {
-      return res.status(500).json({ error: 'Erro ao criar turma.' });
+      console.error("Erro ao criar turma:", error);
+      return res.status(500).json({ error: error instanceof Error ? error.message : 'Erro ao criar turma.' });
     }
   }
 
   async list(req: Request, res: Response) {
     try {
       const turmas = await prisma.turma.findMany({
-        where: { ativo: true },
+        where: { professorId: res.locals.authUser.id, ativo: true },
         include: {
           disciplina: true,
           professor: true
@@ -53,12 +64,12 @@ export class TurmaController {
   async findById(req: Request, res: Response) {
     try {
       const { id } = req.params;
-      const turma = await prisma.turma.findUnique({
+      const turma = await prisma.turma.findFirst({
         where: { id: Number(id) },
         include: { disciplina: true, professor: true }
       });
 
-      if (!turma || !turma.ativo) {
+      if (!turma || !turma.ativo || turma.professorId !== res.locals.authUser.id) {
         return res.status(404).json({ error: 'Turma não encontrada.' });
       }
 
@@ -71,10 +82,10 @@ export class TurmaController {
   async update(req: Request, res: Response) {
     try {
       const { id } = req.params;
-      const { identificacao, nome, semestre, disciplinaId, professorId } = req.body;
+      const { identificacao, nome, semestre, disciplina } = req.body;
 
-      const turmaAtual = await prisma.turma.findUnique({
-        where: { id: Number(id) }
+      const turmaAtual = await prisma.turma.findFirst({
+        where: { id: Number(id), professorId: res.locals.authUser.id }
       });
 
       if (!turmaAtual || !turmaAtual.ativo) {
@@ -87,8 +98,6 @@ export class TurmaController {
           identificacao: identificacao ?? turmaAtual.identificacao,
           nome: nome ?? turmaAtual.nome,
           semestre: semestre ?? turmaAtual.semestre,
-          disciplinaId: disciplinaId ? Number(disciplinaId) : turmaAtual.disciplinaId,
-          professorId: professorId ? Number(professorId) : turmaAtual.professorId,
         }
       });
 
@@ -102,8 +111,8 @@ export class TurmaController {
     try {
       const { id } = req.params;
 
-      const turma = await prisma.turma.findUnique({
-        where: { id: Number(id) }
+      const turma = await prisma.turma.findFirst({
+        where: { id: Number(id), professorId: res.locals.authUser.id }
       });
 
       if (!turma || !turma.ativo) {

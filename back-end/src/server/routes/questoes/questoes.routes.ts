@@ -1,12 +1,12 @@
 import { Router } from "express";
-import { questoesController } from "../../controllers";
 import { requireAuth } from "../../middleware/auth.middleware";
+import { questoesController } from "../../controllers";
 
-export const questoesRouter = Router();
+export const questoesRoutes = Router();
 
-questoesRouter.use(requireAuth);
-questoesRouter.get("/", questoesController.list);
-questoesRouter.post("/", questoesController.create);
-questoesRouter.get("/:id", questoesController.getById);
-questoesRouter.patch("/:id", questoesController.update);
-questoesRouter.delete("/:id", questoesController.remove);
+questoesRoutes.use(requireAuth);
+questoesRoutes.post("/", questoesController.criarQuestao);
+questoesRoutes.get("/", questoesController.listarQuestoes);
+questoesRoutes.get("/:id", questoesController.getById);
+questoesRoutes.patch("/:id", questoesController.update);
+questoesRoutes.delete("/:id", questoesController.remove);

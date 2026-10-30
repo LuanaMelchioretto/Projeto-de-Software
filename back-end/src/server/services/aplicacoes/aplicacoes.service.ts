@@ -81,7 +81,7 @@ export class AplicacaoService {
         questoesProcessadas = embaralharArray(questoesProcessadas);
       }
 
-      const qrCodeHash = `APP-${novaAplicacao.id}-ALUNO-${aluno.id}-${randomUUID().substring(0, 8)}`;
+      const qrCodeHash = randomUUID();
 
       const snapshot = {
         avaliacaoTitulo: avaliacao.titulo,
@@ -122,6 +122,36 @@ export class AplicacaoService {
     }
 
     return versao;
+  }
+
+  async resolverQrCode(qrCodeHash: string, professorId: number) {
+    const versao = await prisma.versaoProva.findUnique({
+      where: { qrCodeHash },
+      select: {
+        id: true,
+        aluno: { select: { nome: true, matricula: true } },
+        aplicacao: {
+          select: {
+            id: true,
+            turmaId: true,
+            avaliacao: { select: { id: true, titulo: true, professorId: true } },
+          },
+        },
+      },
+    });
+
+    if (!versao || versao.aplicacao.avaliacao.professorId !== professorId) {
+      throw new Error('QR Code inválido ou prova não encontrada.');
+    }
+
+    return {
+      aplicacaoId: versao.aplicacao.id,
+      versaoId: versao.id,
+      avaliacaoId: versao.aplicacao.avaliacao.id,
+      avaliacaoTitulo: versao.aplicacao.avaliacao.titulo,
+      turmaId: versao.aplicacao.turmaId,
+      aluno: versao.aluno,
+    };
   }
 }
 

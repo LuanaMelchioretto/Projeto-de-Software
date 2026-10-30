@@ -281,14 +281,20 @@ test("anexa e remove a prévia de imagem", async () => {
 
 test("a rota de questões mantém as interações dentro do layout da aplicação", async () => {
   const originalFetch = globalThis.fetch;
-  globalThis.fetch = async () => ({
-    ok: true,
-    status: 200,
-    json: async () => ({
-      user: { id: 1, nome: "Ana", email: "ana@example.com", status: 1 },
-      expiresAt: Date.now() + 60_000,
-    }),
-  });
+  globalThis.fetch = async (url) => {
+    const path = new URL(url).pathname;
+    const responses = {
+      "/api/auth/me": {
+        user: { id: 1, nome: "Ana", email: "ana@example.com", status: 1 },
+        expiresAt: Date.now() + 60 * 60_000,
+      },
+      "/api/questoes": questions,
+      "/api/turmas": [],
+    };
+
+    assert.ok(Object.hasOwn(responses, path), `Chamada inesperada: ${path}`);
+    return { ok: true, status: 200, json: async () => responses[path] };
+  };
   
   try {
     render(
@@ -309,7 +315,7 @@ test("a rota de questões mantém as interações dentro do layout da aplicaçã
     await user.click(screen.getByRole("link", { name: "Turmas" }));
     await user.click(screen.getByRole("link", { name: "Questões" }));
     
-    assert.equal(screen.getAllByRole("article").length, questions.length);
+    assert.equal((await screen.findAllByRole("article")).length, questions.length);
   } finally {
     globalThis.fetch = originalFetch;
   }

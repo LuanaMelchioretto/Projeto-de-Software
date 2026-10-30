@@ -1,6 +1,8 @@
 import React, { useEffect, useRef, useState } from "react";
 import { BookOpen, Plus, Search } from "lucide-react";
 import PageTitle from "../../components/page-title/PageTitle";
+import { api } from "../../auth/api";
+import { questions as demoQuestions } from "../../mocks/questions";
 import Feedback, { FEEDBACK_DURATION } from "../../components/feedback/Feedback";
 import Pagination from "../../components/pagination/Pagination";
 import { api } from "../../auth/api";
@@ -11,7 +13,10 @@ import "./QuestionsPage.css";
 
 export const PAGE_SIZE = 25;
 
-export default function QuestionsPage({ questions: demoQuestions }) {
+export default function QuestionsPage(props) {
+  const usesApi = !Object.prototype.hasOwnProperty.call(props, "questions");
+  const questions: props.questions ?? demoQuestions;
+  const [apiQuestions, setApiQuestions] = useState(null);
   const [search, setSearch] = useState("");
   const [page, setPage] = useState(1);
   const [editor, setEditor] = useState(null);
@@ -46,11 +51,31 @@ export default function QuestionsPage({ questions: demoQuestions }) {
     if (!demoMode) void loadQuestions();
   }, [demoMode]);
 
-  const filteredQuestions = filterQuestions(questions, search);
+  async function loadQuestions() {
+    setLoading(true);
+    setLoadError("");
+    try {
+      const result = await api("/questoes");
+      setQuestions(result.map(toQuestionView));
+    } catch (error) {
+      setLoadError(error.message);
+    } finally {
+      setLoading(false);
+    }
+  }
+
+  useEffect(() => {
+    if (!demoMode) void loadQuestions();
+  }, [demoMode]);
+
+  const visibleQuestions = usesApi
+    ? (Array.isArray(apiQuestions) ? apiQuestions : [])
+    : questions;
+  const filteredQuestions = filterQuestions(visibleQuestions, search);
   const pageCount = Math.ceil(filteredQuestions.length / PAGE_SIZE);
   const questionsInPage = filteredQuestions.slice((page - 1) * PAGE_SIZE, page * PAGE_SIZE);
 
-  const bankIsEmpty = questions.length === 0;
+  const bankIsEmpty = visibleQuestions.length === 0;
   const searchFoundNothing = !bankIsEmpty && filteredQuestions.length === 0;
   const showList = !bankIsEmpty && !searchFoundNothing;
 
@@ -87,10 +112,39 @@ export default function QuestionsPage({ questions: demoQuestions }) {
     setExpandedId(expandedId === questionId ? null : questionId);
   }
 
-  function finishPreview() {
-    showFeedback(editor.question
-      ? "Edição demonstrativa concluída. Nenhuma alteração foi salva."
-      : "Cadastro demonstrativo concluído. Nenhuma questão foi salva.");
+  async function finishPreview(draft) {
+    if (!usesApi) {
+      showFeedback(editor.question
+        ? "Edição demonstrativa concluída. Nenhuma alteração foi salva."
+        : "Cadastro demonstrativo concluído. Nenhuma questão foi salva.");
+      setEditor(null);
+      return;
+    }
+
+    if (editor.question) {
+      showFeedback("Edição concluída. Atualização da questão ainda não está disponível.");
+      setEditor(null);
+      return;
+    }
+
+    try {
+      const saved = await api("/questoes", {
+        method: "POST",
+        body: JSON.stringify({
+          enunciado: draft.text,
+          disciplina: "Geral",
+          alternativas: draft.options.map((texto, index) => ({
+            texto,
+            ehCorreta: index === draft.answer,
+          })),
+        }),
+      });
+      setApiQuestions((current) => [saved, ...(current ?? [])]);
+      showFeedback("Questão cadastrada com sucesso.");
+    } catch (error) {
+      showFeedback(error.message);
+      return;
+    }
     setEditor(null);
   }
 
@@ -167,7 +221,7 @@ export default function QuestionsPage({ questions: demoQuestions }) {
         <>
           <SearchToolbar
             search={search}
-            total={questions.length}
+            total={visibleQuestions.length}
             found={filteredQuestions.length}
             onSearchChange={changeSearch}
           />

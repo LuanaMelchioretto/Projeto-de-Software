@@ -4,7 +4,7 @@
 
 **Sistema para gerar, identificar, corrigir e analisar provas objetivas, reduzindo o tempo gasto pelos professores na correção manual.**
 
-**Links do sistema hospedado:** [Netlify](https://provaplus.netlify.app/) | [GitHub Pages](https://luanamelchioretto.github.io/Projeto-de-Software/)
+**Sistema hospedado:** [GitHub Pages](https://luanamelchioretto.github.io/Projeto-de-Software/)
 
 ![Node.js](docs/logos/nodejs.svg)
 ![Express](docs/logos/express.svg)
@@ -409,7 +409,7 @@ Edite `back-end/.env` antes de iniciar. O arquivo não é versionado. Em sistema
 | `FRONTEND_ORIGINS`                                                               | Origens do front-end autorizadas a chamar a API, separadas por vírgula e sem barra no final. O exemplo libera o Vite em desenvolvimento (`5173`) e no preview (`4173`). |
 | `JWT_SECRET`                                                                     | Chave que assina o token da sessão guardado no cookie. Deve ter pelo menos 32 caracteres; troque o valor do exemplo por uma chave aleatória.                            |
 | `SMTP_HOST`, `SMTP_PORT`, `SMTP_USER`, `SMTP_PASSWORD`, `SMTP_FROM`, `SMTP_REQUIRE_TLS` | Servidor SMTP para enviar links de recuperação. O exemplo usa Mailpit local (`127.0.0.1:1025`, sem TLS); abra `http://localhost:8025` para ver os e-mails. Para entregar e-mails reais, configure um provedor SMTP, normalmente porta `587` com `SMTP_REQUIRE_TLS=true` ou porta `465` com SSL. Sem `SMTP_HOST` e `SMTP_FROM`, a recuperação responde `503`. |
-| `PASSWORD_RESET_URL`                                                             | Endereço obrigatório da página de redefinição no front-end, por exemplo `http://localhost:5173/Projeto-de-Software/redefinir-senha`. O caminho deve acompanhar o `base` do Vite. |
+| `PASSWORD_RESET_URL`                                                             | Endereço obrigatório da página de redefinição no front-end. No GitHub Pages, use `https://luanamelchioretto.github.io/Projeto-de-Software/#/redefinir-senha`; em desenvolvimento, use a rota local sem `#`. |
 | `COOKIE_SECURE`                                                                  | `false` para usar a API em `http://localhost`. Use `true` só com HTTPS: o cookie passa a ser `Secure` e `SameSite=None`.                                                |
 | `MYSQL_ROOT_PASSWORD`, `DB_PASSWORD`                                             | Senhas dos usuários `root` e `provaplus` do MySQL criado pelo `compose.yaml`, que não sobe sem elas.                                                                    |
 | `DATABASE_URL`, `SHADOW_DATABASE_URL`                                            | Conexões com o banco `provaplus` e com o `provaplus_shadow`, que o `npm run db:migrate` usa para conferir as migrações. Use nelas a senha definida em `DB_PASSWORD`.    |

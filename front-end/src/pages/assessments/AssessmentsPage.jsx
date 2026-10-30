@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Plus, Search, FileText, ChevronRight, Loader2 } from 'lucide-react';
 import PageTitle from '../../components/page-title/PageTitle';
+import { api } from '../../auth/api';
 import './AssessmentsPage.css';
 
 export default function AssessmentsPage() {
@@ -17,14 +18,7 @@ export default function AssessmentsPage() {
   useEffect(() => {
     const buscarAvaliacoes = async () => {
       try {
-        // ATENÇÃO: Ajusta a URL para a porta correta do teu back-end
-        const response = await fetch('http://localhost:3000/api/avaliacoes');
-        
-        if (!response.ok) {
-          throw new Error('Falha ao carregar as avaliações.');
-        }
-
-        const dados = await response.json();
+        const dados = await api('/avaliacoes');
         setAvaliacoes(dados);
       } catch (err) {
         console.error('Erro na API:', err);
