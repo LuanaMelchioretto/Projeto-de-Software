@@ -4,6 +4,7 @@ model Alternativa {
   questao   Questao         @relation(fields: [questaoId], references: [id], onDelete: Cascade)
   texto     String          @db.Text
   ehCorreta Boolean         @default(false) @map("eh_correta")
+  ativa     Boolean         @default(true)
   respostas RespostaAluno[]
 
   @@index([questaoId])

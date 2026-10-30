@@ -26,7 +26,7 @@ export default function NewAssessmentPage() {
         const dados = await api('/questoes');
         setBancoQuestoes(dados);
       } catch (error) {
-        console.error('Erro ao buscar as questões do banco:', error);
+        setErroValidacao(error.message);
       }
     };
     carregarQuestoes();

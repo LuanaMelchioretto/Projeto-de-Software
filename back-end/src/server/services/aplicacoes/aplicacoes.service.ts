@@ -21,7 +21,7 @@ export class AplicacaoService {
         questoes: {
           include: {
             questao: {
-              include: { alternativas: true }
+              include: { alternativas: { where: { ativa: true }, orderBy: { id: 'asc' } } }
             }
           },
           orderBy: { ordem: 'asc' }
@@ -40,13 +40,15 @@ export class AplicacaoService {
     const turma = await prisma.turma.findUnique({
       where: { id: turmaId },
       include: { matriculas: { include: { aluno: true } } }
+      include: { matriculas: { include: { aluno: true } } }
     });
 
     if (!turma || turma.professorId !== professorId) {
       throw new Error('Turma não encontrada ou sem permissão.');
     }
 
-    if (turma.matriculas.length === 0) {
+    const alunos = turma.matriculas.map((matricula) => matricula.aluno);
+    if (alunos.length === 0) {
       throw new Error('A turma selecionada não possui alunos.');
     }
 
@@ -54,7 +56,7 @@ export class AplicacaoService {
       data: { avaliacaoId, turmaId }
     });
 
-    const versoesPromises = turma.matriculas.map(async ({ aluno }) => {
+    const versoesPromises = alunos.map(async (aluno: any) => {
       let questoesProcessadas = avaliacao.questoes.map((item: any) => {
         const q = item.questao;
         let alternativas = [...q.alternativas];
@@ -66,6 +68,7 @@ export class AplicacaoService {
         return {
           questaoId: q.id,
           enunciado: q.enunciado,
+          imagem: q.imagemData && q.imagemNome ? { name: q.imagemNome, url: q.imagemData } : null,
           alternativas: alternativas.map((alt: any) => ({
             id: alt.id,
             texto: alt.texto,
