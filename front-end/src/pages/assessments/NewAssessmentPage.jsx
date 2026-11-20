@@ -1,11 +1,14 @@
 import React, { useState, useEffect } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, useParams } from 'react-router-dom';
 import { ArrowLeft, Search, Plus, Trash2, Check, Shuffle } from 'lucide-react';
-import PageTitle from '../../components/page-title/PageTitle';
 import { api } from '../../auth/api';
 
-export default function NewAssessmentPage() {
+export default function NewAssessmentPage({ editing = false }) {
   const navigate = useNavigate();
+  const { id } = useParams();
+  const [carregando, setCarregando] = useState(true);
+  const [erroCarregamento, setErroCarregamento] = useState('');
+  const [salvando, setSalvando] = useState(false);
 
   // Estados do formulário
   const [titulo, setTitulo] = useState('');
@@ -19,18 +22,38 @@ export default function NewAssessmentPage() {
   
   const [bancoQuestoes, setBancoQuestoes] = useState([]);
 
-  // Busca as questões reais da API quando a tela abre
+  // A edição carrega a mesma avaliação indicada pela rota.
   useEffect(() => {
+    let active = true;
+    setCarregando(true);
+    setErroCarregamento('');
     const carregarQuestoes = async () => {
      try {
-        const dados = await api('/questoes');
+        const [dados, avaliacao] = await Promise.all([
+          api('/questoes'),
+          editing ? api(`/avaliacoes/${id}`) : Promise.resolve(null),
+        ]);
+        if (!active) return;
         setBancoQuestoes(dados);
+        setTitulo(avaliacao?.titulo ?? '');
+        setEmbaralharQuestoes(avaliacao?.embaralharQuestoes ?? false);
+        setEmbaralharAlternativas(avaliacao?.embaralharAlternativas ?? false);
+        setQuestoesSelecionadas(avaliacao
+          ? [...avaliacao.questoes].sort((a, b) => a.ordem - b.ordem).map((item) =>
+              dados.find((questao) => questao.id === item.questaoId) ?? item.questao)
+          : []);
+        if (avaliacao?.aplicacoes?.length > 0) {
+          setErroCarregamento('Não é possível editar uma prova que já foi aplicada aos alunos.');
+        }
       } catch (error) {
-        console.error('Erro ao buscar as questões do banco:', error);
+        if (active) setErroCarregamento(error.message);
+      } finally {
+        if (active) setCarregando(false);
       }
     };
     carregarQuestoes();
-  }, []);
+    return () => { active = false; };
+  }, [editing, id]);
 
   // Filtra as questões do banco pelo termo de busca
   const questoesFiltradas = bancoQuestoes.filter((q) =>
@@ -53,6 +76,7 @@ export default function NewAssessmentPage() {
   // Salva a avaliação com validação (Agora conectado à API!)
   const handleSalvar = async (e) => {
     e.preventDefault();
+    if (carregando || erroCarregamento || salvando || mensagemSucesso) return;
     setErroValidacao('');
 
     if (!titulo.trim()) {
@@ -74,35 +98,43 @@ export default function NewAssessmentPage() {
     };
 
     try {
-      await api('/avaliacoes', {
-        method: 'POST',
+      setSalvando(true);
+      await api(editing ? `/avaliacoes/${id}` : '/avaliacoes', {
+        method: editing ? 'PUT' : 'POST',
         body: JSON.stringify(payload),
       });
 
       // Deu tudo certo!
       setMensagemSucesso(true);
+      if (editing) {
+        navigate(`/avaliacoes/${id}`);
+        return;
+      }
       setTimeout(() => {
         navigate('/avaliacoes');
       }, 2000);
 
     } catch (error) {
       setErroValidacao(error.message);
+    } finally {
+      setSalvando(false);
     }
   };
 
   return (
     <div style={{ padding: '24px', maxWidth: '900px', margin: '0 auto' }}>
-      <PageTitle title="Nova avaliação" />
-      {typeof window !== 'undefined' && !window.navigator.userAgent.includes('Node.js') && (
-        <>
       <button
-        onClick={() => navigate('/avaliacoes')}
+        onClick={() => navigate(editing ? `/avaliacoes/${id}` : '/avaliacoes')}
         style={{ display: 'flex', alignItems: 'center', gap: '6px', background: 'none', border: 'none', cursor: 'pointer', color: '#4b5563', marginBottom: '16px', fontSize: '14px' }}
       >
-        <ArrowLeft size={16} /> Voltar para Avaliações
+        <ArrowLeft size={16} /> {editing ? 'Voltar para a avaliação' : 'Voltar para Avaliações'}
       </button>
 
-      <h2 style={{ fontSize: '24px', fontWeight: 'bold', marginBottom: '24px' }}>Nova Avaliação</h2>
+      <h1 style={{ fontSize: '24px', fontWeight: 'bold', margin: '0 0 24px' }}>{editing ? 'Editar composição' : 'Nova avaliação'}</h1>
+
+      {carregando ? <p role="status">Carregando avaliação e questões...</p> : erroCarregamento ? (
+        <p role="alert">{erroCarregamento}</p>
+      ) : <>
 
       {mensagemSucesso && (
         <div style={{ backgroundColor: '#dcfce7', color: '#15803d', padding: '12px 16px', borderRadius: '6px', marginBottom: '20px', display: 'flex', alignItems: 'center', gap: '8px' }}>
@@ -111,7 +143,7 @@ export default function NewAssessmentPage() {
       )}
 
       {erroValidacao && (
-        <div style={{ backgroundColor: '#fee2e2', color: '#b91c1c', padding: '12px 16px', borderRadius: '6px', marginBottom: '20px' }}>
+        <div role="alert" style={{ backgroundColor: '#fee2e2', color: '#b91c1c', padding: '12px 16px', borderRadius: '6px', marginBottom: '20px' }}>
           {erroValidacao}
         </div>
       )}
@@ -119,8 +151,9 @@ export default function NewAssessmentPage() {
       <form onSubmit={handleSalvar}>
         {/* Título da Avaliação */}
         <div style={{ marginBottom: '24px' }}>
-          <label style={{ display: 'block', fontWeight: '600', marginBottom: '8px', fontSize: '14px' }}>Título da Avaliação *</label>
+          <label htmlFor="assessment-title" style={{ display: 'block', fontWeight: '600', marginBottom: '8px', fontSize: '14px' }}>Título da Avaliação *</label>
           <input
+            id="assessment-title"
             type="text"
             placeholder="Ex: Prova Parcial de Algoritmos"
             value={titulo}
@@ -168,6 +201,7 @@ export default function NewAssessmentPage() {
                   <span style={{ fontSize: '14px' }}><strong>Q{index + 1}:</strong> {q.enunciado}</span>
                   <button
                     type="button"
+                    aria-label={`Remover questão ${index + 1}`}
                     onClick={() => handleRemoverQuestao(q.id)}
                     style={{ background: 'none', border: 'none', color: '#ef4444', cursor: 'pointer', padding: '4px' }}
                   >
@@ -231,21 +265,21 @@ export default function NewAssessmentPage() {
         <div style={{ display: 'flex', gap: '12px', justifyContent: 'flex-end', borderTop: '1px solid #e5e7eb', paddingTop: '16px' }}>
           <button
             type="button"
-            onClick={() => navigate('/avaliacoes')}
+            onClick={() => navigate(editing ? `/avaliacoes/${id}` : '/avaliacoes')}
             style={{ padding: '10px 20px', border: '1px solid #d1d5db', borderRadius: '6px', backgroundColor: '#fff', cursor: 'pointer', fontSize: '14px' }}
           >
             Cancelar
           </button>
           <button
             type="submit"
+            disabled={salvando || mensagemSucesso}
             style={{ padding: '10px 20px', border: 'none', borderRadius: '6px', backgroundColor: '#2563eb', color: '#fff', fontWeight: '600', cursor: 'pointer', fontSize: '14px' }}
           >
-            Salvar avaliação
+            {salvando ? 'Salvando...' : editing ? 'Salvar alterações' : 'Salvar avaliação'}
           </button>
         </div>
       </form>
-        </>
-      )}
+      </>}
     </div>
   );
 }

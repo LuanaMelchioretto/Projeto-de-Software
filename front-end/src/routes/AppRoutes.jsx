@@ -45,12 +45,14 @@ export default function AppRoutes() {
             <Route path="nova" element={<NewAssessmentPage />} />
             <Route path=":id" element={<AssessmentRoute />}>
               <Route index element={<AssessmentDetailPage />} />
+              <Route path="editar" element={<NewAssessmentPage editing />} />
               <Route path="gerar" element={<GenerateAssessmentPage />} />
             </Route>
           </Route>
           <Route path="turmas" element={<ClassesPage />} />
           <Route path="correcoes" element={<CorrectionsPage />} />
           <Route path="correcoes/resultado" element={<CorrectionResultPage />} />
+          <Route path="correcoes/resultado/:id" element={<CorrectionResultPage />} />
           <Route path="relatorios" element={<ReportsPage />} />
           <Route path="conta" element={<AccountPage />} />
           <Route path="*" element={<NotFoundPage />} />

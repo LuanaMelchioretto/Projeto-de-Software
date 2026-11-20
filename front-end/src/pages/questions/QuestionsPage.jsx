@@ -78,26 +78,23 @@ export default function QuestionsPage(props) {
       return;
     }
 
-    if (editor.question) {
-      showFeedback("Edição concluída. Atualização da questão ainda não está disponível.");
-      setEditor(null);
-      return;
-    }
-
     try {
-      const saved = await api("/questoes", {
-        method: "POST",
+      const saved = await api(editor.question ? `/questoes/${editor.question.id}` : "/questoes", {
+        method: editor.question ? "PUT" : "POST",
         body: JSON.stringify({
           enunciado: draft.text,
-          disciplina: "Geral",
+          disciplina: editor.question?.disciplina ?? editor.question?.topic ?? "Geral",
           alternativas: draft.options.map((texto, index) => ({
+            ...(draft.optionIds[index] ? { id: draft.optionIds[index] } : {}),
             texto,
             ehCorreta: index === draft.answer,
           })),
         }),
       });
-      setApiQuestions((current) => [saved, ...(current ?? [])]);
-      showFeedback("Questão cadastrada com sucesso.");
+      setApiQuestions((current) => editor.question
+        ? (current ?? []).map((question) => question.id === saved.id ? saved : question)
+        : [saved, ...(current ?? [])]);
+      showFeedback(editor.question ? "Questão atualizada com sucesso." : "Questão cadastrada com sucesso.");
     } catch (error) {
       showFeedback(error.message);
       return;

@@ -3,6 +3,7 @@ import AvaliacaoService from '../../services/avaliacoes/avaliacoes.service';
 import DocxService from '../../services/docx/docx.service';
 import { env } from '../../config/env';
 import { createHmac, timingSafeEqual } from 'node:crypto';
+import QRCode from 'qrcode';
 
 const createQrCode = (avaliacaoId: number) => {
   const data = `AV1.${avaliacaoId}`;
@@ -73,12 +74,36 @@ class AvaliacoesController {
     }
   }
 
+  async previa(req: Request, res: Response) {
+    try {
+      const avaliacao = await AvaliacaoService.buscarParaGeracao(String(req.params.id), res.locals.authUser.id);
+      const prepared = DocxService.prepararAvaliacao(avaliacao);
+      const qrCodeDataUrl = await QRCode.toDataURL(createQrCode(avaliacao.id), { margin: 2, width: 240, errorCorrectionLevel: 'M' });
+      return res.json({ ...prepared, qrCodeDataUrl });
+    } catch (error: any) {
+      return res.status(400).json({ error: error.message });
+    }
+  }
+
+  async baixarGabarito(req: Request, res: Response) {
+    try {
+      const avaliacao = await AvaliacaoService.buscarParaGeracao(String(req.params.id), res.locals.authUser.id);
+      const buffer = await DocxService.gerarGabaritoAvaliacao(avaliacao);
+      const nome = `Gabarito_${avaliacao.titulo.replace(/[^a-zA-Z0-9]+/g, '_')}.docx`;
+      res.setHeader('Content-Type', 'application/vnd.openxmlformats-officedocument.wordprocessingml.document');
+      res.setHeader('Content-Disposition', `attachment; filename="${nome}"`);
+      return res.send(buffer);
+    } catch (error: any) {
+      return res.status(400).json({ error: error.message });
+    }
+  }
+
   async resolverQrCode(req: Request, res: Response) {
     try {
       const codigo = Array.isArray(req.params.codigo) ? req.params.codigo[0] : req.params.codigo;
       if (!codigo) return res.status(400).json({ erro: 'Código QR ausente.' });
       const avaliacaoId = readQrCode(codigo);
-      const avaliacao = await AvaliacaoService.buscarParaGeracao(String(avaliacaoId), res.locals.authUser.id);
+      const avaliacao = DocxService.prepararAvaliacao(await AvaliacaoService.buscarParaGeracao(String(avaliacaoId), res.locals.authUser.id));
       return res.json({
         avaliacaoId: avaliacao.id,
         titulo: avaliacao.titulo,

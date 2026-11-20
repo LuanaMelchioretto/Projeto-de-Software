@@ -1,7 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { ArrowLeft, Edit, Play, Shuffle, FileText, AlertTriangle, Loader2 } from 'lucide-react';
-import PageTitle from '../../components/page-title/PageTitle';
 import { api } from '../../auth/api';
 
 export default function AssessmentDetailPage() {
@@ -44,10 +43,9 @@ export default function AssessmentDetailPage() {
   if (erro || !avaliacao) {
     return (
       <div style={{ padding: '24px', maxWidth: '800px', margin: '0 auto', textAlign: 'center' }}>
-        <PageTitle title="Avaliação não encontrada" />
         <div style={{ backgroundColor: '#fff1f2', border: '1px solid #fecdd3', padding: '32px', borderRadius: '8px', marginTop: '16px' }}>
           <AlertTriangle size={48} style={{ color: '#e11d48', marginBottom: '12px' }} />
-          <h2 style={{ fontSize: '20px', fontWeight: 'bold', color: '#881337', margin: '0 0 8px 0' }}>Avaliação não encontrada</h2>
+          <h1 style={{ fontSize: '20px', fontWeight: 'bold', color: '#881337', margin: '0 0 8px 0' }}>Avaliação não encontrada</h1>
           <p style={{ color: '#9f1239', marginBottom: '20px' }}>O identificador da avaliação buscada é inválido ou ela foi removida.</p>
           <button
             onClick={() => navigate('/avaliacoes')}
@@ -62,8 +60,6 @@ export default function AssessmentDetailPage() {
 
   return (
     <div style={{ padding: '24px', maxWidth: '900px', margin: '0 auto' }}>
-      <PageTitle title={avaliacao.titulo} />
-
       {/* Botão Voltar */}
       <button
         onClick={() => navigate('/avaliacoes')}
@@ -75,7 +71,7 @@ export default function AssessmentDetailPage() {
       {/* Cabeçalho de Ações */}
       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '24px', flexWrap: 'wrap', gap: '12px' }}>
         <div>
-          <h2 style={{ fontSize: '24px', fontWeight: 'bold', margin: 0 }}>{avaliacao.titulo}</h2>
+          <h1 style={{ fontSize: '24px', fontWeight: 'bold', margin: 0 }}>{avaliacao.titulo}</h1>
           <span style={{ fontSize: '14px', color: '#6b7280' }}>Total: {avaliacao.questoes?.length || 0} questões cadastradas</span>
         </div>
         <div style={{ display: 'flex', gap: '12px' }}>

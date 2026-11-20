@@ -136,6 +136,25 @@
   font-size: 14px;
 }
 
+.corrections-selection-note {
+  margin: 12px 0 0;
+  color: var(--color-text-muted);
+  font-size: 13px;
+  line-height: 1.6;
+}
+
+.corrections-selection-error { margin-top: 12px; }
+.corrections-selection-error p { color: #b42318; font-size: 13px; }
+.corrections-select:disabled { color: #818896; cursor: not-allowed; }
+.corrections-container .btn-primary:disabled { background: #9ca3af; cursor: not-allowed; }
+
+.correction-student-card { padding: 16px; margin: 20px 0; background: white; border: 1px solid var(--color-border); border-radius: 10px; }
+.correction-save-option { display: flex; align-items: center; gap: 10px; font-size: 13px; font-weight: 600; }
+.correction-save-option input { accent-color: var(--color-primary); }
+.correction-student-fields { display: grid; gap: 10px; margin-top: 18px; }
+.correction-student-fields label { margin-top: 4px; font-size: 13px; font-weight: 600; }
+.correction-student-fields input { width: 100%; padding: 10px; border: 1px solid #d1d5db; border-radius: 8px; }
+
 .btn-primary {
   width: 100%;
   padding: 14px;

@@ -40,7 +40,7 @@ export default function QuestionCard({ question, expanded = false, onToggle, onE
       </div>
 
       <footer className="question-card-footer">
-        <span>{question.options.length} alternativas · 1 correta</span>
+        <span>{question.options.length} alternativas · {Number.isInteger(question.answer) && question.answer >= 0 && question.answer < question.options.length ? "1 correta" : "Sem resposta correta"}</span>
 
         <div className="question-card-actions">
           <button

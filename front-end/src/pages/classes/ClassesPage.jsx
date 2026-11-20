@@ -1,22 +1,28 @@
 import React, { useState, useEffect } from "react";
+import { Archive, BookOpen, Pencil, Plus, Search, UsersRound, X } from "lucide-react";
 import PageTitle from "../../components/page-title/PageTitle";
+import Button from "../../components/button/Button";
+import Feedback from "../../components/feedback/Feedback";
 import { api } from "../../auth/api";
 import "./ClassesPage.css";
 
 export default function ClassesPage() {
   const [turmas, setTurmas] = useState([]);
-  const [carregando, setCarregando] = useState(false);
+  const [carregando, setCarregando] = useState(true);
+  const [erroCarregamento, setErroCarregamento] = useState("");
+  const [salvando, setSalvando] = useState(false);
 
   const carregarTurmas = async () => {
     try {
       setCarregando(true);
+      setErroCarregamento("");
       const data = await api("/turmas");
       if (!Array.isArray(data)) {
         throw new Error("Resposta inválida ao carregar turmas.");
       }
       setTurmas(data);
     } catch (error) {
-      setErroFormulario("Erro ao carregar turmas do servidor.");
+      setErroCarregamento("Não foi possível carregar as turmas. Tente novamente.");
     } finally {
       setCarregando(false);
     }
@@ -68,6 +74,7 @@ export default function ClassesPage() {
 
   const salvarTurma = async (e) => {
     e.preventDefault();
+    if (salvando) return;
 
     if (!form.nome.trim() || !form.identificacao.trim() || !form.disciplina.trim() || !form.semestre.trim()) {
       setErroFormulario("Por favor, preencha todos os campos obrigatórios (*).");
@@ -75,6 +82,7 @@ export default function ClassesPage() {
     }
 
     try {
+      setSalvando(true);
       if (modoEdicao) {
         await api(`/turmas/${idEdicao}`, {
           method: "PUT",
@@ -103,6 +111,8 @@ export default function ClassesPage() {
       fecharModal();
     } catch (error) {
       setErroFormulario(error.message || "Erro ao salvar turma. Tente novamente.");
+    } finally {
+      setSalvando(false);
     }
   };
 
@@ -114,76 +124,66 @@ export default function ClassesPage() {
       setMensagemSucesso("Turma inativada com sucesso!");
       await carregarTurmas();
     } catch (error) {
-      setErroFormulario(error.message || "Erro ao inativar turma.");
+      setErroCarregamento(error.message || "Erro ao inativar turma.");
     }
   };
 
   return (
-    <div className="p-6 max-w-6xl mx-auto">
-      <PageTitle title="Turmas" />
-
-      {/* O resto do conteúdo fica oculto no ambiente de teste automatizado */}
-      {typeof window !== "undefined" && !window.navigator.userAgent.includes("Node.js") && (
-        <>
-          <div className="flex justify-end mb-6">
-            <button 
-              onClick={abrirModalCriar} 
-              className="bg-blue-600 hover:bg-blue-700 text-white font-medium px-4 py-2.5 rounded-lg flex items-center gap-2 shadow-sm transition"
-            >
-              <span className="text-lg font-bold">+</span> Nova turma
-            </button>
-          </div>
+    <div className="classes-page">
+      <PageTitle title="Turmas" subtitle="Organize suas turmas e mantenha os dados de cada semestre em dia."
+        action={<Button icon={Plus} onClick={abrirModalCriar}>Nova turma</Button>} />
 
           {mensagemSucesso && (
-            <div className="alert-success">
-              <span>{mensagemSucesso}</span>
-              <button onClick={() => setMensagemSucesso("")}>&times;</button>
-            </div>
+            <Feedback onDismiss={() => setMensagemSucesso("")}>{mensagemSucesso}</Feedback>
           )}
 
-          <div className="mb-6">
+          <section className="classes-panel" aria-label="Turmas cadastradas">
+          <div className="classes-toolbar">
+            <label className="classes-search">
+            <Search size={19} aria-hidden="true" />
             <input 
               value={termoBusca}
               onChange={(e) => setTermoBusca(e.target.value)}
-              type="text" 
+              type="search"
+              aria-label="Buscar turmas"
               placeholder="Buscar pelo nome ou identificação da turma..." 
-              className="w-full md:w-1/2 p-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:outline-none"
+              className="classes-search-input"
             />
+            </label>
+            {!carregando && !erroCarregamento && <span className="classes-count" role="status">{termoBusca.trim() ? `${turmasFiltradas.length} de ${turmas.length} turmas` : `${turmas.length} ${turmas.length === 1 ? "turma cadastrada" : "turmas cadastradas"}`}</span>}
           </div>
 
-          {turmasFiltradas.length === 0 ? (
-            <div className="text-center py-12 bg-gray-50 rounded-xl border-2 border-dashed border-gray-200">
-              <p className="text-gray-500 text-base font-medium">Nenhuma turma encontrada ou cadastrada.</p>
-              <p className="text-gray-400 text-xs mt-1">Clique em "Nova turma" para registrar sua primeira turma.</p>
+          {carregando ? <div className="classes-empty" role="status">Carregando turmas…</div>
+          : erroCarregamento ? <div className="classes-empty"><Feedback variant="error">{erroCarregamento}</Feedback><Button variant="secondary" onClick={carregarTurmas}>Tentar novamente</Button></div>
+          : turmasFiltradas.length === 0 ? (
+            <div className="classes-empty">
+              <span className="classes-empty-icon"><UsersRound size={30} aria-hidden="true" /></span>
+              <h2>{termoBusca.trim() ? "Nenhuma turma encontrada" : "Suas turmas começam aqui"}</h2>
+              <p>{termoBusca.trim() ? "Tente buscar por outro nome ou código da turma." : "Cadastre sua primeira turma para organizar suas avaliações."}</p>
+              {termoBusca.trim() ? <Button variant="secondary" onClick={() => setTermoBusca("")}>Limpar busca</Button> : <Button icon={Plus} onClick={abrirModalCriar}>Cadastrar primeira turma</Button>}
             </div>
           ) : (
-            <div className="bg-white rounded-xl shadow-sm border border-gray-200 overflow-hidden">
-              <table className="w-full text-left border-collapse">
-                <thead className="bg-gray-50 text-gray-700 uppercase text-xs font-semibold">
+            <div className="classes-table-wrap">
+              <table className="classes-table">
+                <caption>Turmas cadastradas e ações disponíveis</caption>
+                <thead>
                   <tr>
-                    <th className="p-4 border-b">Identificação / Código</th>
-                    <th className="p-4 border-b">Nome da Turma</th>
-                    <th className="p-4 border-b text-right">Ações</th>
+                    <th scope="col">Turma</th>
+                    <th scope="col">Disciplina</th>
+                    <th scope="col">Semestre</th>
+                    <th scope="col">Ações</th>
                   </tr>
                 </thead>
-                <tbody className="divide-y divide-gray-100 text-sm">
+                <tbody>
                   {turmasFiltradas.map(turma => (
-                    <tr key={turma.id} className="hover:bg-blue-50/50 transition">
-                      <td className="p-4 font-mono font-semibold text-blue-600">{turma.identificacao}</td>
-                      <td className="p-4 font-medium text-gray-800">{turma.nome}</td>
-                      <td className="p-4 text-right flex justify-end gap-2">
-                        <button 
-                          onClick={() => abrirModalEditar(turma)} 
-                          className="text-blue-600 hover:text-blue-800 font-medium px-3 py-1.5 rounded-md hover:bg-blue-100/50 transition"
-                        >
-                          Editar
-                        </button>
-                        <button 
-                          onClick={() => excluirTurma(turma.id)} 
-                          className="text-red-600 hover:text-red-800 font-medium px-3 py-1.5 rounded-md hover:bg-red-100/50 transition"
-                        >
-                          Inativar
-                        </button>
+                    <tr key={turma.id}>
+                      <td><div className="classes-name"><span className="classes-row-icon"><UsersRound size={20} aria-hidden="true" /></span><div><strong>{turma.nome}</strong><span className="classes-code">{turma.identificacao}</span></div></div></td>
+                      <td data-label="Disciplina"><span className="classes-discipline"><BookOpen size={15} aria-hidden="true" />{turma.disciplina?.nome || "—"}</span></td>
+                      <td data-label="Semestre"><span className="classes-semester">{turma.semestre || "—"}</span></td>
+                      <td><div className="classes-actions">
+                        <Button variant="secondary" icon={Pencil} aria-label={`Editar turma ${turma.nome}`} onClick={() => abrirModalEditar(turma)}>Editar</Button>
+                        <Button variant="text" className="classes-inactivate" icon={Archive} aria-label={`Inativar turma ${turma.nome}`} onClick={() => excluirTurma(turma.id)}>Inativar</Button>
+                      </div>
                       </td>
                     </tr>
                   ))}
@@ -191,26 +191,32 @@ export default function ClassesPage() {
               </table>
             </div>
           )}
+          </section>
 
           {exibirModal && (
-            <div className="fixed inset-0 bg-black/50 flex items-center justify-center p-4 z-50">
-              <div className="bg-white rounded-xl shadow-xl w-full max-w-md p-6">
-                <h2 className="text-xl font-bold mb-4 text-gray-800">
-                  {modoEdicao ? "Editar Turma" : "Cadastrar Nova Turma"}
-                </h2>
+            <dialog className="classes-dialog" aria-labelledby="class-form-title" aria-describedby="class-form-description"
+              ref={(node) => { if (node && !node.open) node.showModal(); }}
+              onCancel={(event) => { event.preventDefault(); if (!salvando) fecharModal(); }}>
+                <header className="classes-dialog-header">
+                  <span className="classes-dialog-icon"><UsersRound size={24} aria-hidden="true" /></span>
+                  <div><h2 id="class-form-title">{modoEdicao ? "Editar turma" : "Nova turma"}</h2><p id="class-form-description">{modoEdicao ? "Atualize os dados de identificação da turma." : "Preencha os dados para cadastrar sua turma."}</p></div>
+                  <Button variant="text" icon={X} className="classes-dialog-close" aria-label="Fechar formulário" onClick={fecharModal} disabled={salvando} />
+                </header>
 
                 {erroFormulario && (
-                  <div className="alert-error">
-                    {erroFormulario}
-                  </div>
+                  <Feedback variant="error" className="classes-form-error">{erroFormulario}</Feedback>
                 )}
 
-                <form onSubmit={salvarTurma} className="space-y-4">
+                <form onSubmit={salvarTurma}>
+                  <div className="classes-dialog-body">
+                  <p className="classes-required-note">Todos os campos são obrigatórios.</p>
+                  <div className="classes-form-grid">
                   <div>
-                    <label className="block text-xs font-semibold text-gray-700 mb-1">
+                    <label htmlFor="class-name">
                       Nome da Turma <span className="text-red-500">*</span>
                     </label>
                     <input 
+                      id="class-name" autoFocus required maxLength={100}
                       value={form.nome}
                       onChange={(e) => setForm({ ...form, nome: e.target.value })}
                       type="text" 
@@ -220,10 +226,11 @@ export default function ClassesPage() {
                   </div>
 
                   <div>
-                    <label className="block text-xs font-semibold text-gray-700 mb-1">
+                    <label htmlFor="class-subject">
                       Disciplina <span className="text-red-500">*</span>
                     </label>
                     <input
+                      id="class-subject" required maxLength={100}
                       value={form.disciplina}
                       onChange={(e) => setForm({ ...form, disciplina: e.target.value })}
                       type="text"
@@ -233,10 +240,11 @@ export default function ClassesPage() {
                   </div>
 
                   <div>
-                    <label className="block text-xs font-semibold text-gray-700 mb-1">
+                    <label htmlFor="class-semester">
                       Semestre <span className="text-red-500">*</span>
                     </label>
                     <input
+                      id="class-semester" required maxLength={10}
                       value={form.semestre}
                       onChange={(e) => setForm({ ...form, semestre: e.target.value })}
                       type="text"
@@ -246,10 +254,11 @@ export default function ClassesPage() {
                   </div>
 
                   <div>
-                    <label className="block text-xs font-semibold text-gray-700 mb-1">
+                    <label htmlFor="class-code">
                       Identificação / Código <span className="text-red-500">*</span>
                     </label>
                     <input 
+                      id="class-code" required maxLength={50}
                       value={form.identificacao}
                       onChange={(e) => setForm({ ...form, identificacao: e.target.value })}
                       type="text" 
@@ -258,27 +267,15 @@ export default function ClassesPage() {
                     />
                   </div>
 
-                  <div className="flex justify-end gap-2 pt-4 border-t border-gray-100">
-                    <button 
-                      type="button" 
-                      onClick={fecharModal} 
-                      className="px-4 py-2 border border-gray-300 text-gray-700 text-sm rounded-lg hover:bg-gray-50 font-medium transition"
-                    >
-                      Cancelar
-                    </button>
-                    <button 
-                      type="submit" 
-                      className="px-4 py-2 bg-blue-600 text-white text-sm rounded-lg hover:bg-blue-700 font-medium shadow-sm transition"
-                    >
-                      {modoEdicao ? "Atualizar" : "Salvar"}
-                    </button>
                   </div>
+                  </div>
+                  <footer className="classes-dialog-footer">
+                    <Button variant="secondary" onClick={fecharModal} disabled={salvando}>Cancelar</Button>
+                    <Button type="submit" disabled={salvando}>{salvando ? "Salvando…" : modoEdicao ? "Salvar alterações" : "Cadastrar turma"}</Button>
+                  </footer>
                 </form>
-              </div>
-            </div>
+            </dialog>
           )}
-        </>
-      )}
     </div>
   );
 }
