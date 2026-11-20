@@ -1,0 +1,211 @@
+.students-page {
+  max-width: 1100px;
+  margin: 0 auto;
+}
+
+.students-back {
+  margin-bottom: 20px;
+  color: var(--color-text-muted);
+}
+
+.students-page > .feedback {
+  margin-bottom: 20px;
+}
+
+.students-load-error {
+  display: grid;
+  justify-items: start;
+  gap: 14px;
+}
+
+.students-card {
+  margin-bottom: 24px;
+  overflow: hidden;
+  background: var(--color-surface);
+  border: 1px solid var(--color-border);
+  border-radius: 14px;
+}
+
+.students-card-heading {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  padding: 22px 26px;
+  border-bottom: 1px solid var(--color-border);
+}
+
+.students-card-heading h2,
+.students-import h2 {
+  margin: 0;
+  font-size: 18px;
+}
+
+.students-card-heading span {
+  color: var(--color-text-muted);
+  font-size: 13px;
+}
+
+.students-empty {
+  display: grid;
+  justify-items: center;
+  gap: 14px;
+  padding: 50px 24px;
+  text-align: center;
+  color: var(--color-text-muted);
+}
+
+.students-empty p {
+  margin: 0;
+}
+
+.students-table-wrap,
+.students-preview-table-wrap {
+  overflow-x: auto;
+}
+
+.students-table,
+.students-preview table {
+  width: 100%;
+  border-collapse: collapse;
+}
+
+.students-table caption,
+.students-preview caption {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  overflow: hidden;
+  clip-path: inset(50%);
+}
+
+.students-table th,
+.students-table td {
+  padding: 15px 26px;
+  border-bottom: 1px solid var(--color-border);
+  text-align: left;
+}
+
+.students-table th {
+  background: #fafbfc;
+  color: var(--color-text-muted);
+  font-size: 12px;
+}
+
+.students-table tbody tr:last-child td {
+  border-bottom: 0;
+}
+
+.students-table th:last-child {
+  text-align: right;
+}
+
+.students-actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 12px;
+}
+
+.students-remove {
+  color: #a85151;
+}
+
+.students-import {
+  display: grid;
+  justify-items: start;
+  gap: 13px;
+  padding: 26px;
+}
+
+.students-import p {
+  margin: 0;
+  color: var(--color-text-muted);
+  font-size: 13px;
+  line-height: 1.5;
+}
+
+.students-import label {
+  margin-top: 6px;
+  font-size: 13px;
+  font-weight: 600;
+}
+
+.students-import input[type="file"] {
+  max-width: 100%;
+}
+
+.students-preview {
+  display: grid;
+  justify-items: start;
+  gap: 14px;
+  width: 100%;
+  padding-top: 10px;
+}
+
+.students-preview-table-wrap {
+  width: 100%;
+  max-height: 360px;
+  overflow: auto;
+  border: 1px solid var(--color-border);
+  border-radius: 8px;
+}
+
+.students-preview th,
+.students-preview td {
+  padding: 10px;
+  border-bottom: 1px solid var(--color-border);
+  text-align: left;
+  vertical-align: top;
+  font-size: 12px;
+}
+
+.students-preview small {
+  display: block;
+  margin-top: 4px;
+}
+
+.students-import-error {
+  color: #b42318;
+}
+
+@media (max-width: 640px) {
+  .students-card-heading,
+  .students-import {
+    padding: 20px;
+  }
+
+  .students-table thead {
+    position: absolute;
+    width: 1px;
+    height: 1px;
+    overflow: hidden;
+    clip-path: inset(50%);
+  }
+
+  .students-table,
+  .students-table tbody,
+  .students-table tr,
+  .students-table td {
+    display: block;
+  }
+
+  .students-table tr {
+    padding: 18px 20px;
+    border-bottom: 1px solid var(--color-border);
+  }
+
+  .students-table td {
+    padding: 4px 0;
+    border: 0;
+  }
+
+  .students-table td[data-label]::before {
+    content: attr(data-label) ": ";
+    color: var(--color-text-muted);
+  }
+
+  .students-actions {
+    justify-content: flex-start;
+    padding-top: 10px;
+  }
+}

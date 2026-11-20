@@ -65,6 +65,17 @@ test("exibe a lista demonstrativa com os controles ativos", () => {
   assert.equal(screen.queryByRole("form"), null);
 });
 
+test("não exibe a etiqueta Geral nas questões", () => {
+  setup([
+    { ...questions[0], topic: "Geral" },
+    { ...questions[1], topic: "Matemática" },
+  ]);
+
+  assert.equal(screen.queryByText("Geral"), null);
+  assert.ok(screen.getByText("Matemática"));
+  assert.equal(screen.getAllByRole("article").length, 2);
+});
+
 test("visualiza e recolhe o enunciado completo e suas alternativas", async () => {
   const longText = `${"Leia o texto com atenção. ".repeat(12)}Qual é a conclusão?`;
   const user = setup([{ ...questions[0], text: longText }]);
@@ -165,7 +176,7 @@ test("edita uma prévia sem modificar os dados demonstrativos", async () => {
   );
 });
 
-test("conclui o cadastro demonstrativo sem inserir questões", async () => {
+test("exige alternativa correta antes de concluir o cadastro demonstrativo", async () => {
   const user = setup([]);
 
   await user.click(
@@ -177,6 +188,22 @@ test("conclui o cadastro demonstrativo sem inserir questões", async () => {
   );
   await user.click(screen.getByRole("button", { name: "Cadastrar questão" }));
 
+  assert.ok(screen.getByRole("form", { name: "Nova questão" }));
+  assert.equal(screen.getByRole("radio", { name: "Marcar alternativa A como correta" }).validity.valueMissing, true);
+  const error = screen.getByRole("alert");
+  assert.equal(error.textContent, "Selecione uma alternativa como correta.");
+  assert.equal(error.previousElementSibling.className, "question-options-actions");
+  await user.click(screen.getByRole("radio", { name: "Marcar alternativa A como correta" }));
+  assert.equal(screen.queryByRole("alert"), null);
+  await user.click(screen.getByRole("button", { name: "Remover alternativa A" }));
+  await user.click(screen.getByRole("button", { name: "Cadastrar questão" }));
+  assert.ok(screen.getByRole("form", { name: "Nova questão" }));
+  assert.equal(screen.getAllByRole("radio").some((radio) => radio.checked), false);
+  assert.ok(screen.getByRole("alert"));
+
+  await user.click(screen.getByRole("radio", { name: "Marcar alternativa B como correta" }));
+  await user.click(screen.getByRole("button", { name: "Cadastrar questão" }));
+
   assert.ok(
     screen.getByText(
       "Cadastro demonstrativo concluído. Nenhuma questão foi salva.",
@@ -186,6 +213,63 @@ test("conclui o cadastro demonstrativo sem inserir questões", async () => {
     screen.getByRole("heading", { name: "Seu banco de questões está vazio" }),
   );
   assert.equal(screen.queryAllByRole("article").length, 0);
+});
+
+test("cadastra e edita a correta pela API e a exibe após recarregar", async () => {
+  const originalFetch = globalThis.fetch;
+  let stored = null;
+  const writes = [];
+  const format = () => ({
+    id: 901, text: stored.enunciado, topic: "Geral", disciplina: "Geral",
+    alternativas: stored.alternativas,
+    options: stored.alternativas.map((option) => option.texto),
+    answer: stored.alternativas.findIndex((option) => option.ehCorreta),
+  });
+  globalThis.fetch = async (url, options = {}) => {
+    const path = new URL(url).pathname;
+    if (!options.method) return new Response(JSON.stringify(stored ? [format()] : []));
+    writes.push({ path, method: options.method, body: JSON.parse(options.body) });
+    stored = JSON.parse(options.body);
+    stored.alternativas = stored.alternativas.map((option, index) => ({ ...option, id: option.id ?? index + 1 }));
+    return new Response(JSON.stringify(format()), { status: options.method === "POST" ? 201 : 200 });
+  };
+  try {
+    const user = userEvent.setup({ document: dom.window.document });
+    render(React.createElement(QuestionsPage));
+    await screen.findByRole("heading", { name: "Seu banco de questões está vazio" });
+    await user.click(screen.getByRole("button", { name: "Nova questão" }));
+    await user.type(screen.getByRole("textbox", { name: "Enunciado" }), "Questão persistida.");
+    for (const letter of ["A", "B", "C", "D", "E"]) {
+      await user.type(screen.getByRole("textbox", { name: `Alternativa ${letter}` }), `Opção ${letter}`);
+    }
+    await user.click(screen.getByRole("radio", { name: "Marcar alternativa C como correta" }));
+    await user.click(screen.getByRole("button", { name: "Cadastrar questão" }));
+    await screen.findByText("Questão cadastrada com sucesso.");
+    assert.equal(writes[0].method, "POST");
+    assert.deepEqual(writes[0].body.alternativas.map((option) => option.ehCorreta), [false, false, true, false, false]);
+
+    cleanup();
+    render(React.createElement(QuestionsPage));
+    await user.click(await screen.findByRole("button", { name: "Visualizar questão 901" }));
+    assert.match(screen.getByText("Correta").closest("li").textContent, /Opção C/);
+    await user.click(screen.getByRole("button", { name: "Editar questão 901" }));
+    assert.equal(screen.getByRole("radio", { name: "Marcar alternativa C como correta" }).checked, true);
+    await user.click(screen.getByRole("radio", { name: "Marcar alternativa E como correta" }));
+    await user.click(screen.getByRole("button", { name: "Salvar alterações" }));
+    await screen.findByText("Questão atualizada com sucesso.");
+    assert.equal(writes.length, 2);
+    assert.equal(writes[1].method, "PUT");
+    assert.equal(writes[1].path, "/api/questoes/901");
+    assert.deepEqual(writes[1].body.alternativas.map((option) => option.id), [1, 2, 3, 4, 5]);
+
+    cleanup();
+    render(React.createElement(QuestionsPage));
+    await user.click(await screen.findByRole("button", { name: "Visualizar questão 901" }));
+    assert.match(screen.getByText("Correta").closest("li").textContent, /Opção E/);
+    assert.equal(screen.getAllByText("Correta").length, 1);
+  } finally {
+    globalThis.fetch = originalFetch;
+  }
 });
 
 test("busca sem acentos, mostra ausência de resultados e limpa o filtro", async () => {

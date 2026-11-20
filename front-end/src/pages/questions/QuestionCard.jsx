@@ -5,7 +5,8 @@ import { buildStatementPreview, isCompactOptionList, OPTION_LABELS } from "./que
 export default function QuestionCard({ question, expanded = false, onToggle, onEdit }) {
   const detailsId = `question-${question.id}-details`;
   const preview = buildStatementPreview(question.text);
-  const hasTags = Boolean(question.image || question.topic || question.difficulty);
+  const topic = question.topic?.trim().toLocaleLowerCase("pt-BR") === "geral" ? null : question.topic;
+  const hasTags = Boolean(question.image || topic || question.difficulty);
 
   return (
     <article className="question-card" aria-label={`Questão ${question.id}`}>
@@ -17,7 +18,7 @@ export default function QuestionCard({ question, expanded = false, onToggle, onE
                 <ImageIcon size={13} aria-hidden="true" /> Com imagem
               </span>
             )}
-            {question.topic && <span className="tag">{question.topic}</span>}
+            {topic && <span className="tag">{topic}</span>}
             {question.difficulty && <span className="tag">{question.difficulty}</span>}
           </div>
         </header>
@@ -40,7 +41,7 @@ export default function QuestionCard({ question, expanded = false, onToggle, onE
       </div>
 
       <footer className="question-card-footer">
-        <span>{question.options.length} alternativas · 1 correta</span>
+        <span>{question.options.length} alternativas · {Number.isInteger(question.answer) && question.answer >= 0 && question.answer < question.options.length ? "1 correta" : "Sem resposta correta"}</span>
 
         <div className="question-card-actions">
           <button

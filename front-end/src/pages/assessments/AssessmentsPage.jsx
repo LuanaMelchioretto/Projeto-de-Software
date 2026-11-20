@@ -1,7 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Plus, Search, FileText, ChevronRight, Loader2 } from 'lucide-react';
-import PageTitle from '../../components/page-title/PageTitle';
 import { api } from '../../auth/api';
 import './AssessmentsPage.css';
 
@@ -38,13 +37,10 @@ export default function AssessmentsPage() {
 
   return (
     <div className="assessments-container" style={{ padding: '24px', maxWidth: '1000px', margin: '0 auto' }}>
-      <PageTitle title="Avaliações" />
-      {typeof window !== 'undefined' && !window.navigator.userAgent.includes('Node.js') && (
-        <>
       {/* Cabeçalho com Título e Botão Nova Avaliação */}
-      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '24px' }}>
+      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '16px', marginBottom: '24px' }}>
         <div>
-          <h2 style={{ fontSize: '24px', fontWeight: 'bold', margin: 0 }}>Avaliações</h2>
+          <h1 style={{ fontSize: '24px', fontWeight: 'bold', margin: 0 }}>Avaliações</h1>
           <p style={{ color: '#666', margin: '4px 0 0 0' }}>Gerencie suas provas e aplicações</p>
         </div>
         <button
@@ -92,7 +88,7 @@ export default function AssessmentsPage() {
             <div
               key={item.id}
               onClick={() => navigate(`/avaliacoes/${item.id}`)}
-              style={{ display: 'flex', justify: 'space-between', alignItems: 'center', padding: '16px 20px', backgroundColor: '#fff', border: '1px solid #e5e7eb', borderRadius: '8px', cursor: 'pointer' }}
+              style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap: '16px', padding: '16px 20px', backgroundColor: '#fff', border: '1px solid #e5e7eb', borderRadius: '8px', cursor: 'pointer' }}
             >
               <div>
                 <h3 style={{ margin: '0 0 6px 0', fontSize: '16px', fontWeight: '600', color: '#111827' }}>{item.titulo}</h3>
@@ -110,8 +106,6 @@ export default function AssessmentsPage() {
             </div>
           ))}
         </div>
-      )}
-        </>
       )}
     </div>
   );

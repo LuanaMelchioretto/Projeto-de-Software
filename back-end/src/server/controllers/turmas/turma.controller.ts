@@ -52,6 +52,7 @@ export class TurmaController {
         where: { professorId: res.locals.authUser.id, ativo: true },
         include: {
           disciplina: true,
+          _count: { select: { matriculas: true } },
           professor: true
         }
       });
@@ -83,6 +84,12 @@ export class TurmaController {
     try {
       const { id } = req.params;
       const { identificacao, nome, semestre, disciplina } = req.body;
+      const nomeDisciplina = disciplina === undefined ? null : String(disciplina).trim();
+
+      if (disciplina !== undefined && !nomeDisciplina) {
+        return res.status(400).json({ error: 'Informe a disciplina da turma.' });
+      }
+      const codigoDisciplina = nomeDisciplina?.toUpperCase().replace(/[^A-Z0-9]+/g, '-').slice(0, 20) || 'GERAL';
 
       const turmaAtual = await prisma.turma.findFirst({
         where: { id: Number(id), professorId: res.locals.authUser.id }
@@ -98,7 +105,16 @@ export class TurmaController {
           identificacao: identificacao ?? turmaAtual.identificacao,
           nome: nome ?? turmaAtual.nome,
           semestre: semestre ?? turmaAtual.semestre,
-        }
+          ...(nomeDisciplina ? {
+            disciplina: {
+              connectOrCreate: {
+                where: { codigo: codigoDisciplina },
+                create: { nome: nomeDisciplina, codigo: codigoDisciplina },
+              },
+            },
+          } : {}),
+        },
+        include: { disciplina: true },
       });
 
       return res.json(turmaAtualizada);

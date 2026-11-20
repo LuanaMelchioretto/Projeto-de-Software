@@ -1,153 +1,236 @@
-import React, { useEffect, useState } from 'react';
-import { useParams, useNavigate } from 'react-router-dom';
-import { ArrowLeft, Download, FileText, QrCode, Check, Printer, AlertCircle } from 'lucide-react';
+import React, { useEffect, useRef, useState } from 'react';
+import { useNavigate, useParams } from 'react-router-dom';
+import { ArrowLeft, Download } from 'lucide-react';
 import PageTitle from '../../components/page-title/PageTitle';
 import { api, downloadApiFile } from '../../auth/api';
+import './GenerateAssessmentPage.css';
 
 export default function GenerateAssessmentPage() {
   const { id } = useParams();
   const navigate = useNavigate();
-
-  const [downloadConcluido, setDownloadConcluido] = useState(false);
-  const [mensagemFeedback, setMensagemFeedback] = useState('');
   const [avaliacao, setAvaliacao] = useState(null);
+  const [turmas, setTurmas] = useState([]);
+  const [turmaId, setTurmaId] = useState('');
+  const [aplicacao, setAplicacao] = useState(null);
+  const [modelo, setModelo] = useState(null);
+  const [versoes, setVersoes] = useState([]);
+  const [versaoId, setVersaoId] = useState('');
+  const [versaoPrevia, setVersaoPrevia] = useState(null);
+  const [carregandoPrevia, setCarregandoPrevia] = useState(false);
+  const [erroPrevia, setErroPrevia] = useState('');
+  const [carregando, setCarregando] = useState(true);
+  const [gerando, setGerando] = useState(false);
   const [erro, setErro] = useState('');
+  const [sucesso, setSucesso] = useState('');
+  const previaRequestRef = useRef(0);
 
   useEffect(() => {
-    api(`/avaliacoes/${id}`)
-      .then(setAvaliacao)
-      .catch((error) => setErro(error.message));
+    let active = true;
+    previaRequestRef.current++;
+    setCarregando(true);
+    setErro('');
+    setAplicacao(null);
+    setVersoes([]);
+    setVersaoPrevia(null);
+    Promise.all([api(`/avaliacoes/${id}`), api('/turmas')])
+      .then(([dadosAvaliacao, dadosTurmas]) => {
+        if (!active) return;
+        setAvaliacao(dadosAvaliacao);
+        setTurmas(dadosTurmas);
+        setTurmaId(String(dadosTurmas.find((turma) => turma._count?.matriculas > 0)?.id ?? dadosTurmas[0]?.id ?? ''));
+      })
+      .catch((error) => { if (active) setErro(error.message); })
+      .finally(() => { if (active) setCarregando(false); });
+    return () => { active = false; };
   }, [id]);
 
-  const handleDownloadDocx = async () => {
-    setErro('');
-    setMensagemFeedback('Gerando e baixando arquivo em formato DOCX...');
+  useEffect(() => {
+    let active = true;
+    setModelo(null);
+    setErroPrevia('');
+    api(`/avaliacoes/${id}/previa`)
+      .then((dados) => { if (active) setModelo(dados); })
+      .catch((error) => { if (active) setErroPrevia(error.message); });
+    return () => { active = false; };
+  }, [id]);
+
+  const turma = turmas.find((item) => String(item.id) === turmaId);
+  const quantidade = turma?._count?.matriculas ?? 0;
+  const numeroVersao = versoes.find((versao) => String(versao.id) === versaoId)?.numero;
+
+  async function carregarVersao(idVersao) {
+    const requestId = ++previaRequestRef.current;
+    setVersaoId(String(idVersao));
+    setVersaoPrevia(null);
+    setCarregandoPrevia(true);
+    setErroPrevia('');
     try {
-      const { blob, filename } = await downloadApiFile(`/avaliacoes/${id}/docx`);
-      const url = URL.createObjectURL(blob);
-      const link = document.createElement('a');
-      link.href = url;
-      link.download = filename;
-      link.click();
-      URL.revokeObjectURL(url);
-      setDownloadConcluido(true);
-      setMensagemFeedback('Download concluído com sucesso!');
+      const dados = await api(`/aplicacoes/versoes/${idVersao}/previa`);
+      if (requestId === previaRequestRef.current) setVersaoPrevia(dados);
     } catch (error) {
-      setDownloadConcluido(false);
-      setMensagemFeedback('');
-      setErro(error.message);
+      if (requestId === previaRequestRef.current) setErroPrevia(error.message);
+    } finally {
+      if (requestId === previaRequestRef.current) setCarregandoPrevia(false);
     }
-  };
+  }
+
+  async function carregarAplicacao(idAplicacao) {
+    const dados = await api(`/aplicacoes/${idAplicacao}/previa`);
+    setVersoes(dados.versoes);
+    if (dados.versoes.length > 0) await carregarVersao(dados.versoes[0].id);
+  }
+
+  async function baixar(aplicacaoId) {
+    const { blob, filename } = await downloadApiFile(`/aplicacoes/${aplicacaoId}/docx`);
+    const url = URL.createObjectURL(blob);
+    const link = document.createElement('a');
+    link.href = url;
+    link.download = filename;
+    link.click();
+    setTimeout(() => URL.revokeObjectURL(url), 0);
+  }
+
+  async function gerar() {
+    if (!turmaId || quantidade === 0 || gerando || aplicacao) return;
+    setGerando(true);
+    setErro('');
+    setSucesso('');
+    try {
+      const novaAplicacao = await api('/aplicacoes', {
+        method: 'POST',
+        body: JSON.stringify({ avaliacaoId: Number(id), turmaId: Number(turmaId) }),
+      });
+      setAplicacao(novaAplicacao);
+      await baixar(novaAplicacao.id);
+      setSucesso(`${novaAplicacao.quantidadeProvas} ${novaAplicacao.quantidadeProvas === 1 ? 'prova gerada' : 'provas geradas'} para a turma ${turma.nome}.`);
+      await carregarAplicacao(novaAplicacao.id);
+    } catch (error) {
+      setErro(error.message);
+    } finally {
+      setGerando(false);
+    }
+  }
+
+  async function baixarNovamente() {
+    if (!aplicacao || gerando) return;
+    setGerando(true);
+    setErro('');
+    try {
+      await baixar(aplicacao.id);
+      setSucesso('Arquivo baixado novamente.');
+    } catch (error) {
+      setErro(error.message);
+    } finally {
+      setGerando(false);
+    }
+  }
 
   return (
-    <div style={{ padding: '24px', maxWidth: '1000px', margin: '0 auto' }}>
-      <PageTitle title="Geração de Prova e Folha de Respostas" />
-
-      {/* Botão Voltar */}
+    <div style={{ padding: '24px', maxWidth: '900px', margin: '0 auto' }}>
+      <PageTitle title="Gerar provas da turma" subtitle="As provas são geradas sem aluno identificado. O vínculo é feito na correção." />
       <button
+        type="button"
         onClick={() => navigate(`/avaliacoes/${id}`)}
         style={{ display: 'flex', alignItems: 'center', gap: '6px', background: 'none', border: 'none', cursor: 'pointer', color: '#4b5563', marginBottom: '16px', fontSize: '14px' }}
       >
-        <ArrowLeft size={16} /> Voltar para Detalhes da Avaliação
+        <ArrowLeft size={16} /> Voltar para a avaliação
       </button>
 
-      {/* Cabeçalho de Impressão e Ações */}
-      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '24px', flexWrap: 'wrap', gap: '12px' }}>
-        <div>
-          <h2 style={{ fontSize: '22px', fontWeight: 'bold', margin: 0 }}>Prévia para Impressão e Download</h2>
-          <p style={{ color: '#6b7280', margin: '4px 0 0 0', fontSize: '14px' }}>
-            Avaliação ID: #{id} — campos de identificação e nota para preenchimento manual.
-          </p>
-        </div>
-        <button
-          onClick={handleDownloadDocx}
-          style={{ display: 'flex', alignItems: 'center', gap: '8px', padding: '10px 18px', border: 'none', borderRadius: '6px', backgroundColor: '#16a34a', color: '#fff', cursor: 'pointer', fontSize: '14px', fontWeight: '600' }}
-        >
-          <Download size={16} /> Baixar Prova (.DOCX)
-        </button>
-      </div>
+      {carregando && <p role="status">Carregando avaliação e turmas...</p>}
+      {erro && <p role="alert" style={{ color: '#b91c1c' }}>{erro}</p>}
+      {sucesso && <p role="status" style={{ color: '#15803d' }}>{sucesso}</p>}
 
-      {/* Alerta / Mensagem de Feedback */}
-      {mensagemFeedback && (
-        <div style={{ backgroundColor: downloadConcluido ? '#dcfce7' : '#e0f2fe', color: downloadConcluido ? '#15803d' : '#0369a1', padding: '12px 16px', borderRadius: '6px', marginBottom: '24px', display: 'flex', alignItems: 'center', gap: '8px' }}>
-          <Check size={18} /> {mensagemFeedback}
+      {!carregando && avaliacao && (
+        <section style={{ background: '#fff', padding: '24px', border: '1px solid #d1d5db', borderRadius: '8px', marginTop: '24px' }}>
+          <h2 style={{ marginTop: 0 }}>{avaliacao.titulo}</h2>
+          <p>Questões: {avaliacao.questoes?.length ?? 0}</p>
+          <p>Embaralhar questões: <strong>{avaliacao.embaralharQuestoes ? 'Sim' : 'Não'}</strong></p>
+          <p>Embaralhar alternativas: <strong>{avaliacao.embaralharAlternativas ? 'Sim' : 'Não'}</strong></p>
+
+          <label htmlFor="turma-geracao" style={{ display: 'block', marginTop: '20px' }}>Turma</label>
+          <select id="turma-geracao" value={turmaId} onChange={(event) => {
+            previaRequestRef.current++;
+            setTurmaId(event.target.value);
+            setAplicacao(null);
+            setVersoes([]);
+            setVersaoPrevia(null);
+            setVersaoId('');
+            setSucesso('');
+            setErro('');
+          }} style={{ display: 'block', width: '100%', maxWidth: '420px', padding: '10px', marginTop: '6px' }}>
+            {turmas.length === 0 && <option value="">Nenhuma turma cadastrada</option>}
+            {turmas.map((item) => <option key={item.id} value={item.id}>{item.nome} ({item._count?.matriculas ?? 0} alunos)</option>)}
+          </select>
+
+          <p role="status">{quantidade} {quantidade === 1 ? 'prova será gerada' : 'provas serão geradas'}.</p>
+          {turma && quantidade === 0 && <p>Cadastre alunos nesta turma antes de gerar as provas.</p>}
+          {!aplicacao && <button type="button" onClick={gerar} disabled={!turma || quantidade === 0 || gerando} className="primary">
+            <Download size={16} /> {gerando ? 'Gerando provas...' : 'Gerar e baixar provas (.DOCX)'}
+          </button>}
+          {aplicacao && <button type="button" onClick={baixarNovamente} disabled={gerando} className="secondary">
+            Baixar arquivo novamente
+          </button>}
+        </section>
+      )}
+
+      {aplicacao && versoes.length > 0 && (
+        <div className="assessment-preview-picker">
+          <label htmlFor="versao-previa">Prévia da prova</label>
+          <select id="versao-previa" value={versaoId} onChange={(event) => carregarVersao(event.target.value)}>
+            {versoes.map((versao) => <option key={versao.id} value={versao.id}>Prova {versao.numero}</option>)}
+          </select>
         </div>
       )}
-      {erro && <div style={{ backgroundColor: '#fee2e2', color: '#b91c1c', padding: '12px 16px', borderRadius: '6px', marginBottom: '24px' }}>{erro}</div>}
-
-      {/* Grade de Prévias: Caderno de Prova + Folha de Respostas */}
-      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(400px, 1fr))', gap: '24px' }}>
-        
-        {/* Prévia do Caderno de Prova */}
-        <div style={{ backgroundColor: '#fff', border: '1px solid #d1d5db', borderRadius: '8px', padding: '24px', boxShadow: '0 1px 3px rgba(0,0,0,0.1)' }}>
-          <div style={{ borderBottom: '2px solid #111827', paddingBottom: '12px', marginBottom: '16px' }}>
-            <span style={{ fontSize: '11px', fontWeight: 'bold', color: '#6b7280', textTransform: 'uppercase' }}>Caderno de Questões</span>
-            <h3 style={{ margin: '4px 0 0 0', fontSize: '16px', fontWeight: 'bold' }}>PROVA+: {avaliacao?.titulo || 'Avaliação'}</h3>
-            <p style={{ margin: '4px 0 0 0', fontSize: '12px', color: '#4b5563' }}>Nome: ________________________________</p>
-            <p style={{ margin: '4px 0 0 0', fontSize: '12px', color: '#4b5563' }}>Data: ____/____/________ &nbsp; Disciplina: __________________</p>
-            <p style={{ margin: '4px 0 0 0', fontSize: '12px', color: '#4b5563' }}>Nota: ____________</p>
-          </div>
-
-          {avaliacao?.questoes?.map((item, index) => (
-            <div key={item.questaoId || index} style={{ marginBottom: '20px', padding: '12px', backgroundColor: '#f9fafb', borderRadius: '6px', pageBreakInside: 'avoid' }}>
-              <p style={{ margin: '0 0 8px 0', fontSize: '13px', fontWeight: '600' }}>{index + 1}. {item.questao?.enunciado}</p>
-              <div style={{ fontSize: '12px', color: '#374151', display: 'flex', flexDirection: 'column', gap: '4px' }}>
-                {item.questao?.alternativas?.map((alternativa, alternativaIndex) => <span key={alternativa.id}>( {String.fromCharCode(65 + alternativaIndex)} ) {alternativa.texto}</span>)}
-              </div>
-            </div>
-          ))}
-
-          {/* Indicador de Página em Branco para Impressão Frente e Verso */}
-          <div style={{ marginTop: '24px', padding: '12px', backgroundColor: '#f3f4f6', border: '1px dashed #9ca3af', borderRadius: '6px', textAlign: 'center', fontSize: '12px', color: '#6b7280' }}>
-            <Printer size={16} style={{ marginBottom: '4px' }} /><br />
-            <strong>[Página em Branco]</strong><br />
-            Página reservada para manter a paginação correta no modo frente e verso.
-          </div>
-        </div>
-
-        {/* Prévia da Folha de Respostas */}
-        <div style={{ backgroundColor: '#fff', border: '1px solid #d1d5db', borderRadius: '8px', padding: '24px', boxShadow: '0 1px 3px rgba(0,0,0,0.1)' }}>
-          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', borderBottom: '2px solid #111827', paddingBottom: '12px', marginBottom: '16px' }}>
-            <div>
-              <span style={{ fontSize: '11px', fontWeight: 'bold', color: '#6b7280', textTransform: 'uppercase' }}>Gabarito do Aluno</span>
-              <h3 style={{ margin: '4px 0 0 0', fontSize: '16px', fontWeight: 'bold' }}>Folha de Respostas</h3>
-            </div>
-            {/* Espaço reservado para QR Code */}
-            <div style={{ border: '1px solid #111827', padding: '6px', borderRadius: '4px', textAlign: 'center', backgroundColor: '#f9fafb' }}>
-              <QrCode size={36} />
-              <span style={{ display: 'block', fontSize: '9px', fontWeight: 'bold', marginTop: '2px' }}>CÓDIGO QR</span>
-            </div>
-          </div>
-
-          <p style={{ fontSize: '12px', color: '#4b5563', marginBottom: '16px' }}>
-            Instruções: Preencha completamente os círculos correspondentes às respostas escolhidas.
-          </p>
-
-          {/* Campos de Marcação de Alternativas */}
-          <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
-            {[1, 2, 3, 4].map((qNum) => (
-              <div key={qNum} style={{ display: 'flex', alignItems: 'center', gap: '16px', padding: '8px 12px', border: '1px solid #e5e7eb', borderRadius: '6px' }}>
-                <span style={{ fontSize: '13px', fontWeight: 'bold', width: '30px' }}>Q{qNum}</span>
-                <div style={{ display: 'flex', gap: '12px' }}>
-                  {['A', 'B', 'C', 'D'].map((alt) => (
-                    <div key={alt} style={{ display: 'flex', alignItems: 'center', gap: '4px' }}>
-                      <div style={{ width: '18px', height: '18px', borderRadius: '50%', border: '1.5px solid #374151', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '10px', fontWeight: 'bold' }}>
-                        {alt}
-                      </div>
-                    </div>
-                  ))}
-                </div>
-              </div>
-            ))}
-          </div>
-
-          <div style={{ marginTop: '24px', display: 'flex', alignItems: 'center', gap: '8px', fontSize: '12px', color: '#d97706', backgroundColor: '#fffbeb', padding: '10px', borderRadius: '6px', border: '1px solid #fef3c7' }}>
-            <AlertCircle size={16} />
-            <span>Verifique a impressão antes da aplicação da prova.</span>
-          </div>
-        </div>
-
-      </div>
+      {carregandoPrevia && <p role="status">Carregando prévia da prova...</p>}
+      {erroPrevia && <p role="alert" className="assessment-preview-error">{erroPrevia}</p>}
+      {(modelo || versaoPrevia) && <PreviewProva dados={versaoPrevia ?? modelo} exata={Boolean(versaoPrevia)} numero={numeroVersao} />}
     </div>
+  );
+}
+
+function PreviewProva({ dados, exata, numero }) {
+  const questoes = exata
+    ? dados.questoes
+    : dados.questoes.map((item, index) => ({
+      numero: index + 1,
+      enunciado: item.questao.enunciado,
+      alternativas: item.questao.alternativas.map((alternativa, alternativaIndex) => ({
+        letra: String.fromCharCode(65 + alternativaIndex), texto: alternativa.texto,
+      })),
+    }));
+  return (
+    <section className="assessment-preview" aria-label="Prévia da prova">
+      <h2>Prévia para impressão</h2>
+      <p>{exata ? `Prova ${numero}, na ordem em que será impressa.` : 'Prévia do formato. A ordem de cada prova será definida na geração.'}</p>
+      <div className="assessment-preview-grid">
+        <article className="assessment-preview-sheet">
+          <span className="assessment-preview-caption">Caderno de questões</span>
+          <h3>PROVA+: {dados.titulo}</h3>
+          <p>Nome: ________________________________</p>
+          <p>Matrícula: ____________________</p>
+          <p>Data: ____/____/________ &nbsp; Disciplina: __________________</p>
+          <p>Nota: ____________</p>
+          {questoes.map((questao) => <div key={questao.numero} className="assessment-preview-question">
+            <strong>{questao.numero}. {questao.enunciado}</strong>
+          </div>)}
+        </article>
+
+        <article className="assessment-preview-sheet">
+          <span className="assessment-preview-caption">Folha de respostas</span>
+          {exata && <img className="assessment-preview-qr" src={dados.qrCodeDataUrl} alt={`QR Code da prova ${numero}`} />}
+          <h3>Folha de respostas</h3>
+          <p>PROVA+: {dados.titulo}</p>
+          <p>Nome: ________________________________</p>
+          <p>Matrícula: ____________________</p>
+          <p>Preencha completamente os círculos correspondentes às respostas escolhidas.</p>
+          <div className="assessment-preview-answers">
+            {questoes.map((questao) => <div key={questao.numero} className="assessment-preview-answer-row">
+              <strong>Q{questao.numero}</strong>
+              <span>{questao.alternativas.map((alternativa) => alternativa.letra).join('   ')}</span>
+            </div>)}
+          </div>
+        </article>
+      </div>
+    </section>
   );
 }

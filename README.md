@@ -105,7 +105,7 @@ Funcionalidades que o sistema deve oferecer ao professor para gerenciar turmas e
 | Código | Prioridade | Requisito proposto                                                                           | Pendência                                                                                                              |
 | ------ | ---------- | -------------------------------------------------------------------------------------------- | ---------------------------------------------------------------------------------------------------------------------- |
 | RF29   | Desejável  | O sistema deve permitir ao professor inserir uma imagem em uma questão.                      | Confirmar a necessidade, os formatos e os limites de tamanho, inclusive na geração do DOCX.                            |
-| RF30   | Desejável  | O sistema deve permitir ao professor importar uma lista de alunos de uma planilha Excel.     | Confirmar a necessidade e definir o modelo da planilha e sua associação à turma.                                       |
+| RF30   | Desejável  | O sistema deve permitir ao professor importar uma lista de alunos de uma planilha Excel.     | Na tela de Turmas, o professor baixa o modelo `.xlsx`, confere a prévia e importa alunos para uma turma. |
 | RF31   | Desejável  | O sistema deve permitir ao professor gerar exemplares de prova com o nome do aluno impresso. | Confirmar a necessidade de personalização dos cadernos, além da identificação usada na correção.                       |
 | RF32   | Desejável  | O sistema deve permitir ao professor consultar um dashboard de resultados.                   | Validar os indicadores da proposta apresentada pela equipe; a exportação em planilha já está prevista nos RF26 e RF27. |
 
