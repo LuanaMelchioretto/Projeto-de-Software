@@ -28,7 +28,6 @@ export default function CorrectionsPage() {
   const [turmas, setTurmas] = useState([]);
   const [turmaId, setTurmaId] = useState("");
   const [alunoId, setAlunoId] = useState("");
-  const [novoAluno, setNovoAluno] = useState({ nome: "", matricula: "" });
   const [carregandoTurmas, setCarregandoTurmas] = useState(false);
   const [erroTurmas, setErroTurmas] = useState("");
   const requestIdRef = useRef(null);
@@ -47,7 +46,7 @@ export default function CorrectionsPage() {
       if (active) setCarregandoTurmas(false);
     });
     return () => { active = false; };
-  }, [etapa, salvarResultado]);
+  }, [etapa, salvarResultado, provaIdentificada?.versaoId]);
 
   useEffect(() => {
     let ativo = true;
@@ -99,7 +98,7 @@ export default function CorrectionsPage() {
       setErroLeitura(`Confira as respostas das questões ${pendentes.map(question => question.numero).join(', ')}. Marque uma alternativa, Branco ou Rasura.`);
       return;
     }
-    if (salvarResultado && (!turmaSelecionada || !alunoId || (alunoId === 'novo' && (!novoAluno.nome.trim() || !novoAluno.matricula.trim())))) {
+    if (salvarResultado && (!turmaSelecionada || !alunoId)) {
       setErroLeitura('Selecione a turma e identifique o aluno para salvar a correção.');
       return;
     }
@@ -107,9 +106,12 @@ export default function CorrectionsPage() {
     try {
       const payload = {
         avaliacaoId: provaIdentificada.avaliacaoId,
+        ...(provaIdentificada.versaoId ? { versaoId: provaIdentificada.versaoId } : {}),
         salvar: salvarResultado,
-        ...(salvarResultado ? { turmaId: Number(turmaId), requestId: requestIdRef.current,
-          ...(alunoId === 'novo' ? { novoAluno } : { alunoId: Number(alunoId) }) } : {}),
+        ...(salvarResultado ? {
+          alunoId: Number(alunoId),
+          ...(provaIdentificada.versaoId ? {} : { turmaId: Number(turmaId), requestId: requestIdRef.current }),
+        } : {}),
         respostas: questoesRespostas.map((q) => ({
           numero: q.numero,
           resposta: q.respostaMarcada,
@@ -147,7 +149,6 @@ export default function CorrectionsPage() {
     setProvaIdentificada(null);
     setTurmaId("");
     setAlunoId("");
-    setNovoAluno({ nome: "", matricula: "" });
     requestIdRef.current = crypto.randomUUID();
     setScanNonce((nonce) => nonce + 1);
   };
@@ -166,12 +167,25 @@ export default function CorrectionsPage() {
       controlesCameraRef.current?.stop();
       setCarregando(true);
       try {
-        const identificacao = await api(`/avaliacoes/qr/${encodeURIComponent(resultado.getText())}`);
+        const codigoLido = resultado.getText();
+        let codigoVersao = null;
+        try {
+          const dados = JSON.parse(codigoLido);
+          if (dados.v === 1 && typeof dados.id === 'string') codigoVersao = dados.id;
+        } catch {}
+        const identificacao = codigoVersao
+          ? await api(`/aplicacoes/qr/${encodeURIComponent(codigoVersao)}`)
+          : await api(`/avaliacoes/qr/${encodeURIComponent(codigoLido)}`);
         if (!ativo) return;
         if (String(identificacao.avaliacaoId) !== avaliacaoSelecionada) {
           throw new Error("O QR Code pertence a outra avaliação. Leia o QR Code correto ou volte e selecione a avaliação correspondente.");
         }
         setProvaIdentificada(identificacao);
+        if (identificacao.versaoId) {
+          setTurmaId(String(identificacao.turmaId));
+          setAlunoId(identificacao.aluno ? String(identificacao.aluno.id) : '');
+          setSalvarResultado(true);
+        }
         setEtapa("resultado");
       } catch (error) {
         if (ativo) setErroLeitura(error.message);
@@ -383,25 +397,34 @@ export default function CorrectionsPage() {
           <section className="correction-student-card">
             <label className="correction-save-option"><input type="checkbox" checked={salvarResultado} disabled={enviando} onChange={(event) => setSalvarResultado(event.target.checked)} />Salvar resultado com aluno e turma</label>
             {!salvarResultado && <p className="corrections-selection-note">Cálculo avulso, sem gravar uma nota no histórico do aluno.</p>}
-            {salvarResultado && <div className="correction-student-fields">
+            {salvarResultado && provaIdentificada.versaoId && <div className="correction-student-fields">
+              <p>Turma identificada pelo QR Code: <strong>{provaIdentificada.turma?.nome ?? 'Turma da prova'}</strong></p>
+              {carregandoTurmas && <p role="status">Carregando alunos da turma...</p>}
+              {erroTurmas && <Feedback variant="error">{erroTurmas}</Feedback>}
+              {!carregandoTurmas && turmaSelecionada && <>
+                <label htmlFor="correction-student">Aluno</label>
+                <select id="correction-student" className="corrections-select" value={alunoId} disabled={enviando} onChange={(event) => setAlunoId(event.target.value)}>
+                  <option value="">Selecione o aluno</option>
+                  {turmaSelecionada.alunos.map(aluno => <option key={aluno.id} value={aluno.id}>{aluno.nome} — {aluno.matricula}</option>)}
+                </select>
+              </>}
+              {!carregandoTurmas && !erroTurmas && !turmaSelecionada && <p role="alert">A turma da prova não está disponível para correção.</p>}
+            </div>}
+            {salvarResultado && !provaIdentificada.versaoId && <div className="correction-student-fields">
               {carregandoTurmas && <p role="status">Carregando turmas e alunos…</p>}
               {erroTurmas && <Feedback variant="error">{erroTurmas}</Feedback>}
               {!carregandoTurmas && !erroTurmas && turmas.length === 0 && <p role="alert">Cadastre uma turma antes de salvar o resultado.</p>}
               <label htmlFor="correction-class">Turma</label>
               <select id="correction-class" className="corrections-select" value={turmaId} disabled={enviando || carregandoTurmas || Boolean(erroTurmas)} onChange={(event) => {
                 setTurmaId(event.target.value);
-                const selected = turmas.find((turma) => String(turma.id) === event.target.value);
-                setAlunoId(selected && !selected.alunos.length ? 'novo' : '');
+                setAlunoId('');
               }}><option value="">Selecione a turma</option>{turmas.map(turma => <option key={turma.id} value={turma.id}>{turma.nome} — {turma.identificacao}</option>)}</select>
               {turmaSelecionada && <>
                 <label htmlFor="correction-student">Aluno</label>
                 <select id="correction-student" className="corrections-select" value={alunoId} disabled={enviando} onChange={(event) => setAlunoId(event.target.value)}>
-                  <option value="">Selecione o aluno</option>{turmaSelecionada.alunos.map(aluno => <option key={aluno.id} value={aluno.id}>{aluno.nome} — {aluno.matricula}</option>)}<option value="novo">Cadastrar aluno nesta turma</option>
+                  <option value="">Selecione o aluno</option>{turmaSelecionada.alunos.map(aluno => <option key={aluno.id} value={aluno.id}>{aluno.nome} — {aluno.matricula}</option>)}
                 </select>
-                {alunoId === 'novo' && <>
-                  <label htmlFor="correction-student-name">Nome do aluno</label><input id="correction-student-name" maxLength={100} value={novoAluno.nome} disabled={enviando} onChange={(event) => setNovoAluno({ ...novoAluno, nome: event.target.value })} />
-                  <label htmlFor="correction-student-registration">Matrícula</label><input id="correction-student-registration" maxLength={50} value={novoAluno.matricula} disabled={enviando} onChange={(event) => setNovoAluno({ ...novoAluno, matricula: event.target.value })} />
-                </>}
+                {turmaSelecionada.alunos.length === 0 && <p role="status">Esta turma ainda não tem alunos. Cadastre-os na tela de Turmas antes de salvar a correção.</p>}
               </>}
             </div>}
           </section>
@@ -413,7 +436,7 @@ export default function CorrectionsPage() {
               type="button" 
               className="btn-primary"
               onClick={handleEnviarParaCorrecao}
-              disabled={enviando || (salvarResultado && carregandoTurmas)}
+               disabled={enviando || (salvarResultado && carregandoTurmas)}
             >
               {enviando ? "Calculando..." : salvarResultado ? "Salvar e Calcular Nota" : "Calcular Nota"}
             </button>

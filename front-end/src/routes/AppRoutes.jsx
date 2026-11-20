@@ -15,6 +15,9 @@ import AssessmentRoute from "../pages/assessments/AssessmentRoute";
 import AssessmentDetailPage from "../pages/assessments/AssessmentDetailPage";
 import GenerateAssessmentPage from "../pages/assessments/GenerateAssessmentPage";
 import ClassesPage from "../pages/classes/ClassesPage";
+import ClassFormPage from "../pages/classes/ClassFormPage";
+import StudentsPage from "../pages/classes/StudentsPage";
+import StudentFormPage from "../pages/classes/StudentFormPage";
 import CorrectionsPage from "../pages/corrections/CorrectionsPage";
 import CorrectionResultPage from "../pages/corrections/CorrectionResultPage";
 import ReportsPage from "../pages/reports/ReportsPage";
@@ -49,7 +52,14 @@ export default function AppRoutes() {
               <Route path="gerar" element={<GenerateAssessmentPage />} />
             </Route>
           </Route>
-          <Route path="turmas" element={<ClassesPage />} />
+          <Route path="turmas">
+            <Route index element={<ClassesPage />} />
+            <Route path="nova" element={<ClassFormPage />} />
+            <Route path=":id/editar" element={<ClassFormPage editing />} />
+            <Route path=":id/alunos" element={<StudentsPage />} />
+            <Route path=":id/alunos/novo" element={<StudentFormPage />} />
+            <Route path=":id/alunos/:alunoId/editar" element={<StudentFormPage editing />} />
+          </Route>
           <Route path="correcoes" element={<CorrectionsPage />} />
           <Route path="correcoes/resultado" element={<CorrectionResultPage />} />
           <Route path="correcoes/resultado/:id" element={<CorrectionResultPage />} />

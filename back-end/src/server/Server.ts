@@ -12,7 +12,11 @@ import { correcoesRoutes } from "./routes/correcoes.routes";
 
 export const app = express();
 
-app.use(cors({ origin: env.FRONTEND_ORIGINS, credentials: true }));
+app.use(cors({
+  origin: env.FRONTEND_ORIGINS,
+  credentials: true,
+  exposedHeaders: ["Content-Disposition"],
+}));
 app.use(express.json());
 app.use((request, response, next) => {
   if (["POST", "PATCH", "PUT", "DELETE"].includes(request.method))

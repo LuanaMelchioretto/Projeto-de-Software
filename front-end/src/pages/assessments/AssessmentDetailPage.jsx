@@ -85,7 +85,7 @@ export default function AssessmentDetailPage() {
             onClick={() => navigate(`/avaliacoes/${id}/gerar`)}
             style={{ display: 'flex', alignItems: 'center', gap: '8px', padding: '10px 16px', border: 'none', borderRadius: '6px', backgroundColor: '#2563eb', color: '#fff', cursor: 'pointer', fontSize: '14px', fontWeight: '600' }}
           >
-            <Play size={16} /> Gerar prova
+            <Play size={16} /> Gerar provas
           </button>
         </div>
       </div>

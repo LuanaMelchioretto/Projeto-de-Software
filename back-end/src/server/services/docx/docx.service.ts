@@ -77,7 +77,22 @@ export class DocxService {
       JSON.stringify({ v: 1, id: versao.qrCodeHash }), { nome: snapshot.alunoNome, matricula: snapshot.alunoMatricula });
   }
 
+  async gerarDocumentosProvas(versoes: any[], titulo: string): Promise<Buffer> {
+    const sections = (await Promise.all(versoes.map((versao, index) => {
+      const snapshot = versao.conteudoSnapshot;
+      return this.secoesCadernoComFolha(snapshot.avaliacaoTitulo, snapshot.questoes,
+        JSON.stringify({ v: 1, id: versao.qrCodeHash }),
+        { nome: snapshot.alunoNome, matricula: snapshot.alunoMatricula }, index === 0);
+    }))).flat();
+    return Packer.toBuffer(documentWith(sections, titulo));
+  }
+
   private async gerarCadernoComFolha(documentTitle: string, questions: Question[], qrCodeValue: string, student?: { nome?: string; matricula?: string }): Promise<Buffer> {
+    const sections = await this.secoesCadernoComFolha(documentTitle, questions, qrCodeValue, student, true);
+    return Packer.toBuffer(documentWith(sections, documentTitle));
+  }
+
+  private async secoesCadernoComFolha(documentTitle: string, questions: Question[], qrCodeValue: string, student: { nome?: string; matricula?: string } | undefined, first: boolean) {
     const questionPages: Paragraph[] = [
       paragraph('CADERNO DE QUESTÕES', { size: 18, color: '646D7B', bold: true }),
       title(`PROVA+: ${documentTitle || 'Avaliação'}`),
@@ -119,10 +134,10 @@ export class DocxService {
         borders: { top: line, bottom: line, left: line, right: line, insideHorizontal: line, insideVertical: line }, rows: answerRows }),
       paragraph('Verifique a impressão antes da aplicação da prova.', { size: 18, color: '646D7B', before: 240 }),
     ];
-    return Packer.toBuffer(documentWith([
-      { properties: { page }, children: answerSheet },
+    return [
+      { properties: { page, ...(first ? {} : { type: SectionType.NEXT_PAGE }) }, children: answerSheet },
       { properties: { page, type: SectionType.NEXT_PAGE }, children: questionPages },
-    ], documentTitle));
+    ];
   }
 
   async gerarGabaritoAvaliacao(avaliacao: any): Promise<Buffer> {

@@ -161,7 +161,7 @@ test('salva com aluno e turma, reabre a correção pelo ID e persiste a liberaç
     const path = new URL(url).pathname;
     if (path === '/api/avaliacoes') return Response.json(assessments);
     if (path.startsWith('/api/avaliacoes/qr/')) return Response.json({ avaliacaoId: 42, titulo: saved.avaliacao, questoes: [{ numero: 1, alternativas: [{ letra: 'E' }] }] });
-    if (path === '/api/correcoes/turmas') return Response.json([{ id: 7, nome: 'Turma teste', identificacao: 'T1', alunos: [] }]);
+    if (path === '/api/correcoes/turmas') return Response.json([{ id: 7, nome: 'Turma teste', identificacao: 'T1', alunos: [{ id: 9, nome: 'Aluno teste', matricula: 'A01' }] }]);
     if (path === '/api/correcoes/processar') { payload = JSON.parse(options.body); return Response.json(saved); }
     if (path === '/api/correcoes/501/liberacao') { saved = { ...saved, liberado: JSON.parse(options.body).liberado }; return Response.json(saved); }
     assert.equal(path, '/api/correcoes/501');
@@ -177,13 +177,13 @@ test('salva com aluno e turma, reabre a correção pelo ID e persiste a liberaç
   await user.click(screen.getByRole('checkbox', { name: 'Salvar resultado com aluno e turma' }));
   await screen.findByRole('option', { name: 'Turma teste — T1' });
   await user.selectOptions(screen.getByLabelText('Turma'), '7');
-  await user.type(screen.getByLabelText('Nome do aluno'), 'Aluno teste');
-  await user.type(screen.getByLabelText('Matrícula'), 'A01');
+  await user.selectOptions(screen.getByLabelText('Aluno'), '9');
   await user.click(screen.getByRole('button', { name: 'Salvar e Calcular Nota' }));
   assert.ok(await screen.findByText('Correção #501 salva'));
   assert.equal(payload.salvar, true);
   assert.equal(payload.turmaId, 7);
-  assert.deepEqual(payload.novoAluno, { nome: 'Aluno teste', matricula: 'A01' });
+  assert.equal(payload.alunoId, 9);
+  assert.equal('novoAluno' in payload, false);
   assert.ok(screen.getByText('10,0'));
   await user.click(screen.getByRole('button', { name: 'Liberar nota para o aluno' }));
   assert.ok(await screen.findByRole('button', { name: 'Ocultar nota do aluno' }));
@@ -191,4 +191,43 @@ test('salva com aluno e turma, reabre a correção pelo ID e persiste a liberaç
   renderPage('/correcoes/resultado/501');
   assert.ok(await screen.findByText('Correção #501 salva'));
   assert.ok(screen.getByRole('button', { name: 'Ocultar nota do aluno' }));
+});
+
+test('lê o QR individual e envia a versão da prova para correção', async () => {
+  let payload;
+  globalThis.fetch = async (url, options = {}) => {
+    const path = new URL(url).pathname;
+    if (path === '/api/avaliacoes') return Response.json(assessments);
+    if (path === '/api/aplicacoes/qr/codigo-prova') return Response.json({
+      avaliacaoId: 42, versaoId: 31, titulo: 'Prova de Engenharia', turmaId: 7,
+      turma: { id: 7, nome: 'Turma teste', identificacao: 'T1' },
+      aluno: null,
+      questoes: [{ numero: 1, alternativas: [{ letra: 'A' }, { letra: 'B' }] }],
+    });
+    if (path === '/api/correcoes/turmas') return Response.json([
+      { id: 7, nome: 'Turma teste', identificacao: 'T1', alunos: [{ id: 9, nome: 'Ana', matricula: 'A01' }] },
+    ]);
+    if (path === '/api/correcoes/processar') {
+      payload = JSON.parse(options.body);
+      return Response.json({ id: 99, salvo: true, avaliacao: 'Prova de Engenharia', aluno: 'Ana', turma: 'Turma teste',
+        nota: 10, acertos: 1, erros: 0, total: 1, questoes: [{ numero: 1, marcada: 'B', correta: 'B', acertou: true }] });
+    }
+    throw new Error(`Requisição inesperada: ${path}`);
+  };
+
+  renderPage();
+  const user = userEvent.setup();
+  await screen.findByRole('option', { name: 'Prova de Engenharia' });
+  await user.selectOptions(screen.getByRole('combobox'), '42');
+  await user.click(screen.getByRole('button', { name: /Iniciar Leitura/ }));
+  await act(async () => { await scan({ getText: () => JSON.stringify({ v: 1, id: 'codigo-prova' }) }); });
+  assert.ok(screen.getByText('Turma teste'));
+  assert.equal(screen.queryByLabelText('Turma'), null);
+  await screen.findByRole('option', { name: 'Ana — A01' });
+  await user.selectOptions(screen.getByLabelText('Aluno'), '9');
+  await user.click(screen.getByRole('button', { name: 'B', exact: true }));
+  await user.click(screen.getByRole('button', { name: 'Salvar e Calcular Nota' }));
+  assert.equal(payload.versaoId, 31);
+  assert.equal('turmaId' in payload, false);
+  assert.equal(payload.alunoId, 9);
 });

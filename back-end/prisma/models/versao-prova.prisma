@@ -2,8 +2,8 @@ model VersaoProva {
   id               Int            @id @default(autoincrement())
   aplicacaoId      Int            @map("aplicacao_id")
   aplicacao        AplicacaoProva @relation(fields: [aplicacaoId], references: [id], onDelete: Cascade)
-  alunoId          Int            @map("aluno_id")
-  aluno            Aluno          @relation(fields: [alunoId], references: [id], onDelete: Restrict)
+  alunoId          Int?           @map("aluno_id")
+  aluno            Aluno?         @relation(fields: [alunoId], references: [id], onDelete: Restrict)
   qrCodeHash       String         @unique @map("qr_code_hash") @db.VarChar(255)
   
   conteudoSnapshot Json           @map("conteudo_snapshot")

@@ -73,3 +73,27 @@ test('prova individual inclui folha e preserva a ordem do snapshot', async () =>
   assert.ok(text.indexOf('GABARITO DO ALUNO') < text.indexOf('CADERNO DE QUESTÕES'));
   assert.ok(text.indexOf('1. Enunciado 6') < text.indexOf('2. Enunciado 5'));
 });
+
+test('lote contém uma prova por aluno, QR individual e nenhum gabarito do professor', async () => {
+  const versions = ['Ana', 'Bruno'].map((nome, index) => ({
+    qrCodeHash: `codigo-${index}`,
+    conteudoSnapshot: {
+      avaliacaoTitulo: assessment.titulo,
+      alunoNome: nome,
+      alunoMatricula: `A0${index + 1}`,
+      questoes: index === 0
+        ? assessment.questoes.map(item => item.questao)
+        : assessment.questoes.map(item => item.questao).reverse(),
+    },
+  }));
+  const buffer = await docx.gerarDocumentosProvas(versions, assessment.titulo);
+  const zip = await JSZip.loadAsync(buffer);
+  const text = textOf(await zip.file('word/document.xml').async('string'));
+
+  assert.equal(text.match(/Folha de respostas/g)?.length, 2);
+  assert.equal(text.match(/CADERNO DE QUESTÕES/g)?.length, 2);
+  assert.equal(zip.file(/word\/media\//).length, 2);
+  assert.ok(text.indexOf('Ana') < text.indexOf('Bruno'));
+  assert.ok(text.indexOf('1. Enunciado 1') < text.indexOf('1. Enunciado 6'));
+  assert.doesNotMatch(text, /Gabarito do professor|USO EXCLUSIVO DO PROFESSOR|Resposta correta/);
+});

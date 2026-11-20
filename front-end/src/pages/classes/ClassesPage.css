@@ -19,7 +19,7 @@
 .classes-name { display: flex; align-items: center; gap: 13px; }
 .classes-name > div { min-width: 0; }
 .classes-name strong { display: block; color: #252b36; font-size: 14px; font-weight: 600; overflow-wrap: anywhere; }
-.classes-row-icon, .classes-empty-icon, .classes-dialog-icon { display: inline-flex; align-items: center; justify-content: center; flex-shrink: 0; background: #eff0ff; color: var(--color-primary); border-radius: 10px; }
+.classes-row-icon, .classes-empty-icon { display: inline-flex; align-items: center; justify-content: center; flex-shrink: 0; background: #eff0ff; color: var(--color-primary); border-radius: 10px; }
 .classes-row-icon { width: 42px; height: 42px; }
 .classes-code { display: block; margin-top: 5px; color: #838b99; font-size: 11px; letter-spacing: .2px; overflow-wrap: anywhere; }
 .classes-discipline { display: inline-flex; align-items: center; gap: 7px; line-height: 1.5; }
@@ -34,26 +34,12 @@
 .classes-empty h2 { margin: 0 0 8px; font-size: 18px; font-weight: 600; }
 .classes-empty p { margin: 0 0 22px; color: var(--color-text-muted); font-size: 14px; line-height: 1.6; }
 .classes-empty .feedback { margin-bottom: 20px; }
-.classes-dialog { width: min(560px, calc(100vw - 32px)); max-height: calc(100dvh - 48px); padding: 0; margin: auto; border: 1px solid var(--color-border); border-radius: 16px; background: var(--color-surface); color: var(--color-text); box-shadow: 0 24px 80px #18213c30; overflow-y: auto; }
-.classes-dialog::backdrop { background: #17223970; }
-.classes-dialog-header { display: flex; align-items: center; gap: 14px; padding: 26px; border-bottom: 1px solid var(--color-border); }
-.classes-dialog-icon { width: 48px; height: 48px; border-radius: 13px; }
-.classes-dialog-header h2 { margin: 0 0 6px; font-size: 21px; letter-spacing: -.4px; }
-.classes-dialog-header p { margin: 0; font-size: 12px; color: var(--color-text-muted); line-height: 1.5; }
-.classes-dialog-close { align-self: flex-start; margin-left: auto; color: #7c8492; }
-.classes-dialog-body { padding: 24px 26px 28px; }
-.classes-form-error { margin: 16px 26px 0; }
-.classes-required-note { margin: 0 0 20px; font-size: 12px; color: #858d9a; }
-.classes-form-grid { display: grid; grid-template-columns: 1fr 1.4fr; gap: 20px 16px; }
-.classes-form-grid > div { min-width: 0; }
-.classes-form-grid > div:nth-child(-n+2) { grid-column: 1 / -1; }
-.classes-form-grid label { display: block; margin-bottom: 8px; color: #424b59; font-size: 13px; font-weight: 600; }
-.classes-form-grid label span { color: var(--color-primary); }
-.classes-form-grid input { width: 100%; padding: 12px 13px; border: 1px solid #dce0e8; border-radius: 8px; color: var(--color-text); background: var(--color-surface); font-size: 13px; }
-.classes-form-grid input::placeholder { color: #9aa1ae; }
-.classes-form-grid input:focus-visible { border-color: var(--color-primary); outline: 3px solid #5664f518; outline-offset: 0; }
-.classes-dialog-footer { display: flex; justify-content: flex-end; gap: 10px; padding: 18px 26px; background: #fafbfc; border-top: 1px solid var(--color-border); }
-@media (max-width: 1100px) and (min-width: 641px) { .classes-table th, .classes-table td { padding-left: 16px; padding-right: 16px; } .classes-row-icon { display: none; } }
+
+@media (max-width: 1100px) and (min-width: 641px) {
+  .classes-table th, .classes-table td { padding-left: 16px; padding-right: 16px; }
+  .classes-row-icon { display: none; }
+}
+
 @media (max-width: 640px) {
   .classes-toolbar { align-items: stretch; flex-direction: column; gap: 12px; padding: 16px; }
   .classes-search { max-width: none; }
@@ -65,11 +51,5 @@
   .classes-table td:first-child, .classes-table td:last-child { grid-column: 1 / -1; }
   .classes-table td[data-label]::before { content: attr(data-label); display: block; margin-bottom: 7px; font-size: 11px; color: #8a919b; }
   .classes-actions { justify-content: flex-start; padding-top: 12px; border-top: 1px solid #f0f1f5; }
-  .classes-dialog-header { padding: 20px; gap: 12px; }
-  .classes-dialog-body { padding: 20px; }
-  .classes-form-error { margin-left: 20px; margin-right: 20px; }
-  .classes-dialog-footer { padding: 16px 20px; }
-  .classes-dialog-footer .button { flex: 1; }
-  .classes-form-grid { grid-template-columns: 1fr; }
   .classes-empty { padding: 44px 20px; }
 }

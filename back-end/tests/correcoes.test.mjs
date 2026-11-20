@@ -1,6 +1,9 @@
 import assert from 'node:assert/strict';
 import { test } from 'node:test';
 import { calcularNota } from '../dist/server/services/correcoes/correcao.service.js';
+import shuffleModule from '../dist/server/services/aplicacoes/embaralhamento.js';
+
+const { montarQuestoesProva } = shuffleModule;
 
 const questions = ['B', 'E', 'A'].map((correct, index) => ({ id: index + 1, enunciado: `Questão ${index + 1}`,
   alternativas: ['A', 'B', 'C', 'D', 'E'].map((letter, option) => ({ id: index * 10 + option + 1, texto: letter, ehCorreta: letter === correct })),
@@ -39,4 +42,16 @@ test('recusa gabarito ausente ou com duas corretas', () => {
     invalid[0].alternativas.forEach((alternative, index) => { alternative.ehCorreta = flags[index]; });
     assert.throws(() => calcularNota(invalid, answers), /não possui uma única resposta correta/);
   }
+});
+
+test('corrige pela ordem de questões e alternativas da versão do aluno', () => {
+  const versao = montarQuestoesProva(questions.map(questao => ({ questao })),
+    { embaralharQuestoes: true, embaralharAlternativas: true }, () => 0);
+  const respostas = versao.map((questao, index) => ({
+    numero: index + 1,
+    resposta: String.fromCharCode(65 + questao.alternativas.findIndex(alternativa => alternativa.ehCorreta)),
+    status: 'OK',
+  }));
+  assert.equal(calcularNota(versao, respostas).nota, 10);
+  assert.notEqual(calcularNota(questions, respostas).nota, 10);
 });

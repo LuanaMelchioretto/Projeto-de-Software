@@ -65,6 +65,17 @@ test("exibe a lista demonstrativa com os controles ativos", () => {
   assert.equal(screen.queryByRole("form"), null);
 });
 
+test("não exibe a etiqueta Geral nas questões", () => {
+  setup([
+    { ...questions[0], topic: "Geral" },
+    { ...questions[1], topic: "Matemática" },
+  ]);
+
+  assert.equal(screen.queryByText("Geral"), null);
+  assert.ok(screen.getByText("Matemática"));
+  assert.equal(screen.getAllByRole("article").length, 2);
+});
+
 test("visualiza e recolhe o enunciado completo e suas alternativas", async () => {
   const longText = `${"Leia o texto com atenção. ".repeat(12)}Qual é a conclusão?`;
   const user = setup([{ ...questions[0], text: longText }]);

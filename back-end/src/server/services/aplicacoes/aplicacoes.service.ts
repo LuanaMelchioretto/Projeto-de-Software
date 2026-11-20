@@ -1,16 +1,6 @@
 import { prisma } from '../../lib/prisma';
 import { randomUUID } from 'crypto';
-
-function embaralharArray<T>(array: T[]): T[] {
-  const copia = [...array];
-  for (let i = copia.length - 1; i > 0; i--) {
-    const j = Math.floor(Math.random() * (i + 1));
-    const temp = copia[i];
-    copia[i] = copia[j] as T;
-    copia[j] = temp as T;
-  }
-  return copia;
-}
+import { montarQuestoesProva } from './embaralhamento';
 
 export class AplicacaoService {
 
@@ -21,7 +11,7 @@ export class AplicacaoService {
         questoes: {
           include: {
             questao: {
-              include: { alternativas: true }
+              include: { alternativas: { orderBy: { id: 'asc' } } }
             }
           },
           orderBy: { ordem: 'asc' }
@@ -39,70 +29,50 @@ export class AplicacaoService {
 
     const turma = await prisma.turma.findUnique({
       where: { id: turmaId },
-      include: { matriculas: { include: { aluno: true } } }
+      include: { _count: { select: { matriculas: true } } }
     });
 
-    if (!turma || turma.professorId !== professorId) {
+    if (!turma || turma.professorId !== professorId || !turma.ativo) {
       throw new Error('Turma não encontrada ou sem permissão.');
     }
 
-    if (turma.matriculas.length === 0) {
+    if (turma._count.matriculas === 0) {
       throw new Error('A turma selecionada não possui alunos.');
     }
 
-    const novaAplicacao = await prisma.aplicacaoProva.create({
-      data: { avaliacaoId, turmaId }
-    });
-
-    const versoesPromises = turma.matriculas.map(async ({ aluno }) => {
-      let questoesProcessadas = avaliacao.questoes.map((item: any) => {
-        const q = item.questao;
-        let alternativas = [...q.alternativas];
-
-        if (avaliacao.embaralharAlternativas) {
-          alternativas = embaralharArray(alternativas);
-        }
-
-        return {
-          questaoId: q.id,
-          enunciado: q.enunciado,
-          alternativas: alternativas.map((alt: any) => ({
-            id: alt.id,
-            texto: alt.texto,
-            ehCorreta: alt.ehCorreta
-          }))
-        };
-      });
-
-      if (avaliacao.embaralharQuestoes) {
-        questoesProcessadas = embaralharArray(questoesProcessadas);
-      }
+    const versoes = Array.from({ length: turma._count.matriculas }, () => {
+      const questoesProcessadas = montarQuestoesProva(avaliacao.questoes, avaliacao);
 
       const qrCodeHash = randomUUID();
 
       const snapshot = {
         avaliacaoTitulo: avaliacao.titulo,
-        alunoNome: aluno.nome,
-        alunoMatricula: aluno.matricula,
         questoes: questoesProcessadas
       };
 
-      return prisma.versaoProva.create({
-        data: {
-          aplicacaoId: novaAplicacao.id,
-          alunoId: aluno.id,
-          qrCodeHash,
-          conteudoSnapshot: snapshot
-        }
-      });
+      return { qrCodeHash, conteudoSnapshot: snapshot };
     });
 
-    await Promise.all(versoesPromises);
-
-    return await prisma.aplicacaoProva.findUnique({
-      where: { id: novaAplicacao.id },
-      include: { versoes: { include: { aluno: true } } }
+    return prisma.aplicacaoProva.create({
+      data: { avaliacaoId, turmaId, versoes: { create: versoes } },
+      include: { versoes: { orderBy: { id: 'asc' } } }
     });
+  }
+
+  async buscarAplicacao(professorId: number, aplicacaoId: number) {
+    const aplicacao = await prisma.aplicacaoProva.findUnique({
+      where: { id: aplicacaoId },
+      include: {
+        avaliacao: { select: { titulo: true, professorId: true } },
+        turma: { select: { professorId: true } },
+        versoes: { include: { aluno: true }, orderBy: { id: 'asc' } },
+      },
+    });
+    if (!aplicacao || aplicacao.avaliacao.professorId !== professorId || aplicacao.turma.professorId !== professorId) {
+      throw new Error('Aplicação não encontrada.');
+    }
+    if (aplicacao.versoes.length === 0) throw new Error('Esta aplicação não possui provas geradas.');
+    return aplicacao;
   }
 
   async buscarVersaoPorId(versaoId: number, professorId: number) {
@@ -110,11 +80,11 @@ export class AplicacaoService {
       where: { id: versaoId },
       include: {
         aluno: true,
-        aplicacao: { include: { avaliacao: true } }
+        aplicacao: { include: { avaliacao: true, turma: true } }
       }
     });
 
-    if (!versao || versao.aplicacao.avaliacao.professorId !== professorId) {
+    if (!versao || versao.aplicacao.avaliacao.professorId !== professorId || versao.aplicacao.turma.professorId !== professorId) {
       throw new Error('Versão de prova não encontrada.');
     }
 
@@ -126,28 +96,48 @@ export class AplicacaoService {
       where: { qrCodeHash },
       select: {
         id: true,
-        aluno: { select: { nome: true, matricula: true } },
+        conteudoSnapshot: true,
+        aluno: { select: { id: true, nome: true, matricula: true } },
         aplicacao: {
           select: {
             id: true,
             turmaId: true,
+              turma: { select: { id: true, nome: true, identificacao: true, professorId: true } },
             avaliacao: { select: { id: true, titulo: true, professorId: true } },
           },
         },
       },
     });
 
-    if (!versao || versao.aplicacao.avaliacao.professorId !== professorId) {
+    if (!versao || versao.aplicacao.avaliacao.professorId !== professorId || versao.aplicacao.turma.professorId !== professorId) {
       throw new Error('QR Code inválido ou prova não encontrada.');
     }
+
+    const snapshot = versao.conteudoSnapshot as {
+      questoes: { enunciado: string; alternativas: { texto: string }[] }[];
+    };
 
     return {
       aplicacaoId: versao.aplicacao.id,
       versaoId: versao.id,
       avaliacaoId: versao.aplicacao.avaliacao.id,
       avaliacaoTitulo: versao.aplicacao.avaliacao.titulo,
+      titulo: versao.aplicacao.avaliacao.titulo,
       turmaId: versao.aplicacao.turmaId,
+      turma: {
+        id: versao.aplicacao.turma.id,
+        nome: versao.aplicacao.turma.nome,
+        identificacao: versao.aplicacao.turma.identificacao,
+      },
       aluno: versao.aluno,
+      questoes: snapshot.questoes.map((questao, index) => ({
+        numero: index + 1,
+        enunciado: questao.enunciado,
+        alternativas: questao.alternativas.map((alternativa, alternativaIndex) => ({
+          letra: String.fromCharCode(65 + alternativaIndex),
+          texto: alternativa.texto,
+        })),
+      })),
     };
   }
 }

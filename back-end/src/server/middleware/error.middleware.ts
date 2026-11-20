@@ -21,6 +21,11 @@ export const errorMiddleware: ErrorRequestHandler = (
   response,
   _next,
 ) => {
+  if (error instanceof Error && 'type' in error && error.type === 'entity.too.large') {
+    response.status(413).json({ erro: 'A planilha deve ter no máximo 2 MB.' });
+    return;
+  }
+
   if (error instanceof ZodError) {
     response.status(400).json({
       erro: "Dados inválidos",
