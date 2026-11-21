@@ -21,13 +21,16 @@ export default function ClassFormPage({ editing = false }) {
 
   useEffect(() => {
     if (!editing) return;
+
     let ativo = true;
+
     setCarregando(true);
     setErroCarregamento("");
 
     api(`/turmas/${id}`)
       .then((turma) => {
         if (!ativo) return;
+
         setForm({
           nome: turma.nome ?? "",
           identificacao: turma.identificacao ?? "",
@@ -42,7 +45,9 @@ export default function ClassFormPage({ editing = false }) {
         if (ativo) setCarregando(false);
       });
 
-    return () => { ativo = false; };
+    return () => {
+      ativo = false;
+    };
   }, [editing, id, tentativa]);
 
   const alterar = (campo) => (event) => {
@@ -52,6 +57,7 @@ export default function ClassFormPage({ editing = false }) {
 
   const salvar = async (event) => {
     event.preventDefault();
+
     if (salvando || carregando || erroCarregamento) return;
 
     const dados = Object.fromEntries(
@@ -60,6 +66,7 @@ export default function ClassFormPage({ editing = false }) {
 
     if (Object.values(dados).some((valor) => !valor)) {
       setErroFormulario("Preencha todos os campos obrigatórios.");
+
       return;
     }
 
@@ -73,7 +80,11 @@ export default function ClassFormPage({ editing = false }) {
       });
       navigate("/turmas", {
         replace: true,
-        state: { mensagemTurma: editing ? "Dados da turma atualizados com sucesso!" : "Nova turma cadastrada com sucesso!" },
+        state: {
+          mensagemTurma: editing
+            ? "Dados da turma atualizados com sucesso!"
+            : "Nova turma cadastrada com sucesso!",
+        },
       });
     } catch (error) {
       setErroFormulario(error.message || "Não foi possível salvar a turma.");
@@ -84,27 +95,40 @@ export default function ClassFormPage({ editing = false }) {
 
   return (
     <div className="class-form-page">
-      <Button variant="text" icon={ArrowLeft} className="class-form-back" onClick={() => navigate("/turmas")}>
+      <Button
+        variant="text"
+        icon={ArrowLeft}
+        className="class-form-back"
+        onClick={() => navigate("/turmas")}
+      >
         Voltar para turmas
       </Button>
 
       <PageTitle
         title={editing ? "Editar turma" : "Nova turma"}
-        subtitle={editing ? "Atualize os dados de identificação da turma." : "Preencha os dados para cadastrar uma turma."}
+        subtitle={
+          editing
+            ? "Atualize os dados de identificação da turma."
+            : "Preencha os dados para cadastrar uma turma."
+        }
       />
 
       {carregando && <p role="status">Carregando turma…</p>}
       {erroCarregamento && (
         <div className="class-form-load-error">
           <Feedback variant="error">{erroCarregamento}</Feedback>
-          <Button variant="secondary" onClick={() => setTentativa((valor) => valor + 1)}>Tentar novamente</Button>
+          <Button variant="secondary" onClick={() => setTentativa((valor) => valor + 1)}>
+            Tentar novamente
+          </Button>
         </div>
       )}
 
       {!carregando && !erroCarregamento && (
         <form className="class-form-card" onSubmit={salvar}>
           <div className="class-form-heading">
-            <span className="class-form-icon"><UsersRound size={22} aria-hidden="true" /></span>
+            <span className="class-form-icon">
+              <UsersRound size={22} aria-hidden="true" />
+            </span>
             <div>
               <h2>Dados da turma</h2>
               <p>Todos os campos são obrigatórios.</p>
@@ -116,31 +140,62 @@ export default function ClassFormPage({ editing = false }) {
           <div className="class-form-fields">
             <div className="class-form-field class-form-field-wide">
               <label htmlFor="class-name">Nome da turma</label>
-              <input id="class-name" type="text" autoFocus required maxLength={100} value={form.nome}
-                onChange={alterar("nome")} placeholder="Ex: Engenharia de Software 2026/1" />
+              <input
+                id="class-name"
+                type="text"
+                autoFocus
+                required
+                maxLength={100}
+                value={form.nome}
+                onChange={alterar("nome")}
+                placeholder="Ex: Engenharia de Software 2026/1"
+              />
             </div>
 
             <div className="class-form-field class-form-field-wide">
               <label htmlFor="class-subject">Disciplina</label>
-              <input id="class-subject" type="text" required maxLength={100} value={form.disciplina}
-                onChange={alterar("disciplina")} placeholder="Ex: Engenharia de Software" />
+              <input
+                id="class-subject"
+                type="text"
+                required
+                maxLength={100}
+                value={form.disciplina}
+                onChange={alterar("disciplina")}
+                placeholder="Ex: Engenharia de Software"
+              />
             </div>
 
             <div className="class-form-field">
               <label htmlFor="class-semester">Semestre</label>
-              <input id="class-semester" type="text" required maxLength={10} value={form.semestre}
-                onChange={alterar("semestre")} placeholder="Ex: 2026.2" />
+              <input
+                id="class-semester"
+                type="text"
+                required
+                maxLength={10}
+                value={form.semestre}
+                onChange={alterar("semestre")}
+                placeholder="Ex: 2026.2"
+              />
             </div>
 
             <div className="class-form-field">
               <label htmlFor="class-code">Identificação / Código</label>
-              <input id="class-code" type="text" required maxLength={50} value={form.identificacao}
-                onChange={alterar("identificacao")} placeholder="Ex: ESOFT-2026-1M" />
+              <input
+                id="class-code"
+                type="text"
+                required
+                maxLength={50}
+                value={form.identificacao}
+                onChange={alterar("identificacao")}
+                placeholder="Ex: ESOFT-2026-1M"
+              />
             </div>
           </div>
 
           <div className="class-form-actions">
-            <Button variant="secondary" onClick={() => navigate("/turmas")} disabled={salvando}>Cancelar</Button>
+            <Button variant="secondary" onClick={() => navigate("/turmas")} disabled={salvando}>
+              Cancelar
+            </Button>
             <Button type="submit" disabled={salvando}>
               {salvando ? "Salvando…" : editing ? "Salvar alterações" : "Cadastrar turma"}
             </Button>

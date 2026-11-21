@@ -12,7 +12,6 @@ avaliacoesRoutes.get('/:id/previa', avaliacoesController.previa);
 avaliacoesRoutes.get('/qr/:codigo', avaliacoesController.resolverQrCode);
 avaliacoesRoutes.get('/:id', avaliacoesController.buscarPorId);
 
-
 avaliacoesRoutes.put('/:id', avaliacoesController.atualizar);
 avaliacoesRoutes.delete('/:id', avaliacoesController.excluir);
 

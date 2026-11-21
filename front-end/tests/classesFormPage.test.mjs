@@ -25,32 +25,57 @@ before(async () => {
   ({ MemoryRouter, Routes, Route } = await server.ssrLoadModule('react-router-dom'));
 });
 
-afterEach(() => { cleanup?.(); globalThis.fetch = originalFetch; });
-after(async () => { await server?.close(); restoreDom?.(); });
+afterEach(() => {
+  cleanup?.();
+  globalThis.fetch = originalFetch;
+});
+after(async () => {
+  await server?.close();
+  restoreDom?.();
+});
 
 function renderRoutes() {
-  render(React.createElement(MemoryRouter, { initialEntries: ['/turmas'] },
-    React.createElement(Routes, null,
-      React.createElement(Route, { path: '/turmas', element: React.createElement(ClassesPage) }),
-      React.createElement(Route, { path: '/turmas/nova', element: React.createElement(ClassFormPage) }),
-      React.createElement(Route, { path: '/turmas/:id/editar', element: React.createElement(ClassFormPage, { editing: true }) }),
-    )));
+  render(
+    React.createElement(
+      MemoryRouter,
+      { initialEntries: ['/turmas'] },
+      React.createElement(
+        Routes,
+        null,
+        React.createElement(Route, { path: '/turmas', element: React.createElement(ClassesPage) }),
+        React.createElement(Route, {
+          path: '/turmas/nova',
+          element: React.createElement(ClassFormPage),
+        }),
+        React.createElement(Route, {
+          path: '/turmas/:id/editar',
+          element: React.createElement(ClassFormPage, { editing: true }),
+        }),
+      ),
+    ),
+  );
 }
 
 test('abre uma página para cadastrar turma e volta à listagem após salvar', async () => {
   let payload;
+
   globalThis.fetch = async (url, options = {}) => {
     const path = new URL(url).pathname;
+
     if (path === '/api/turmas' && !options.method) return Response.json([turma]);
+
     if (path === '/api/turmas' && options.method === 'POST') {
       payload = JSON.parse(options.body);
+
       return Response.json({ id: 8, ...payload }, { status: 201 });
     }
+
     throw new Error(`Requisição inesperada: ${options.method} ${path}`);
   };
 
   renderRoutes();
   const user = userEvent.setup();
+
   await screen.findByText('Engenharia 2');
   await user.click(screen.getByRole('button', { name: 'Nova turma' }));
   assert.ok(screen.getByRole('heading', { name: 'Nova turma' }));
@@ -64,25 +89,35 @@ test('abre uma página para cadastrar turma e volta à listagem após salvar', a
 
   assert.ok(await screen.findByText('Nova turma cadastrada com sucesso!'));
   assert.deepEqual(payload, {
-    nome: 'Turma nova', disciplina: 'Matemática', semestre: '2026.2', identificacao: 'MAT-2',
+    nome: 'Turma nova',
+    disciplina: 'Matemática',
+    semestre: '2026.2',
+    identificacao: 'MAT-2',
   });
 });
 
 test('carrega a turma na página de edição e envia os campos alterados', async () => {
   let payload;
+
   globalThis.fetch = async (url, options = {}) => {
     const path = new URL(url).pathname;
+
     if (path === '/api/turmas' && !options.method) return Response.json([turma]);
+
     if (path === '/api/turmas/7' && !options.method) return Response.json(turma);
+
     if (path === '/api/turmas/7' && options.method === 'PUT') {
       payload = JSON.parse(options.body);
+
       return Response.json({ ...turma, ...payload });
     }
+
     throw new Error(`Requisição inesperada: ${options.method} ${path}`);
   };
 
   renderRoutes();
   const user = userEvent.setup();
+
   await screen.findByText('Engenharia 2');
   await user.click(screen.getByRole('button', { name: 'Editar turma Engenharia 2' }));
   assert.ok(await screen.findByDisplayValue('Engenharia de Software'));

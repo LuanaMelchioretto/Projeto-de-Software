@@ -12,10 +12,14 @@ export class TurmaController {
       }
 
       const nomeDisciplina = String(disciplina).trim();
-      const codigoDisciplina = nomeDisciplina.toUpperCase().replace(/[^A-Z0-9]+/g, '-').slice(0, 20) || 'GERAL';
+      const codigoDisciplina =
+        nomeDisciplina
+          .toUpperCase()
+          .replace(/[^A-Z0-9]+/g, '-')
+          .slice(0, 20) || 'GERAL';
 
       const turmaExistente = await prisma.turma.findFirst({
-        where: { professorId, identificacao, ativo: true }
+        where: { professorId, identificacao, ativo: true },
       });
 
       if (turmaExistente) {
@@ -41,8 +45,11 @@ export class TurmaController {
 
       return res.status(201).json(novaTurma);
     } catch (error) {
-      console.error("Erro ao criar turma:", error);
-      return res.status(500).json({ error: error instanceof Error ? error.message : 'Erro ao criar turma.' });
+      console.error('Erro ao criar turma:', error);
+
+      return res
+        .status(500)
+        .json({ error: error instanceof Error ? error.message : 'Erro ao criar turma.' });
     }
   }
 
@@ -53,9 +60,10 @@ export class TurmaController {
         include: {
           disciplina: true,
           _count: { select: { matriculas: true } },
-          professor: true
-        }
+          professor: true,
+        },
       });
+
       return res.json(turmas);
     } catch (error) {
       return res.status(500).json({ error: 'Erro ao listar turmas.' });
@@ -67,7 +75,7 @@ export class TurmaController {
       const { id } = req.params;
       const turma = await prisma.turma.findFirst({
         where: { id: Number(id) },
-        include: { disciplina: true, professor: true }
+        include: { disciplina: true, professor: true },
       });
 
       if (!turma || !turma.ativo || turma.professorId !== res.locals.authUser.id) {
@@ -89,10 +97,15 @@ export class TurmaController {
       if (disciplina !== undefined && !nomeDisciplina) {
         return res.status(400).json({ error: 'Informe a disciplina da turma.' });
       }
-      const codigoDisciplina = nomeDisciplina?.toUpperCase().replace(/[^A-Z0-9]+/g, '-').slice(0, 20) || 'GERAL';
+
+      const codigoDisciplina =
+        nomeDisciplina
+          ?.toUpperCase()
+          .replace(/[^A-Z0-9]+/g, '-')
+          .slice(0, 20) || 'GERAL';
 
       const turmaAtual = await prisma.turma.findFirst({
-        where: { id: Number(id), professorId: res.locals.authUser.id }
+        where: { id: Number(id), professorId: res.locals.authUser.id },
       });
 
       if (!turmaAtual || !turmaAtual.ativo) {
@@ -105,14 +118,16 @@ export class TurmaController {
           identificacao: identificacao ?? turmaAtual.identificacao,
           nome: nome ?? turmaAtual.nome,
           semestre: semestre ?? turmaAtual.semestre,
-          ...(nomeDisciplina ? {
-            disciplina: {
-              connectOrCreate: {
-                where: { codigo: codigoDisciplina },
-                create: { nome: nomeDisciplina, codigo: codigoDisciplina },
-              },
-            },
-          } : {}),
+          ...(nomeDisciplina
+            ? {
+                disciplina: {
+                  connectOrCreate: {
+                    where: { codigo: codigoDisciplina },
+                    create: { nome: nomeDisciplina, codigo: codigoDisciplina },
+                  },
+                },
+              }
+            : {}),
         },
         include: { disciplina: true },
       });
@@ -128,7 +143,7 @@ export class TurmaController {
       const { id } = req.params;
 
       const turma = await prisma.turma.findFirst({
-        where: { id: Number(id), professorId: res.locals.authUser.id }
+        where: { id: Number(id), professorId: res.locals.authUser.id },
       });
 
       if (!turma || !turma.ativo) {
@@ -137,7 +152,7 @@ export class TurmaController {
 
       await prisma.turma.update({
         where: { id: Number(id) },
-        data: { ativo: false }
+        data: { ativo: false },
       });
 
       return res.status(204).send();

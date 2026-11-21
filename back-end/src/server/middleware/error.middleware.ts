@@ -1,81 +1,85 @@
-import type { ErrorRequestHandler } from "express";
-import { ZodError } from "zod";
-import { Prisma } from "../generated/prisma/client";
-import { ApiError } from "../lib";
+import type { ErrorRequestHandler } from 'express';
+import { ZodError } from 'zod';
+import { Prisma } from '../generated/prisma/client';
+import { ApiError } from '../lib';
 
 const uniqueConstraintMessages: Record<string, string> = {
-  professores_email_key: "E-mail já cadastrado",
-  professores_matricula_key: "Matrícula já cadastrada",
+  professores_email_key: 'E-mail já cadastrado',
+  professores_matricula_key: 'Matrícula já cadastrada',
 };
 
 const uniqueConstraintIndex = (error: Prisma.PrismaClientKnownRequestError) => {
   const adapterError = error.meta?.driverAdapterError as
     | { cause?: { constraint?: { index?: string } } }
     | undefined;
+
   return adapterError?.cause?.constraint?.index;
 };
 
-export const errorMiddleware: ErrorRequestHandler = (
-  error: unknown,
-  _request,
-  response,
-  _next,
-) => {
+export const errorMiddleware: ErrorRequestHandler = (error: unknown, _request, response, _next) => {
   if (error instanceof Error && 'type' in error && error.type === 'entity.too.large') {
     response.status(413).json({ erro: 'A planilha deve ter no máximo 2 MB.' });
+
     return;
   }
 
   if (error instanceof ZodError) {
     response.status(400).json({
-      erro: "Dados inválidos",
+      erro: 'Dados inválidos',
       detalhes: error.issues.map(({ path, message }) => ({
-        campo: path.join("."),
+        campo: path.join('.'),
         mensagem: message,
       })),
     });
+
     return;
   }
+
   if (error instanceof ApiError) {
     response.status(error.status).json({ erro: error.message });
+
     return;
   }
+
   if (
     error instanceof Prisma.PrismaClientInitializationError ||
     (error instanceof Prisma.PrismaClientKnownRequestError &&
-      ["P1001", "P1002", "P1017"].includes(error.code))
+      ['P1001', 'P1002', 'P1017'].includes(error.code))
   ) {
-    response.status(503).json({ erro: "Serviço temporariamente indisponível" });
+    response.status(503).json({ erro: 'Serviço temporariamente indisponível' });
+
     return;
   }
+
   if (error instanceof Prisma.PrismaClientKnownRequestError) {
-    if (error.code === "P2002") {
+    if (error.code === 'P2002') {
       response.status(409).json({
         erro:
-          uniqueConstraintMessages[uniqueConstraintIndex(error) ?? ""] ??
-          "Registro já cadastrado",
+          uniqueConstraintMessages[uniqueConstraintIndex(error) ?? ''] ?? 'Registro já cadastrado',
       });
+
       return;
     }
-    if (error.code === "P2025") {
-      response.status(404).json({ erro: "Registro não encontrado" });
+
+    if (error.code === 'P2025') {
+      response.status(404).json({ erro: 'Registro não encontrado' });
+
       return;
     }
-    if (error.code === "P2003") {
-      response
-        .status(409)
-        .json({ erro: "Registro possui vínculos que impedem a operação" });
+
+    if (error.code === 'P2003') {
+      response.status(409).json({ erro: 'Registro possui vínculos que impedem a operação' });
+
       return;
     }
   }
-  if (
-    error instanceof SyntaxError &&
-    "status" in error &&
-    error.status === 400
-  ) {
-    response.status(400).json({ erro: "JSON inválido" });
+
+  if (error instanceof SyntaxError && 'status' in error && error.status === 400) {
+    response.status(400).json({ erro: 'JSON inválido' });
+
     return;
   }
+
   console.error(error);
-  response.status(500).json({ erro: "Erro interno" });
+  response.status(500).json({ erro: 'Erro interno' });
 };

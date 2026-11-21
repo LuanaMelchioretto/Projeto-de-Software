@@ -3,7 +3,6 @@ import { randomUUID } from 'crypto';
 import { montarQuestoesProva } from './embaralhamento';
 
 export class AplicacaoService {
-
   async criarAplicacao(professorId: number, avaliacaoId: number, turmaId: number) {
     const avaliacao = await prisma.avaliacao.findUnique({
       where: { id: avaliacaoId },
@@ -11,12 +10,12 @@ export class AplicacaoService {
         questoes: {
           include: {
             questao: {
-              include: { alternativas: { orderBy: { id: 'asc' } } }
-            }
+              include: { alternativas: { orderBy: { id: 'asc' } } },
+            },
           },
-          orderBy: { ordem: 'asc' }
-        }
-      }
+          orderBy: { ordem: 'asc' },
+        },
+      },
     });
 
     if (!avaliacao || avaliacao.professorId !== professorId) {
@@ -29,7 +28,7 @@ export class AplicacaoService {
 
     const turma = await prisma.turma.findUnique({
       where: { id: turmaId },
-      include: { _count: { select: { matriculas: true } } }
+      include: { _count: { select: { matriculas: true } } },
     });
 
     if (!turma || turma.professorId !== professorId || !turma.ativo) {
@@ -47,7 +46,7 @@ export class AplicacaoService {
 
       const snapshot = {
         avaliacaoTitulo: avaliacao.titulo,
-        questoes: questoesProcessadas
+        questoes: questoesProcessadas,
       };
 
       return { qrCodeHash, conteudoSnapshot: snapshot };
@@ -55,7 +54,7 @@ export class AplicacaoService {
 
     return prisma.aplicacaoProva.create({
       data: { avaliacaoId, turmaId, versoes: { create: versoes } },
-      include: { versoes: { orderBy: { id: 'asc' } } }
+      include: { versoes: { orderBy: { id: 'asc' } } },
     });
   }
 
@@ -68,10 +67,18 @@ export class AplicacaoService {
         versoes: { include: { aluno: true }, orderBy: { id: 'asc' } },
       },
     });
-    if (!aplicacao || aplicacao.avaliacao.professorId !== professorId || aplicacao.turma.professorId !== professorId) {
+
+    if (
+      !aplicacao ||
+      aplicacao.avaliacao.professorId !== professorId ||
+      aplicacao.turma.professorId !== professorId
+    ) {
       throw new Error('Aplicação não encontrada.');
     }
-    if (aplicacao.versoes.length === 0) throw new Error('Esta aplicação não possui provas geradas.');
+
+    if (aplicacao.versoes.length === 0)
+      throw new Error('Esta aplicação não possui provas geradas.');
+
     return aplicacao;
   }
 
@@ -80,11 +87,15 @@ export class AplicacaoService {
       where: { id: versaoId },
       include: {
         aluno: true,
-        aplicacao: { include: { avaliacao: true, turma: true } }
-      }
+        aplicacao: { include: { avaliacao: true, turma: true } },
+      },
     });
 
-    if (!versao || versao.aplicacao.avaliacao.professorId !== professorId || versao.aplicacao.turma.professorId !== professorId) {
+    if (
+      !versao ||
+      versao.aplicacao.avaliacao.professorId !== professorId ||
+      versao.aplicacao.turma.professorId !== professorId
+    ) {
       throw new Error('Versão de prova não encontrada.');
     }
 
@@ -102,14 +113,18 @@ export class AplicacaoService {
           select: {
             id: true,
             turmaId: true,
-              turma: { select: { id: true, nome: true, identificacao: true, professorId: true } },
+            turma: { select: { id: true, nome: true, identificacao: true, professorId: true } },
             avaliacao: { select: { id: true, titulo: true, professorId: true } },
           },
         },
       },
     });
 
-    if (!versao || versao.aplicacao.avaliacao.professorId !== professorId || versao.aplicacao.turma.professorId !== professorId) {
+    if (
+      !versao ||
+      versao.aplicacao.avaliacao.professorId !== professorId ||
+      versao.aplicacao.turma.professorId !== professorId
+    ) {
       throw new Error('QR Code inválido ou prova não encontrada.');
     }
 

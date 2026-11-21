@@ -32,14 +32,11 @@ export async function buscarAluno(turmaId: number, alunoId: number, professorId:
   });
 
   if (!aluno) throw new ApiError(404, 'Aluno não encontrado nesta turma.');
+
   return aluno;
 }
 
-export async function cadastrarAluno(
-  turmaId: number,
-  professorId: number,
-  dados: DadosAluno,
-) {
+export async function cadastrarAluno(turmaId: number, professorId: number, dados: DadosAluno) {
   return prisma.$transaction(async (tx) => {
     const turma = await tx.turma.findFirst({
       where: { id: turmaId, professorId, ativo: true },
@@ -65,9 +62,11 @@ export async function cadastrarAluno(
     });
 
     if (existing) {
-      const mesmoNome = existing.nome.toLocaleLowerCase('pt-BR') === dados.nome.toLocaleLowerCase('pt-BR');
+      const mesmoNome =
+        existing.nome.toLocaleLowerCase('pt-BR') === dados.nome.toLocaleLowerCase('pt-BR');
       const semVinculos = existing._count.matriculas === 0 && existing._count.versoesProva === 0;
-      const pertenceAoProfessor = existing.matriculas.length > 0 || existing.versoesProva.length > 0;
+      const pertenceAoProfessor =
+        existing.matriculas.length > 0 || existing.versoesProva.length > 0;
 
       if (!pertenceAoProfessor && !(semVinculos && mesmoNome)) {
         throw new ApiError(409, 'Matrícula indisponível para cadastro. Confira os dados do aluno.');
@@ -78,11 +77,15 @@ export async function cadastrarAluno(
       }
 
       if (!mesmoNome) {
-        throw new ApiError(409, 'A matrícula informada já está cadastrada com outro nome. Confira os dados do aluno.');
+        throw new ApiError(
+          409,
+          'A matrícula informada já está cadastrada com outro nome. Confira os dados do aluno.',
+        );
       }
     }
 
-    const aluno = existing ?? await tx.aluno.create({ data: dados });
+    const aluno = existing ?? (await tx.aluno.create({ data: dados }));
+
     await tx.matricula.create({ data: { turmaId, alunoId: aluno.id } });
 
     return { id: aluno.id, nome: aluno.nome, matricula: aluno.matricula };
@@ -119,7 +122,10 @@ export async function atualizarAluno(
     ]);
 
     if (matriculaExterna || provaExterna) {
-      throw new ApiError(409, 'Este aluno possui registros de outro professor e não pode ser editado aqui.');
+      throw new ApiError(
+        409,
+        'Este aluno possui registros de outro professor e não pode ser editado aqui.',
+      );
     }
 
     if (matriculaDuplicada && matriculaDuplicada.id !== alunoId) {
@@ -144,6 +150,7 @@ export async function removerMatricula(turmaId: number, alunoId: number, profess
     if (!turma) throw new ApiError(404, 'Turma não encontrada.');
 
     const removed = await tx.matricula.deleteMany({ where: { turmaId, alunoId } });
+
     if (!removed.count) throw new ApiError(404, 'Aluno não encontrado nesta turma.');
   });
 }

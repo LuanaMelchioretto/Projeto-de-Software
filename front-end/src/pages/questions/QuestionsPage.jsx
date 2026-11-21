@@ -26,9 +26,7 @@ export default function QuestionsPage(props) {
   const shouldRestoreFocus = useRef(false);
   const feedbackCount = useRef(0);
 
-  const visibleQuestions = usesApi
-    ? (Array.isArray(apiQuestions) ? apiQuestions : [])
-    : questions;
+  const visibleQuestions = usesApi ? (Array.isArray(apiQuestions) ? apiQuestions : []) : questions;
   const filteredQuestions = filterQuestions(visibleQuestions, search);
   const pageCount = Math.ceil(filteredQuestions.length / PAGE_SIZE);
   const questionsInPage = filteredQuestions.slice((page - 1) * PAGE_SIZE, page * PAGE_SIZE);
@@ -71,10 +69,13 @@ export default function QuestionsPage(props) {
 
   async function finishPreview(draft) {
     if (!usesApi) {
-      showFeedback(editor.question
-        ? "Edição demonstrativa concluída. Nenhuma alteração foi salva."
-        : "Cadastro demonstrativo concluído. Nenhuma questão foi salva.");
+      showFeedback(
+        editor.question
+          ? "Edição demonstrativa concluída. Nenhuma alteração foi salva."
+          : "Cadastro demonstrativo concluído. Nenhuma questão foi salva.",
+      );
       setEditor(null);
+
       return;
     }
 
@@ -91,14 +92,21 @@ export default function QuestionsPage(props) {
           })),
         }),
       });
-      setApiQuestions((current) => editor.question
-        ? (current ?? []).map((question) => question.id === saved.id ? saved : question)
-        : [saved, ...(current ?? [])]);
-      showFeedback(editor.question ? "Questão atualizada com sucesso." : "Questão cadastrada com sucesso.");
+
+      setApiQuestions((current) =>
+        editor.question
+          ? (current ?? []).map((question) => (question.id === saved.id ? saved : question))
+          : [saved, ...(current ?? [])],
+      );
+      showFeedback(
+        editor.question ? "Questão atualizada com sucesso." : "Questão cadastrada com sucesso.",
+      );
     } catch (error) {
       showFeedback(error.message);
+
       return;
     }
+
     setEditor(null);
   }
 
@@ -115,11 +123,13 @@ export default function QuestionsPage(props) {
       <PageTitle
         title="Banco de questões"
         subtitle="Organize as questões que farão parte das suas provas."
-        action={!editor && (
-          <button type="button" className="primary" ref={newButton} onClick={() => openEditor()}>
-            <Plus size={18} aria-hidden="true" /> Nova questão
-          </button>
-        )}
+        action={
+          !editor && (
+            <button type="button" className="primary" ref={newButton} onClick={() => openEditor()}>
+              <Plus size={18} aria-hidden="true" /> Nova questão
+            </button>
+          )
+        }
       />
 
       {feedback && (
@@ -198,7 +208,9 @@ function SearchToolbar({ search, total, found, onSearchChange }) {
         </button>
       )}
 
-      <p className="questions-count" role="status">{summary}</p>
+      <p className="questions-count" role="status">
+        {summary}
+      </p>
     </div>
   );
 }

@@ -12,6 +12,7 @@ const turma = { id: 7, nome: 'Turma teste', identificacao: 'T1' };
 
 before(async () => {
   const dom = await installDom();
+
   ({ render, screen, userEvent, cleanup, restore: restoreDom } = dom);
   dom.dom.window.confirm = () => true;
   server = await createComponentServer();
@@ -20,16 +21,38 @@ before(async () => {
   ({ MemoryRouter, Routes, Route } = await server.ssrLoadModule('react-router-dom'));
 });
 
-afterEach(() => { cleanup?.(); globalThis.fetch = originalFetch; });
-after(async () => { await server?.close(); restoreDom?.(); });
+afterEach(() => {
+  cleanup?.();
+  globalThis.fetch = originalFetch;
+});
+after(async () => {
+  await server?.close();
+  restoreDom?.();
+});
 
 function renderRoutes() {
-  render(React.createElement(MemoryRouter, { initialEntries: ['/turmas/7/alunos'] },
-    React.createElement(Routes, null,
-      React.createElement(Route, { path: '/turmas/:id/alunos', element: React.createElement(StudentsPage) }),
-      React.createElement(Route, { path: '/turmas/:id/alunos/novo', element: React.createElement(StudentFormPage) }),
-      React.createElement(Route, { path: '/turmas/:id/alunos/:alunoId/editar', element: React.createElement(StudentFormPage, { editing: true }) }),
-    )));
+  render(
+    React.createElement(
+      MemoryRouter,
+      { initialEntries: ['/turmas/7/alunos'] },
+      React.createElement(
+        Routes,
+        null,
+        React.createElement(Route, {
+          path: '/turmas/:id/alunos',
+          element: React.createElement(StudentsPage),
+        }),
+        React.createElement(Route, {
+          path: '/turmas/:id/alunos/novo',
+          element: React.createElement(StudentFormPage),
+        }),
+        React.createElement(Route, {
+          path: '/turmas/:id/alunos/:alunoId/editar',
+          element: React.createElement(StudentFormPage, { editing: true }),
+        }),
+      ),
+    ),
+  );
 }
 
 test('cadastra e edita o aluno em páginas próprias, depois remove a matrícula', async () => {
@@ -39,28 +62,39 @@ test('cadastra e edita o aluno em páginas próprias, depois remove a matrícula
   globalThis.fetch = async (url, options = {}) => {
     const path = new URL(url).pathname;
     const method = options.method || 'GET';
+
     requests.push({ path, method, body: options.body });
 
     if (path === '/api/turmas/7') return Response.json(turma);
+
     if (path === '/api/turmas/7/alunos' && method === 'GET') return Response.json(alunos);
+
     if (path === '/api/turmas/7/alunos' && method === 'POST') {
       alunos = [{ id: 9, ...JSON.parse(options.body) }];
+
       return Response.json(alunos[0], { status: 201 });
     }
+
     if (path === '/api/turmas/7/alunos/9' && method === 'GET') return Response.json(alunos[0]);
+
     if (path === '/api/turmas/7/alunos/9' && method === 'PUT') {
       alunos = [{ id: 9, ...JSON.parse(options.body) }];
+
       return Response.json(alunos[0]);
     }
+
     if (path === '/api/turmas/7/alunos/9' && method === 'DELETE') {
       alunos = [];
+
       return new Response(null, { status: 204 });
     }
+
     throw new Error(`Requisição inesperada: ${method} ${path}`);
   };
 
   renderRoutes();
   const user = userEvent.setup();
+
   assert.ok(await screen.findByText('Nenhum aluno cadastrado nesta turma.'));
   await user.click(screen.getByRole('button', { name: 'Novo aluno' }));
   assert.ok(screen.getByRole('heading', { name: 'Novo aluno' }));
@@ -70,8 +104,10 @@ test('cadastra e edita o aluno em páginas próprias, depois remove a matrícula
   await user.type(screen.getByLabelText('Matrícula'), 'A01');
   await user.click(screen.getByRole('button', { name: 'Cadastrar aluno' }));
   assert.ok(await screen.findByText('Aluno cadastrado nesta turma!'));
-  assert.deepEqual(JSON.parse(requests.find((item) => item.method === 'POST').body),
-    { nome: 'Ana', matricula: 'A01' });
+  assert.deepEqual(JSON.parse(requests.find((item) => item.method === 'POST').body), {
+    nome: 'Ana',
+    matricula: 'A01',
+  });
 
   await user.click(screen.getByRole('button', { name: 'Editar aluno Ana' }));
   assert.ok(await screen.findByDisplayValue('A01'));
@@ -80,12 +116,16 @@ test('cadastra e edita o aluno em páginas próprias, depois remove a matrícula
   await user.type(screen.getByLabelText('Nome do aluno'), 'Ana Silva');
   await user.click(screen.getByRole('button', { name: 'Salvar alterações' }));
   assert.ok(await screen.findByText('Ana Silva'));
-  assert.deepEqual(JSON.parse(requests.find((item) => item.method === 'PUT').body),
-    { nome: 'Ana Silva', matricula: 'A01' });
+  assert.deepEqual(JSON.parse(requests.find((item) => item.method === 'PUT').body), {
+    nome: 'Ana Silva',
+    matricula: 'A01',
+  });
 
   await user.click(screen.getByRole('button', { name: 'Remover Ana Silva da turma' }));
   assert.ok(await screen.findByText('Nenhum aluno cadastrado nesta turma.'));
-  assert.ok(requests.some((item) => item.method === 'DELETE' && item.path === '/api/turmas/7/alunos/9'));
+  assert.ok(
+    requests.some((item) => item.method === 'DELETE' && item.path === '/api/turmas/7/alunos/9'),
+  );
 });
 
 test('mostra a prévia da planilha antes de confirmar a importação', async () => {
@@ -94,24 +134,51 @@ test('mostra a prévia da planilha antes de confirmar a importação', async () 
 
   globalThis.fetch = async (url, options = {}) => {
     const path = new URL(url).pathname;
-    requests.push({ path, method: options.method || 'GET', body: options.body, headers: options.headers });
+
+    requests.push({
+      path,
+      method: options.method || 'GET',
+      body: options.body,
+      headers: options.headers,
+    });
+
     if (path === '/api/turmas/7') return Response.json(turma);
+
     if (path === '/api/turmas/7/alunos' && !options.method) return Response.json(alunos);
-    if (path.endsWith('/importacao/validar')) return Response.json({ novos: 1, vinculados: 0, erros: 0,
-      linhas: [{ linha: 2, nome: 'Ana', matricula: '001', situacao: 'novo', mensagem: 'Cadastrar novo aluno.' }] });
+
+    if (path.endsWith('/importacao/validar'))
+      return Response.json({
+        novos: 1,
+        vinculados: 0,
+        erros: 0,
+        linhas: [
+          {
+            linha: 2,
+            nome: 'Ana',
+            matricula: '001',
+            situacao: 'novo',
+            mensagem: 'Cadastrar novo aluno.',
+          },
+        ],
+      });
+
     if (path.endsWith('/importacao/confirmar')) {
       alunos = [{ id: 9, nome: 'Ana', matricula: '001' }];
+
       return Response.json({ importados: 1, novos: 1, vinculados: 0 }, { status: 201 });
     }
+
     throw new Error(`Requisição inesperada: ${options.method} ${path}`);
   };
 
   renderRoutes();
   const user = userEvent.setup();
+
   await screen.findByText('Nenhum aluno cadastrado nesta turma.');
   const file = new File(['planilha de teste'], 'alunos.xlsx', {
     type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
   });
+
   await user.upload(screen.getByLabelText('Arquivo .xlsx'), file);
   await user.click(screen.getByRole('button', { name: 'Conferir planilha' }));
   assert.ok(await screen.findByText('1 novo(s), 0 vínculo(s) e 0 erro(s).'));
@@ -131,14 +198,20 @@ test('baixa o modelo com extensão .xlsx', async () => {
 
   URL.createObjectURL = () => 'blob:teste';
   URL.revokeObjectURL = () => {};
-  window.HTMLAnchorElement.prototype.click = function click() { nomeBaixado = this.download; };
+  window.HTMLAnchorElement.prototype.click = function click() {
+    nomeBaixado = this.download;
+  };
 
   try {
     globalThis.fetch = async (url) => {
       const path = new URL(url).pathname;
+
       if (path === '/api/turmas/7') return Response.json(turma);
+
       if (path === '/api/turmas/7/alunos') return Response.json([]);
+
       if (path.endsWith('/importacao/modelo')) return new Response(new Blob(['xlsx']));
+
       throw new Error(`Requisição inesperada: ${path}`);
     };
 

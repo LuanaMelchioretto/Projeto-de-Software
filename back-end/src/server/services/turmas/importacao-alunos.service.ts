@@ -26,15 +26,24 @@ type PlanoImportacao = {
 };
 
 const normalizar = (valor: string) =>
-  valor.trim().normalize('NFD').replace(/[\u0300-\u036f]/g, '').toLocaleLowerCase('pt-BR');
+  valor
+    .trim()
+    .normalize('NFD')
+    .replace(/[\u0300-\u036f]/g, '')
+    .toLocaleLowerCase('pt-BR');
 
 function textoCelula(celula: ExcelJS.Cell): string | null {
   const valor = celula.value;
 
   if (typeof valor === 'string') return valor.trim();
+
   if (typeof valor === 'number' && Number.isSafeInteger(valor)) return String(valor);
+
   if (valor && typeof valor === 'object' && 'richText' in valor) {
-    return valor.richText.map((trecho) => trecho.text).join('').trim();
+    return valor.richText
+      .map((trecho) => trecho.text)
+      .join('')
+      .trim();
   }
 
   return null;
@@ -44,6 +53,7 @@ export async function lerPlanilhaAlunos(arquivo: Buffer): Promise<DadosLinha[]> 
   if (!arquivo.length) throw new ApiError(400, 'Selecione um arquivo .xlsx.');
 
   const workbook = new ExcelJS.Workbook();
+
   try {
     await workbook.xlsx.load(arquivo as unknown as Parameters<typeof workbook.xlsx.load>[0]);
   } catch {
@@ -51,9 +61,12 @@ export async function lerPlanilhaAlunos(arquivo: Buffer): Promise<DadosLinha[]> 
   }
 
   const planilha = workbook.worksheets[0];
+
   if (!planilha) throw new ApiError(400, 'A planilha não contém uma aba de alunos.');
 
-  const colunas = [1, 2].map((indice) => normalizar(textoCelula(planilha.getCell(1, indice)) ?? ''));
+  const colunas = [1, 2].map((indice) =>
+    normalizar(textoCelula(planilha.getCell(1, indice)) ?? ''),
+  );
   const nomeColuna = colunas.indexOf('nome') + 1;
   const matriculaColuna = colunas.indexOf('matricula') + 1;
 
@@ -67,6 +80,7 @@ export async function lerPlanilhaAlunos(arquivo: Buffer): Promise<DadosLinha[]> 
     const linha = planilha.getRow(numero);
     const celulaNome = linha.getCell(nomeColuna);
     const celulaMatricula = linha.getCell(matriculaColuna);
+
     if (celulaNome.value == null && celulaMatricula.value == null) continue;
 
     if (linhas.length >= 1000) {
@@ -81,14 +95,22 @@ export async function lerPlanilhaAlunos(arquivo: Buffer): Promise<DadosLinha[]> 
     else if (nome.length > 100) erro = 'Nome deve ter no máximo 100 caracteres.';
     else if (matricula.length > 50) erro = 'Matrícula deve ter no máximo 50 caracteres.';
 
-    const aviso = typeof celulaMatricula.value === 'number'
-      ? 'Confira a matrícula: o Excel pode remover zeros à esquerda de números.'
-      : undefined;
+    const aviso =
+      typeof celulaMatricula.value === 'number'
+        ? 'Confira a matrícula: o Excel pode remover zeros à esquerda de números.'
+        : undefined;
 
-    linhas.push({ linha: numero, nome, matricula, ...(erro ? { erro } : {}), ...(aviso ? { aviso } : {}) });
+    linhas.push({
+      linha: numero,
+      nome,
+      matricula,
+      ...(erro ? { erro } : {}),
+      ...(aviso ? { aviso } : {}),
+    });
   }
 
   if (!linhas.length) throw new ApiError(400, 'A planilha não contém alunos para importar.');
+
   return linhas;
 }
 
@@ -130,20 +152,24 @@ async function analisar(
     let erro = item.erro;
 
     if (!erro && vistas.has(chave)) erro = 'Matrícula repetida nesta planilha.';
+
     vistas.add(chave);
 
     if (!erro && existente) {
       const mesmoNome = normalizar(existente.nome) === normalizar(item.nome);
       const semVinculos = existente._count.matriculas === 0 && existente._count.versoesProva === 0;
-      const pertenceAoProfessor = existente.matriculas.length > 0 || existente.versoesProva.length > 0;
+      const pertenceAoProfessor =
+        existente.matriculas.length > 0 || existente.versoesProva.length > 0;
 
-      if (!pertenceAoProfessor && !semVinculos) erro = 'Matrícula indisponível para este professor.';
+      if (!pertenceAoProfessor && !semVinculos)
+        erro = 'Matrícula indisponível para este professor.';
       else if (existente.matriculas.some((matricula) => matricula.turmaId === turmaId)) {
         erro = 'Aluno já matriculado nesta turma.';
       } else if (!mesmoNome) erro = 'Matrícula já cadastrada com outro nome.';
     }
 
     const situacao: Situacao = erro ? 'erro' : existente ? 'vincular' : 'novo';
+
     return {
       ...item,
       situacao,
@@ -174,14 +200,19 @@ export async function confirmarImportacaoAlunos(
 ) {
   return prisma.$transaction(async (tx) => {
     const plano = await analisar(tx, turmaId, professorId, dados);
+
     if (plano.erros) {
-      throw new ApiError(409, 'A planilha mudou ou contém erros. Valide novamente antes de importar.');
+      throw new ApiError(
+        409,
+        'A planilha mudou ou contém erros. Valide novamente antes de importar.',
+      );
     }
 
     for (const linha of plano.linhas) {
-      const aluno = linha.situacao === 'novo'
-        ? await tx.aluno.create({ data: { nome: linha.nome, matricula: linha.matricula } })
-        : await tx.aluno.findUniqueOrThrow({ where: { matricula: linha.matricula } });
+      const aluno =
+        linha.situacao === 'novo'
+          ? await tx.aluno.create({ data: { nome: linha.nome, matricula: linha.matricula } })
+          : await tx.aluno.findUniqueOrThrow({ where: { matricula: linha.matricula } });
 
       await tx.matricula.create({ data: { turmaId, alunoId: aluno.id } });
     }

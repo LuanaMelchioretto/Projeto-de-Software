@@ -7,18 +7,33 @@ import QRCode from 'qrcode';
 
 const createQrCode = (avaliacaoId: number) => {
   const data = `AV1.${avaliacaoId}`;
-  const signature = createHmac('sha256', env.JWT_SECRET).update(data).digest('base64url').slice(0, 16);
+  const signature = createHmac('sha256', env.JWT_SECRET)
+    .update(data)
+    .digest('base64url')
+    .slice(0, 16);
+
   return `${data}.${signature}`;
 };
 
 const readQrCode = (value: string) => {
   const [version, idText, signature] = value.split('.');
-  if (version !== 'AV1' || !idText || !signature || !/^\d+$/.test(idText)) throw new Error('QR Code inválido.');
+
+  if (version !== 'AV1' || !idText || !signature || !/^\d+$/.test(idText))
+    throw new Error('QR Code inválido.');
+
   const data = `${version}.${idText}`;
-  const expected = createHmac('sha256', env.JWT_SECRET).update(data).digest('base64url').slice(0, 16);
-  if (signature.length !== expected.length || !timingSafeEqual(Buffer.from(signature), Buffer.from(expected))) {
+  const expected = createHmac('sha256', env.JWT_SECRET)
+    .update(data)
+    .digest('base64url')
+    .slice(0, 16);
+
+  if (
+    signature.length !== expected.length ||
+    !timingSafeEqual(Buffer.from(signature), Buffer.from(expected))
+  ) {
     throw new Error('QR Code inválido.');
   }
+
   return Number(idText);
 };
 
@@ -30,8 +45,9 @@ class AvaliacoesController {
         titulo,
         embaralharQuestoes,
         embaralharAlternativas,
-        questoes
+        questoes,
       });
+
       return res.status(201).json(novaAvaliacao);
     } catch (error: any) {
       return res.status(400).json({ error: error.message });
@@ -41,6 +57,7 @@ class AvaliacoesController {
   async listar(req: Request, res: Response) {
     try {
       const avaliacoes = await AvaliacaoService.listarAvaliacoes(res.locals.authUser.id);
+
       return res.status(200).json(avaliacoes);
     } catch (error: any) {
       return res.status(500).json({ error: 'Erro ao buscar as avaliações.' });
@@ -50,9 +67,11 @@ class AvaliacoesController {
   async buscarPorId(req: Request, res: Response) {
     try {
       const { id } = req.params;
+
       if (!id) return res.status(400).json({ error: 'ID é obrigatório.' });
 
       const avaliacao = await AvaliacaoService.buscarPorId(String(id), res.locals.authUser.id);
+
       return res.status(200).json(avaliacao);
     } catch (error: any) {
       return res.status(404).json({ error: error.message });
@@ -61,9 +80,17 @@ class AvaliacoesController {
 
   async previa(req: Request, res: Response) {
     try {
-      const avaliacao = await AvaliacaoService.buscarParaGeracao(String(req.params.id), res.locals.authUser.id);
+      const avaliacao = await AvaliacaoService.buscarParaGeracao(
+        String(req.params.id),
+        res.locals.authUser.id,
+      );
       const prepared = DocxService.prepararAvaliacao(avaliacao);
-      const qrCodeDataUrl = await QRCode.toDataURL(createQrCode(avaliacao.id), { margin: 2, width: 240, errorCorrectionLevel: 'M' });
+      const qrCodeDataUrl = await QRCode.toDataURL(createQrCode(avaliacao.id), {
+        margin: 2,
+        width: 240,
+        errorCorrectionLevel: 'M',
+      });
+
       return res.json({ ...prepared, qrCodeDataUrl });
     } catch (error: any) {
       return res.status(400).json({ error: error.message });
@@ -73,9 +100,14 @@ class AvaliacoesController {
   async resolverQrCode(req: Request, res: Response) {
     try {
       const codigo = Array.isArray(req.params.codigo) ? req.params.codigo[0] : req.params.codigo;
+
       if (!codigo) return res.status(400).json({ erro: 'Código QR ausente.' });
+
       const avaliacaoId = readQrCode(codigo);
-      const avaliacao = DocxService.prepararAvaliacao(await AvaliacaoService.buscarParaGeracao(String(avaliacaoId), res.locals.authUser.id));
+      const avaliacao = DocxService.prepararAvaliacao(
+        await AvaliacaoService.buscarParaGeracao(String(avaliacaoId), res.locals.authUser.id),
+      );
+
       return res.json({
         avaliacaoId: avaliacao.id,
         titulo: avaliacao.titulo,
@@ -83,10 +115,12 @@ class AvaliacoesController {
         questoes: avaliacao.questoes.map((item: any, index: number) => ({
           numero: index + 1,
           enunciado: item.questao.enunciado,
-          alternativas: item.questao.alternativas.map((alternativa: any, alternativaIndex: number) => ({
-            letra: String.fromCharCode(65 + alternativaIndex),
-            texto: alternativa.texto,
-          })),
+          alternativas: item.questao.alternativas.map(
+            (alternativa: any, alternativaIndex: number) => ({
+              letra: String.fromCharCode(65 + alternativaIndex),
+              texto: alternativa.texto,
+            }),
+          ),
         })),
       });
     } catch (error: any) {
@@ -97,15 +131,21 @@ class AvaliacoesController {
   async atualizar(req: Request, res: Response) {
     try {
       const { id } = req.params;
+
       if (!id) return res.status(400).json({ error: 'ID é obrigatório.' });
 
       const { titulo, embaralharQuestoes, embaralharAlternativas, questoes } = req.body;
-      const avaliacaoAtualizada = await AvaliacaoService.atualizarAvaliacao(String(id), res.locals.authUser.id, {
-        titulo,
-        embaralharQuestoes,
-        embaralharAlternativas,
-        questoes
-      });
+      const avaliacaoAtualizada = await AvaliacaoService.atualizarAvaliacao(
+        String(id),
+        res.locals.authUser.id,
+        {
+          titulo,
+          embaralharQuestoes,
+          embaralharAlternativas,
+          questoes,
+        },
+      );
+
       return res.status(200).json(avaliacaoAtualizada);
     } catch (error: any) {
       return res.status(400).json({ error: error.message });
@@ -115,9 +155,11 @@ class AvaliacoesController {
   async excluir(req: Request, res: Response) {
     try {
       const { id } = req.params;
+
       if (!id) return res.status(400).json({ error: 'ID é obrigatório.' });
 
       const resultado = await AvaliacaoService.excluirAvaliacao(String(id), res.locals.authUser.id);
+
       return res.status(200).json(resultado);
     } catch (error: any) {
       return res.status(400).json({ error: error.message });

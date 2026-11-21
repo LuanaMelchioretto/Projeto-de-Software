@@ -21,6 +21,7 @@ export default function StudentFormPage({ editing = false }) {
 
   useEffect(() => {
     let ativo = true;
+
     setCarregando(true);
     setErroCarregamento("");
 
@@ -30,28 +31,35 @@ export default function StudentFormPage({ editing = false }) {
     ])
       .then(([dadosTurma, aluno]) => {
         if (!ativo) return;
+
         setTurma(dadosTurma);
-        setForm(aluno
-          ? { nome: aluno.nome, matricula: aluno.matricula }
-          : { nome: "", matricula: "" });
+        setForm(
+          aluno ? { nome: aluno.nome, matricula: aluno.matricula } : { nome: "", matricula: "" },
+        );
       })
       .catch((error) => {
-        if (ativo) setErroCarregamento(error.message || "Não foi possível carregar os dados do aluno.");
+        if (ativo)
+          setErroCarregamento(error.message || "Não foi possível carregar os dados do aluno.");
       })
       .finally(() => {
         if (ativo) setCarregando(false);
       });
 
-    return () => { ativo = false; };
+    return () => {
+      ativo = false;
+    };
   }, [id, alunoId, editing, tentativa]);
 
   const salvar = async (event) => {
     event.preventDefault();
+
     if (salvando || carregando || erroCarregamento) return;
 
     const dados = { nome: form.nome.trim(), matricula: form.matricula.trim() };
+
     if (!dados.nome || !dados.matricula) {
       setErroFormulario("Preencha o nome e a matrícula do aluno.");
+
       return;
     }
 
@@ -65,7 +73,11 @@ export default function StudentFormPage({ editing = false }) {
       });
       navigate(`/turmas/${id}/alunos`, {
         replace: true,
-        state: { mensagemAluno: editing ? "Dados do aluno atualizados com sucesso!" : "Aluno cadastrado nesta turma!" },
+        state: {
+          mensagemAluno: editing
+            ? "Dados do aluno atualizados com sucesso!"
+            : "Aluno cadastrado nesta turma!",
+        },
       });
     } catch (error) {
       setErroFormulario(error.message || "Não foi possível salvar o aluno.");
@@ -89,14 +101,18 @@ export default function StudentFormPage({ editing = false }) {
       {erroCarregamento && (
         <div className="class-form-load-error">
           <Feedback variant="error">{erroCarregamento}</Feedback>
-          <Button variant="secondary" onClick={() => setTentativa((valor) => valor + 1)}>Tentar novamente</Button>
+          <Button variant="secondary" onClick={() => setTentativa((valor) => valor + 1)}>
+            Tentar novamente
+          </Button>
         </div>
       )}
 
       {!carregando && !erroCarregamento && (
         <form className="class-form-card" onSubmit={salvar}>
           <div className="class-form-heading">
-            <span className="class-form-icon"><UsersRound size={22} aria-hidden="true" /></span>
+            <span className="class-form-icon">
+              <UsersRound size={22} aria-hidden="true" />
+            </span>
             <div>
               <h2>Dados do aluno</h2>
               <p>Nome e matrícula são obrigatórios.</p>
@@ -108,21 +124,42 @@ export default function StudentFormPage({ editing = false }) {
           <div className="class-form-fields">
             <div className="class-form-field class-form-field-wide">
               <label htmlFor="student-name">Nome do aluno</label>
-              <input id="student-name" type="text" autoFocus required maxLength={100} value={form.nome}
-                onChange={(event) => { setForm({ ...form, nome: event.target.value }); setErroFormulario(""); }}
-                placeholder="Ex: Ana Silva" />
+              <input
+                id="student-name"
+                type="text"
+                autoFocus
+                required
+                maxLength={100}
+                value={form.nome}
+                onChange={(event) => {
+                  setForm({ ...form, nome: event.target.value });
+                  setErroFormulario("");
+                }}
+                placeholder="Ex: Ana Silva"
+              />
             </div>
 
             <div className="class-form-field class-form-field-wide">
               <label htmlFor="student-registration">Matrícula</label>
-              <input id="student-registration" type="text" required maxLength={50} value={form.matricula}
-                onChange={(event) => { setForm({ ...form, matricula: event.target.value }); setErroFormulario(""); }}
-                placeholder="Ex: 20260001" />
+              <input
+                id="student-registration"
+                type="text"
+                required
+                maxLength={50}
+                value={form.matricula}
+                onChange={(event) => {
+                  setForm({ ...form, matricula: event.target.value });
+                  setErroFormulario("");
+                }}
+                placeholder="Ex: 20260001"
+              />
             </div>
           </div>
 
           <div className="class-form-actions">
-            <Button variant="secondary" onClick={voltar} disabled={salvando}>Cancelar</Button>
+            <Button variant="secondary" onClick={voltar} disabled={salvando}>
+              Cancelar
+            </Button>
             <Button type="submit" disabled={salvando}>
               {salvando ? "Salvando…" : editing ? "Salvar alterações" : "Cadastrar aluno"}
             </Button>

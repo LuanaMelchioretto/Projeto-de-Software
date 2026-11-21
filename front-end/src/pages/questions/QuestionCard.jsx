@@ -5,7 +5,8 @@ import { buildStatementPreview, isCompactOptionList, OPTION_LABELS } from "./que
 export default function QuestionCard({ question, expanded = false, onToggle, onEdit }) {
   const detailsId = `question-${question.id}-details`;
   const preview = buildStatementPreview(question.text);
-  const topic = question.topic?.trim().toLocaleLowerCase("pt-BR") === "geral" ? null : question.topic;
+  const topic =
+    question.topic?.trim().toLocaleLowerCase("pt-BR") === "geral" ? null : question.topic;
   const hasTags = Boolean(question.image || topic || question.difficulty);
 
   return (
@@ -41,7 +42,14 @@ export default function QuestionCard({ question, expanded = false, onToggle, onE
       </div>
 
       <footer className="question-card-footer">
-        <span>{question.options.length} alternativas · {Number.isInteger(question.answer) && question.answer >= 0 && question.answer < question.options.length ? "1 correta" : "Sem resposta correta"}</span>
+        <span>
+          {question.options.length} alternativas ·{" "}
+          {Number.isInteger(question.answer) &&
+          question.answer >= 0 &&
+          question.answer < question.options.length
+            ? "1 correta"
+            : "Sem resposta correta"}
+        </span>
 
         <div className="question-card-actions">
           <button
@@ -52,7 +60,11 @@ export default function QuestionCard({ question, expanded = false, onToggle, onE
             aria-controls={detailsId}
             aria-label={`${expanded ? "Recolher" : "Visualizar"} questão ${question.id}`}
           >
-            {expanded ? <ChevronUp size={16} aria-hidden="true" /> : <Eye size={16} aria-hidden="true" />}
+            {expanded ? (
+              <ChevronUp size={16} aria-hidden="true" />
+            ) : (
+              <Eye size={16} aria-hidden="true" />
+            )}
             {expanded ? "Recolher" : "Visualizar"}
           </button>
 
@@ -80,7 +92,9 @@ function OptionList({ options, answer }) {
     >
       {options.map((option, index) => (
         <li key={index} className={index === answer ? "question-option-correct" : ""}>
-          <span className="question-option-letter" aria-hidden="true">{OPTION_LABELS[index]}</span>
+          <span className="question-option-letter" aria-hidden="true">
+            {OPTION_LABELS[index]}
+          </span>
           <span className="question-option-text">{option}</span>
 
           {index === answer && (

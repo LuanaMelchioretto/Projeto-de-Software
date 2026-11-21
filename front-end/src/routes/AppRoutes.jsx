@@ -28,7 +28,7 @@ function ProtectedRoutes() {
   const location = useLocation();
 
   if (loading) return <p role="status">Validando sessão...</p>;
-  
+
   return user ? <Outlet /> : <Navigate to="/login" state={{ from: location }} replace />;
 }
 
