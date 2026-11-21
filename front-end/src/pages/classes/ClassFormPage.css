@@ -1,0 +1,121 @@
+.class-form-page {
+  max-width: 920px;
+  margin: 0 auto;
+}
+
+.class-form-back {
+  margin-bottom: 20px;
+  color: var(--color-text-muted);
+}
+
+.class-form-card {
+  overflow: hidden;
+  background: var(--color-surface);
+  border: 1px solid var(--color-border);
+  border-radius: 14px;
+}
+
+.class-form-heading {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  padding: 24px 28px;
+  border-bottom: 1px solid var(--color-border);
+}
+
+.class-form-icon {
+  display: inline-flex;
+  flex-shrink: 0;
+  align-items: center;
+  justify-content: center;
+  width: 46px;
+  height: 46px;
+  background: #eff0ff;
+  border-radius: 10px;
+  color: var(--color-primary);
+}
+
+.class-form-heading h2 {
+  margin: 0 0 4px;
+  font-size: 18px;
+}
+
+.class-form-heading p {
+  margin: 0;
+  color: var(--color-text-muted);
+  font-size: 13px;
+}
+
+.class-form-card > .feedback {
+  margin: 20px 28px 0;
+}
+
+.class-form-load-error {
+  display: grid;
+  justify-items: start;
+  gap: 14px;
+}
+
+.class-form-fields {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 22px 18px;
+  padding: 28px;
+}
+
+.class-form-field-wide {
+  grid-column: 1 / -1;
+}
+
+.class-form-field label {
+  display: block;
+  margin-bottom: 8px;
+  color: #424b59;
+  font-size: 13px;
+  font-weight: 600;
+}
+
+.class-form-field input {
+  width: 100%;
+  padding: 12px 13px;
+  background: var(--color-surface);
+  border: 1px solid #dce0e8;
+  border-radius: 8px;
+  color: var(--color-text);
+  font-size: 14px;
+}
+
+.class-form-field input:focus-visible {
+  outline: 3px solid #5664f518;
+  border-color: var(--color-primary);
+}
+
+.class-form-actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 10px;
+  padding: 18px 28px;
+  background: #fafbfc;
+  border-top: 1px solid var(--color-border);
+}
+
+@media (max-width: 640px) {
+  .class-form-heading,
+  .class-form-fields,
+  .class-form-actions {
+    padding-left: 20px;
+    padding-right: 20px;
+  }
+
+  .class-form-fields {
+    grid-template-columns: 1fr;
+  }
+
+  .class-form-field-wide {
+    grid-column: auto;
+  }
+
+  .class-form-actions .button {
+    flex: 1;
+  }
+}

@@ -6,6 +6,7 @@ export default function QuestionOptionField({
   index,
   value,
   isCorrect,
+  hasError = false,
   canRemove,
   onChange,
   onSelectCorrect,
@@ -26,6 +27,9 @@ export default function QuestionOptionField({
             <input
               type="radio"
               name="answer"
+              required
+              aria-invalid={hasError || undefined}
+              aria-describedby={hasError ? "question-answer-error" : undefined}
               value={index}
               checked={isCorrect}
               onChange={onSelectCorrect}

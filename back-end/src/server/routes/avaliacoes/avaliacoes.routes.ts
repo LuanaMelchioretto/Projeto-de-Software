@@ -8,10 +8,9 @@ avaliacoesRoutes.use(requireAuth);
 
 avaliacoesRoutes.post('/', avaliacoesController.criar);
 avaliacoesRoutes.get('/', avaliacoesController.listar);
-avaliacoesRoutes.get('/:id/docx', avaliacoesController.baixarDocx);
+avaliacoesRoutes.get('/:id/previa', avaliacoesController.previa);
 avaliacoesRoutes.get('/qr/:codigo', avaliacoesController.resolverQrCode);
 avaliacoesRoutes.get('/:id', avaliacoesController.buscarPorId);
-
 
 avaliacoesRoutes.put('/:id', avaliacoesController.atualizar);
 avaliacoesRoutes.delete('/:id', avaliacoesController.excluir);

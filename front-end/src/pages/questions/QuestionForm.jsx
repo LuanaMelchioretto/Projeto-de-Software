@@ -11,17 +11,32 @@ export default function QuestionForm({ question, onPreview, onCancel }) {
   const [draft, setDraft] = useState(() => ({
     text: question?.text ?? "",
     options: question ? [...question.options] : OPTION_LABELS.map(() => ""),
-    answer: question?.answer ?? null,
+    optionIds: question
+      ? question.options.map((_, index) => question.alternativas?.[index]?.id ?? null)
+      : OPTION_LABELS.map(() => null),
+    answer:
+      Number.isInteger(question?.answer) &&
+      question.answer >= 0 &&
+      question.answer < question.options.length
+        ? question.answer
+        : null,
     image: question?.image ? { ...question.image } : null,
   }));
+  const [answerError, setAnswerError] = useState(false);
+  const answerErrorRef = useRef(null);
 
   const optionsList = useRef(null);
   const optionToFocus = useRef(null);
 
   useEffect(() => {
+    if (answerError) answerErrorRef.current?.scrollIntoView?.({ block: "nearest" });
+  }, [answerError]);
+
+  useEffect(() => {
     if (optionToFocus.current === null) return;
 
     const index = optionToFocus.current;
+
     optionToFocus.current = null;
     optionsList.current?.querySelector(`[name="option${index}"]`)?.focus();
   }, [draft.options.length]);
@@ -29,7 +44,9 @@ export default function QuestionForm({ question, onPreview, onCancel }) {
   function updateOption(index, value) {
     setDraft((current) => ({
       ...current,
-      options: current.options.map((option, optionIndex) => optionIndex === index ? value : option),
+      options: current.options.map((option, optionIndex) =>
+        optionIndex === index ? value : option,
+      ),
     }));
   }
 
@@ -37,7 +54,11 @@ export default function QuestionForm({ question, onPreview, onCancel }) {
     if (draft.options.length >= MAX_OPTIONS) return;
 
     optionToFocus.current = draft.options.length;
-    setDraft((current) => ({ ...current, options: [...current.options, ""] }));
+    setDraft((current) => ({
+      ...current,
+      options: [...current.options, ""],
+      optionIds: [...current.optionIds, null],
+    }));
   }
 
   function removeOption(index) {
@@ -47,8 +68,13 @@ export default function QuestionForm({ question, onPreview, onCancel }) {
     setDraft((current) => ({
       ...current,
       options: current.options.filter((option, optionIndex) => optionIndex !== index),
-      answer: current.answer === index ? null
-        : current.answer > index ? current.answer - 1 : current.answer,
+      optionIds: current.optionIds.filter((_, optionIndex) => optionIndex !== index),
+      answer:
+        current.answer === index
+          ? null
+          : current.answer > index
+            ? current.answer - 1
+            : current.answer,
     }));
   }
 
@@ -56,7 +82,12 @@ export default function QuestionForm({ question, onPreview, onCancel }) {
     <form
       className="question-form"
       aria-labelledby="question-form-title"
-      noValidate
+      onInvalid={(event) => {
+        if (event.target.name === "answer") {
+          event.preventDefault();
+          setAnswerError(true);
+        }
+      }}
       onSubmit={(event) => {
         event.preventDefault();
         onPreview(draft);
@@ -90,7 +121,12 @@ export default function QuestionForm({ question, onPreview, onCancel }) {
         onChange={(image) => setDraft((current) => ({ ...current, image }))}
       />
 
-      <fieldset className="question-form-options" aria-describedby="question-options-help">
+      <fieldset
+        className="question-form-options"
+        aria-describedby={
+          answerError ? "question-options-help question-answer-error" : "question-options-help"
+        }
+      >
         <legend>Alternativas</legend>
         <p id="question-options-help">
           Use de {MIN_OPTIONS} a {MAX_OPTIONS} alternativas e marque a única resposta correta.
@@ -103,9 +139,13 @@ export default function QuestionForm({ question, onPreview, onCancel }) {
               index={index}
               value={option}
               isCorrect={draft.answer === index}
+              hasError={answerError}
               canRemove={draft.options.length > MIN_OPTIONS}
               onChange={(value) => updateOption(index, value)}
-              onSelectCorrect={() => setDraft({ ...draft, answer: index })}
+              onSelectCorrect={() => {
+                setDraft((current) => ({ ...current, answer: index }));
+                setAnswerError(false);
+              }}
               onRemove={() => removeOption(index)}
             />
           ))}
@@ -125,17 +165,32 @@ export default function QuestionForm({ question, onPreview, onCancel }) {
           </p>
         </div>
 
+        {answerError && (
+          <p
+            id="question-answer-error"
+            className="question-answer-error"
+            role="alert"
+            ref={answerErrorRef}
+          >
+            Selecione uma alternativa como correta.
+          </p>
+        )}
+
         {draft.answer !== null && (
           <p className="question-answer-hint">
-            <CheckCircle2 size={16} aria-hidden="true" /> Resposta correta: alternativa {OPTION_LABELS[draft.answer]}.
+            <CheckCircle2 size={16} aria-hidden="true" /> Resposta correta: alternativa{" "}
+            {OPTION_LABELS[draft.answer]}.
           </p>
         )}
       </fieldset>
 
       <footer className="question-form-footer">
-        <button type="button" className="secondary" onClick={onCancel}>Cancelar</button>
+        <button type="button" className="secondary" onClick={onCancel}>
+          Cancelar
+        </button>
         <button type="submit" className="primary">
-          <Save size={16} aria-hidden="true" /> {question ? "Salvar alterações" : "Cadastrar questão"}
+          <Save size={16} aria-hidden="true" />{" "}
+          {question ? "Salvar alterações" : "Cadastrar questão"}
         </button>
       </footer>
     </form>

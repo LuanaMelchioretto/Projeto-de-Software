@@ -376,6 +376,12 @@
   margin: 16px 0 0;
 }
 
+.question-form-options .question-answer-error {
+  margin: 12px 0 0;
+  color: #b42318;
+  font-size: 14px;
+}
+
 .question-form-footer {
   display: flex;
   justify-content: flex-end;
