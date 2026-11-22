@@ -1,5 +1,4 @@
 <div align="center">
-
 # PROVA+ — Sistema de Geração e Correção de Provas
 
 **Sistema para gerar, identificar, corrigir e analisar provas objetivas, reduzindo o tempo gasto pelos professores na correção manual.**
@@ -13,20 +12,20 @@
 ![GitHub](https://img.shields.io/badge/GitHub-181717?style=for-the-badge&logo=github&logoColor=white)
 
 ![Status](https://img.shields.io/badge/status-em%20desenvolvimento-F5A623?style=flat-square)
-![Entrega](https://img.shields.io/badge/entrega%20atual-N2-3D348B?style=flat-square)
+![Entrega](https://img.shields.io/badge/entrega%20atual-N3-3D348B?style=flat-square)
 ![Licenca](https://img.shields.io/badge/licenca-uso%20academico-7B4FA6?style=flat-square)
 
 </div>
 
 ## Equipe
 
-| Nome completo              | Papel / principais frentes no projeto                                                                                                                                                                                                                                                                                      |
-| -------------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| CAMILA LORENZETTI          | Telas de Turmas e Correção de Provas; diagrama de sequência                                                                                                                                                                                                                                                                |
-| GUILHERME FRANCIEL MEIRING | Tela de Banco de Questões, build e testes no GitHub Actions, atualização do README e divisão das tarefas da equipe; configurar o back-end com Node.js, TypeScript, Express, MySQL e Prisma, incluindo os modelos e as migrações do banco; implementar o login, a sessão e o logout, protegendo as rotas do React e da API. |
-| LUAN FERREIRA DO AMARAL    | Tela de Relatórios, conteúdo do Dashboard e diagrama de atividades                                                                                                                                                                                                                                                         |
-| LUANA MELCHIORETTO         | Telas de Login e Resultado da Correção, revisão da navegação, documentação das telas e diagrama de casos de uso                                                                                                                                                                                                            |
-| MATHEUS RECK SCHÄFFER      | Telas de Avaliações, Nova Avaliação, Detalhes da Avaliação e Provas Geradas; diagrama de classes                                                                                                                                                                                                                           |
+| Nome completo | Principais contribuições no projeto |
+| --- | --- |
+| CAMILA LORENZETTI | Gestão de turmas, fluxo de correção e liberação de resultados; diagrama de sequência. |
+| GUILHERME FRANCIEL MEIRING | Banco de questões e componentes da interface; base da API, autenticação, testes, CI/CD e implantação da API; documentação e testes finais dos fluxos do sistema. |
+| LUAN FERREIRA DO AMARAL | CRUD persistente de questões, Dashboard, Relatórios e exportação XLSX; diagrama de atividades. |
+| LUANA MELCHIORETTO | Integração das telas com a API, correção e leitura de QR, publicação no GitHub Pages; diagrama de casos de uso. |
+| MATHEUS RECK SCHÄFFER | Avaliações, aplicações e versões de prova, geração DOCX, modelo de dados; diagrama de classes. |
 
 ## Sumário
 
@@ -41,15 +40,18 @@
   - [3.3 Diagrama de Sequência](#33-diagrama-de-sequência)
   - [3.4 Diagrama de Atividades](#34-diagrama-de-atividades)
 - [4. Telas do Sistema](#4-telas-do-sistema)
-- [5. Decisões Arquiteturais (ADRs)](#5-decisões-arquiteturais-adrs)
-- [6. Modelo de Dados](#6-modelo-de-dados)
-- [7. Stack Tecnológica](#7-stack-tecnológica)
-- [8. Estrutura de Pastas](#8-estrutura-de-pastas)
-- [9. Como Executar o Projeto](#9-como-executar-o-projeto)
+- [5. Arquitetura de Software](#5-arquitetura-de-software)
+- [6. Decisões Arquiteturais (ADRs)](#6-decisões-arquiteturais-adrs)
+- [7. Modelo de Dados](#7-modelo-de-dados)
+- [8. Stack Tecnológica](#8-stack-tecnológica)
+- [9. Estrutura de Pastas](#9-estrutura-de-pastas)
+- [10. Como Executar o Projeto](#10-como-executar-o-projeto)
   - [Front-end](#front-end)
   - [Back-end e MySQL local](#back-end-e-mysql-local)
-- [10. Especificação da API](#10-especificação-da-api)
-- [11. Equipe e Contribuições](#11-equipe-e-contribuições)
+- [11. Especificação da API](#11-especificação-da-api)
+- [12. Testes e Validações](#12-testes-e-validações)
+- [13. Manual do Usuário](#13-manual-do-usuário)
+- [14. Equipe e Contribuições](#14-equipe-e-contribuições)
 
 ---
 
@@ -169,120 +171,265 @@ _Criar conta: Cadastra o professor com nome, e-mail, matrícula e senha._
 ![Esqueci minha senha](docs/telas/tela-esqueci-minha-senha.jpg)
 _Esqueci minha senha: Solicita por e-mail um link para redefinir a senha._
 
-![Redefinir senha](docs/telas/tela-redefinir-senha.jpg)
-_Redefinir senha: Permite escolher e confirmar uma nova senha pelo link recebido._
-
 ![Dashboard](docs/telas/tela-dashboard.jpg)
 _Dashboard: Resume indicadores e oferece atalhos para as áreas principais._
 
-![Minha conta](docs/telas/tela-minha-conta.jpg)
-_Minha conta: Permite atualizar os dados do professor, trocar a senha e excluir o acesso à conta._
-
 ![Turmas](docs/telas/tela-turma.jpg)
-_Turmas: Lista e pesquisa as turmas cadastradas na sessão._
+_Turmas: Lista e pesquisa as turmas persistidas da conta do professor._
 
 ![Cadastro de turma](docs/telas/tela-cadastrar-turma.jpg)
 _Cadastro de turma: Abre o formulário para criar uma turma a partir da listagem._
 
+![Alunos matriculados](docs/telas/alunos.png)
+_Alunos: Lista os registros de teste da turma selecionada._
+
+![Cadastro de aluno](docs/telas/aluno-formulario.png)
+_Cadastro de aluno: Solicita nome e matrícula._
+
+![Modelo de alunos no Excel](docs/telas/tela-modelo-alunos-excel.png)
+_Modelo XLSX: planilha de exemplo com as colunas Nome e Matrícula._
+
+![Prévia da importação de alunos](docs/telas/tela-importacao-alunos-previa.png)
+_Importação: prévia das 19 linhas de teste antes da confirmação. Esta imagem não comprova que a importação foi concluída._
+
 ![Banco de questões](docs/telas/tela-banco-questao.jpg)
 _Banco de questões: Exibe as questões disponíveis e abre os formulários de cadastro e edição._
 
-![Cadastro de questão, parte superior](docs/telas/tela-cadastro-questao-parte-de-cima.jpg)
-_Cadastro de questão, parte superior: Apresenta os dados iniciais da nova questão._
-
-![Cadastro de questão, parte inferior](docs/telas/tela-cadastro-questao-parte-de-baixo.jpg)
-_Cadastro de questão, parte inferior: Permite preencher alternativas e pré-visualizar a questão._
-
-![Edição de questão, parte superior](docs/telas/tela-editar-questao-parte-de-cima.jpg)
-_Edição de questão, parte superior: Carrega uma questão do banco para edição demonstrativa._
-
-![Edição de questão, parte inferior](docs/telas/tela-editar-questao-parte-de-baixo.jpg)
-_Edição de questão, parte inferior: Mostra as alternativas e ações finais da edição demonstrativa._
+![Cadastro de questão](docs/telas/tela-cadastro-questao-parte-de-cima.jpg)
+_Cadastro de questão: Mostra enunciado, alternativas e escolha da correta. O campo de imagem aparece na interface, mas a API ainda não a persiste._
 
 ![Avaliações](docs/telas/tela-avaliacao.jpg)
 _Avaliações: Lista as avaliações e leva à criação ou aos detalhes de uma avaliação._
 
-![Cadastro de avaliação, parte superior](docs/telas/tela-cadastro-avaliacao-parte-de-cima.jpg)
-_Cadastro de avaliação, parte superior: Inicia a composição de uma nova avaliação._
-
-![Cadastro de avaliação, parte inferior](docs/telas/tela-cadastro-avaliacao-parte-de-baixo.jpg)
-_Cadastro de avaliação, parte inferior: Mostra a seleção de questões e as opções de embaralhamento._
+![Cadastro de avaliação](docs/telas/tela-cadastro-avaliacao-parte-de-cima.jpg)
+_Cadastro de avaliação: Inicia a composição, a seleção de questões e as opções de embaralhamento._
 
 ![Detalhes da avaliação](docs/telas/tela-detalhe-avaliacao.jpg)
-_Detalhes da avaliação: Exibe questões, gabarito e o acesso à geração da prova._
+_Detalhes da avaliação: Exibe as questões e o acesso à geração da prova._
 
 ![Gerar avaliação](docs/telas/tela-gerar-avaliacao.jpg)
-_Gerar avaliação: Mostra a prévia da prova e da folha de respostas; o download é simulado._
+_Gerar avaliação: Mostra a turma selecionada, a quantidade de exemplares e a prévia antes da geração do lote._
+
+![Prova gerada aberta no Word](docs/telas/tela-prova-docx-word.png)
+_DOCX aberto no Word: folha de respostas com QR individual e início do caderno de questões._
 
 ![Correção de prova](docs/telas/tela-correca-prova.jpg)
-_Correção de prova: Seleciona uma avaliação demonstrativa e inicia o fluxo de leitura._
+_Correção de prova: Seleciona uma avaliação da API e inicia o fluxo de identificação por QR._
 
-![Escanear QR code](docs/telas/tela-escanear-qrcode.jpg)
-_Escanear QR code: Apresenta a etapa simulada de leitura do QR code da folha._
+![Conferência das respostas](docs/telas/tela-confirmacao-resultado-avaliacao.jpg)
+_Conferência: alternativas selecionadas antes de calcular a nota._
 
-![Confirmação da prova identificada](docs/telas/tela-confirmacao-resultado-avaliacao.jpg)
-_Confirmação da prova identificada: Confirma o modelo e o gabarito antes de abrir o resultado._
+![Identificação do aluno e cálculo](docs/telas/tela-conferencia-respostas-parte-de-baixo.png)
+_Conferência, parte inferior: aluno selecionado e ação para salvar e calcular a nota._
 
-![Resultado da correção, parte superior](docs/telas/tela-resultado-avaliacao-parte-de-cima.jpg)
-_Resultado da correção, parte superior: Mostra aluno, nota, acertos e controle de liberação._
+![Resultado da correção](docs/telas/tela-resultado-avaliacao-parte-de-cima.jpg)
+_Resultado: identificação da prova, nota e início do detalhamento por questão._
 
-![Resultado da correção, parte inferior](docs/telas/tela-resultado-avaliacao-parte-de-baixo.jpg)
-_Resultado da correção, parte inferior: Detalha as respostas e permite percorrer outras correções demonstrativas._
+![Relatórios antes da seleção](docs/telas/tela-relatorio-sem-filtros.png)
+_Relatórios: estado inicial, antes de selecionar turma e avaliação._
 
 ![Relatório, parte superior](docs/telas/tela-relatorio-parte-de-cima.jpg)
-_Relatório, parte superior: Filtra turma e avaliação e resume os indicadores._
+_Relatório filtrado: turma, avaliação, indicadores e resultados de dois alunos de teste._
 
-![Relatório, parte inferior](docs/telas/tela-relatorio-parte-de-baixo.jpg)
-_Relatório, parte inferior: Apresenta resultados por aluno e ações demonstrativas de exportação._
+![Notas exportadas no Excel](docs/telas/tela-relatorio-notas-excel.png)
+_XLSX aberto no Excel: matrícula, aluno, turma, avaliação, nota, acertos e erros._
 
-## 5. Decisões Arquiteturais (ADRs)
+## 5. Arquitetura de Software
+
+O PROVA+ é uma aplicação web com front-end React e API Express/TypeScript, usando Prisma e MySQL. A organização em camadas tem como referência `rota → controller → service → repository → modelos Prisma/banco`.
+
+![Arquitetura em camadas do PROVA+](docs/arquitetura/diagrama-camadas.png)
+
+O desenho mostra o fluxo adotado em recursos como professores e a ressalva de implementação parcial nos demais módulos. As setas indicam chamadas; os resultados retornam pela mesma cadeia até a resposta HTTP.
+
+| Camada / componente | Responsabilidade e limite |
+| --- | --- |
+| Front-end | Exibe dados, coleta entradas e chama a API com cookie. Validações de interface não substituem as do servidor. |
+| Rotas e middleware | Registram endpoints, interpretam JSON e aplicam sessão/origem. A referência arquitetural evita regras de negócio nas rotas. |
+| Controllers | Interpretam a requisição e enviam status/corpo HTTP. No padrão de camadas, delegam regras e persistência. |
+| Services e schemas | Aplicam regras de negócio e validam entradas com Zod onde utilizado; não devem depender da interface React. |
+| Repositories | Encapsulam leitura e escrita via Prisma; não devem construir respostas HTTP. |
+| Modelos Prisma / MySQL | Definem campos, relações e restrições persistidas. Não representam telas ou navegação. |
+| Bibliotecas compartilhadas | Reúnem cliente Prisma, hash de senha, erros e envio de e-mail. |
+
+**Exemplo:** no cadastro de professor, a rota encaminha ao controller; o service valida a entrada e gera o hash; o repository grava com Prisma; o controller devolve o resultado. O middleware traduz falhas conhecidas em respostas HTTP.
+
+Na implantação configurada, o front-end fica no GitHub Pages; a API, o MySQL e o proxy HTTPS Caddy ficam em containers na VM Azure. Localmente, Vite e API rodam com Node, e MySQL/Mailpit usam Docker Compose.
+
+## 6. Decisões Arquiteturais (ADRs)
 
 Cada ADR registra o contexto, a decisão e suas consequências. As decisões documentadas até agora são:
 
 - [ADR-001: MySQL e Prisma para persistência](docs/adr/ADR-001-mysql-e-prisma.md)
 - [ADR-002: Organização da API em camadas](docs/adr/ADR-002-organizacao-em-camadas.md)
 - [ADR-003: Autenticação com JWT em cookie e sessão no banco](docs/adr/ADR-003-autenticacao-e-sessao.md)
+- [ADR-004: Implantação no GitHub Pages e Azure](docs/adr/ADR-004-implantacao-pages-azure.md)
+- [ADR-005: Versões de prova e correção por snapshot](docs/adr/ADR-005-versoes-e-snapshot.md)
 
-## 6. Modelo de Dados
+## 7. Modelo de Dados
 
-Diagrama MER/DER do banco de dados, exportado como imagem e salvo em `docs/modelo-dados/`:
+O diagrama mostra os relacionamentos e os principais campos do esquema atual. O dicionário abaixo detalha todas as colunas, incluindo a ordem das questões na tabela associativa.
 
-![Modelo Entidade-Relacionamento](docs/modelo-dados/DiagramaMER-DER.png)
+![DER da entrega N3](docs/modelo-dados/DiagramaMER-DER.png)
+
+Professores possuem turmas, questões e avaliações. A associação aluno–turma usa `matriculas`; avaliação–questão usa `avaliacao_questoes`. Uma aplicação associa avaliação e turma, originando versões. Cada versão pode receber um aluno e, no máximo, um resultado. Sessões e tokens de recuperação pertencem ao professor.
 
 ### Dicionário de Dados
 
-**Tabela: professores**
-| Campo | Tipo | Descrição |
-|---|---|---|
-| id | INT (PK) | Identificador único do professor |
-| nome | VARCHAR(100) | Nome completo do professor |
-| email | VARCHAR(100) | E-mail de acesso ao sistema |
-| matricula | VARCHAR(50) | Matrícula institucional única |
+#### alternativas
 
-**Tabela: avaliacoes**
-| Campo | Tipo | Descrição |
-|---|---|---|
-| id | INT (PK) | Identificador único da prova |
-| professor_id | INT (FK) | Relacionamento com o professor criador |
-| titulo | VARCHAR(150) | Título descritivo da avaliação |
-| embaralhar_questoes | BOOLEAN | Flag para randomização de questões |
+| Campo | Tipo / restrições | Descrição |
+| --- | --- | --- |
+| `id` | INT; PK, NOT NULL | Identificador do registro, gerado automaticamente. |
+| `questao_id` | INT; FK, NOT NULL | Questão associada. |
+| `texto` | TEXT; NOT NULL | Texto da alternativa. |
+| `eh_correta` | BOOLEAN; NOT NULL | Indica se a alternativa compõe o gabarito. |
 
-**Tabela: versoes_prova**
-| Campo | Tipo | Descrição |
-|---|---|---|
-| id | INT (PK) | Identificador da folha de prova física |
-| aplicacao_id | INT (FK) | Relacionamento com a aplicação da turma |
-| qr_code_hash | VARCHAR(255) | Hash único lido pelo app mobile no QR Code |
+#### alunos
 
-**Tabela: resultados_aluno**
-| Campo | Tipo | Descrição |
-|---|---|---|
-| id | INT (PK) | Identificador do resultado |
-| versao_prova_id | INT (FK) | Relacionamento com a prova única do aluno |
-| nota_final | DECIMAL(4,2)| Nota calculada pela correção automática |
-| total_acertos | INT | Quantidade de alternativas corretas assinaladas |
+| Campo | Tipo / restrições | Descrição |
+| --- | --- | --- |
+| `id` | INT; PK, NOT NULL | Identificador do registro, gerado automaticamente. |
+| `nome` | VARCHAR(100); NOT NULL | Nome exibido no cadastro. |
+| `matricula` | VARCHAR(50); UQ, NOT NULL | Matrícula única de identificação. |
 
-## 7. Stack Tecnológica
+#### aplicacoes_prova
+
+| Campo | Tipo / restrições | Descrição |
+| --- | --- | --- |
+| `id` | INT; PK, NOT NULL | Identificador do registro, gerado automaticamente. |
+| `avaliacao_id` | INT; FK, NOT NULL | Avaliação associada. |
+| `turma_id` | INT; FK, NOT NULL | Turma associada. |
+| `data_aplicacao` | DATETIME(3); NOT NULL | Data registrada para a aplicação. |
+
+#### avaliacao_questoes
+
+| Campo | Tipo / restrições | Descrição |
+| --- | --- | --- |
+| `avaliacao_id` | INT; PK, FK, NOT NULL | Avaliação associada. |
+| `questao_id` | INT; PK, FK, NOT NULL | Questão associada. |
+| `ordem` | INT; NOT NULL | Posição da questão dentro da avaliação. |
+
+Chave primária composta: `avaliacaoId, questaoId` (nomes do Prisma).
+
+#### avaliacoes
+
+| Campo | Tipo / restrições | Descrição |
+| --- | --- | --- |
+| `id` | INT; PK, NOT NULL | Identificador do registro, gerado automaticamente. |
+| `professor_id` | INT; FK, NOT NULL | Professor responsável pelo registro. |
+| `titulo` | VARCHAR(150); NOT NULL | Título da avaliação. |
+| `embaralhar_questoes` | BOOLEAN; NOT NULL | Habilita a troca da ordem das questões ao gerar versões. |
+| `embaralhar_alternativas` | BOOLEAN; NOT NULL | Habilita a troca da ordem das alternativas ao gerar versões. |
+| `data_criacao` | DATETIME(3); NOT NULL | Data de criação. |
+
+#### disciplinas
+
+| Campo | Tipo / restrições | Descrição |
+| --- | --- | --- |
+| `id` | INT; PK, NOT NULL | Identificador do registro, gerado automaticamente. |
+| `nome` | VARCHAR(100); NOT NULL | Nome exibido no cadastro. |
+| `codigo` | VARCHAR(20); UQ, NOT NULL | Código único da disciplina. |
+
+#### matriculas
+
+| Campo | Tipo / restrições | Descrição |
+| --- | --- | --- |
+| `id` | INT; PK, NOT NULL | Identificador do registro, gerado automaticamente. |
+| `aluno_id` | INT; FK, NOT NULL | Aluno associado; na versão pode ser definido somente na correção. |
+| `turma_id` | INT; FK, NOT NULL | Turma associada. |
+
+Unicidade composta: `alunoId, turmaId` (nomes do Prisma).
+
+#### tokens_redefinicao_senha
+
+| Campo | Tipo / restrições | Descrição |
+| --- | --- | --- |
+| `token_hash` | CHAR(64); PK, NOT NULL | Hash SHA-256 do token de recuperação; o token original não é persistido. |
+| `professor_id` | INT; FK, NOT NULL | Professor responsável pelo registro. |
+| `expira_em` | DATETIME(3); NOT NULL | Momento de expiração. |
+| `usado_em` | DATETIME(3); NULL | Momento de uso; nulo antes da utilização. |
+| `criado_em` | DATETIME(3); NOT NULL | Momento de criação. |
+
+#### professores
+
+| Campo | Tipo / restrições | Descrição |
+| --- | --- | --- |
+| `id` | INT; PK, NOT NULL | Identificador do registro, gerado automaticamente. |
+| `nome` | VARCHAR(100); NOT NULL | Nome exibido no cadastro. |
+| `email` | VARCHAR(100); UQ, NOT NULL | E-mail único usado no login. |
+| `senha_hash` | VARCHAR(255); NOT NULL | Hash bcrypt da senha; não armazena a senha em texto. |
+| `matricula` | VARCHAR(50); UQ, NOT NULL | Matrícula única de identificação. |
+| `status` | TINYINT; NOT NULL | Situação da conta: 1 ativa; 0 inativa. |
+| `criado_em` | DATETIME(3); NOT NULL | Data de criação da conta. |
+| `atualizado_em` | DATETIME(3); NOT NULL | Data da última atualização da conta. |
+
+#### questoes
+
+| Campo | Tipo / restrições | Descrição |
+| --- | --- | --- |
+| `id` | INT; PK, NOT NULL | Identificador do registro, gerado automaticamente. |
+| `professor_id` | INT; FK, NOT NULL | Professor responsável pelo registro. |
+| `disciplina_id` | INT; FK, NOT NULL | Disciplina associada. |
+| `enunciado` | TEXT; NOT NULL | Texto do enunciado da questão. |
+| `data_criacao` | DATETIME(3); NOT NULL | Data de criação. |
+
+#### respostas_aluno
+
+| Campo | Tipo / restrições | Descrição |
+| --- | --- | --- |
+| `id` | INT; PK, NOT NULL | Identificador do registro, gerado automaticamente. |
+| `versao_prova_id` | INT; FK, NOT NULL | Versão de prova associada. |
+| `questao_id` | INT; FK, NOT NULL | Questão associada. |
+| `alternativa_selecionada_id` | INT; FK, NOT NULL | Alternativa selecionada e persistida. |
+
+#### resultados_aluno
+
+| Campo | Tipo / restrições | Descrição |
+| --- | --- | --- |
+| `id` | INT; PK, NOT NULL | Identificador do registro, gerado automaticamente. |
+| `versao_prova_id` | INT; FK, UQ, NOT NULL | Versão de prova associada. |
+| `nota_final` | DECIMAL(4, 2); NOT NULL | Nota persistida; cálculo atual de 0 a 10 com pesos iguais. |
+| `total_acertos` | INT; NOT NULL | Quantidade de questões corretas. |
+| `liberado` | BOOLEAN; NOT NULL | Indica a liberação do resultado. |
+| `token_acesso` | VARCHAR(191); UQ, NULL | Token único opcional destinado à consulta da nota. |
+
+#### sessoes
+
+| Campo | Tipo / restrições | Descrição |
+| --- | --- | --- |
+| `jti` | VARCHAR(36); PK, NOT NULL | Identificador único da sessão, incluído no JWT. |
+| `professor_id` | INT; FK, NOT NULL | Professor responsável pelo registro. |
+| `expira_em` | DATETIME(3); NOT NULL | Momento de expiração. |
+| `revogada_em` | DATETIME(3); NULL | Momento de revogação; nulo enquanto não revogada. |
+| `criada_em` | DATETIME(3); NOT NULL | Momento de criação. |
+
+#### turmas
+
+| Campo | Tipo / restrições | Descrição |
+| --- | --- | --- |
+| `id` | INT; PK, NOT NULL | Identificador do registro, gerado automaticamente. |
+| `professor_id` | INT; FK, NOT NULL | Professor responsável pelo registro. |
+| `disciplina_id` | INT; FK, NOT NULL | Disciplina associada. |
+| `nome` | VARCHAR(100); NOT NULL | Nome exibido no cadastro. |
+| `identificacao` | VARCHAR(50); NOT NULL | Código da turma, único por professor. |
+| `semestre` | VARCHAR(10); NOT NULL | Período letivo informado. |
+| `ativo` | BOOLEAN; NOT NULL | Indica se a turma está ativa. |
+
+Unicidade composta: `professorId, identificacao` (nomes do Prisma).
+
+#### versoes_prova
+
+| Campo | Tipo / restrições | Descrição |
+| --- | --- | --- |
+| `id` | INT; PK, NOT NULL | Identificador do registro, gerado automaticamente. |
+| `aplicacao_id` | INT; FK, NOT NULL | Aplicação que originou a versão. |
+| `aluno_id` | INT; FK, NULL | Aluno associado; na versão pode ser definido somente na correção. |
+| `qr_code_hash` | VARCHAR(255); UQ, NOT NULL | Identificador único usado no QR da versão. |
+| `conteudo_snapshot` | JSON; NOT NULL | Conteúdo e gabarito da versão; também guarda o detalhamento da correção quando salva. |
+| `caminho_docx` | VARCHAR(255); NULL | Campo opcional para caminho do DOCX; o download atual gera o arquivo sob demanda. |
+
+## 8. Stack Tecnológica
 
 Stack obrigatória da disciplina:
 
@@ -296,21 +443,31 @@ Stack obrigatória da disciplina:
 | React       | Constrói a interface a partir de componentes reutilizáveis.                         |
 | Vite        | Oferece servidor de desenvolvimento e gera o build do front-end.                    |
 | TypeScript  | Adiciona tipos ao back-end para detectar inconsistências durante o desenvolvimento. |
-| Prisma      | Definem os modelos, versionam migrações e conectam a API ao MySQL.                  |
+| Prisma      | Define modelos, versiona migrações e conecta a API ao MySQL.                  |
 | Zod 4       | Valida os dados recebidos pela API e as variáveis de ambiente.                      |
 | bcryptjs    | Gera o hash das senhas antes de armazená-las.                                       |
 | dotenv      | Carrega as configurações locais do arquivo `.env`.                                  |
 | cors        | Configura as origens de front-end aceitas pelo navegador nas chamadas à API.        |
+| jsonwebtoken | Assina e verifica o JWT mantido em cookie HttpOnly. |
+| Nodemailer / Mailpit | Enviam e permitem inspecionar e-mails de recuperação no ambiente local. |
+| Azure Communication Email | Alternativa ao SMTP para envio de recuperação em produção. |
+| docx / qrcode | Geram os documentos Word e os códigos de identificação das provas. |
+| ZXing Browser | Lê o QR code pela câmera; não reconhece marcações de alternativas. |
+| ExcelJS | Lê e gera a planilha de importação de alunos no back-end. |
+| Gerador XLSX do projeto | Exporta notas no navegador, em `front-end/src/pages/reports/xlsx.js`. |
+| node:test / Testing Library / jsdom | Executam testes de regras, HTTP com dependências substituídas e componentes. |
+| Docker Compose / Caddy | Reproduzem serviços e fornecem proxy HTTPS em produção. |
+| GitHub Actions / Pages / Azure VM | Automatizam validação e publicação, hospedando a interface e a API. |
 
-## 8. Estrutura de Pastas
+## 9. Estrutura de Pastas
 
 Visão resumida da estrutura atual:
 
 ```text
 Projeto-de-Software/
-├── .github/workflows/           # automatiza testes, build e publicação do front-end
+├── .github/workflows/           # testes, build, GitHub Pages e deploy da API
 ├── back-end/
-│   ├── compose.yaml             # configura o MySQL local em Docker
+│   ├── compose.yaml             # configura MySQL e Mailpit locais
 │   ├── prisma/
 │   │   ├── models/               # define os modelos persistidos
 │   │   ├── migrations/           # versiona as alterações do banco de dados
@@ -328,17 +485,22 @@ Projeto-de-Software/
 │   │       ├── schemas/          # valida os dados de entrada
 │   │       └── services/         # regras de negócio
 │   ├── tests/
-│   ├── .env.example              # mostra as variáveis de ambientesnecessárias à API
+│   ├── .env.example              # mostra as variáveis de ambiente necessárias à API
 │   └── package.json             # lista scripts e dependências do back-end
+├── compose.production.yaml      # MySQL, API e Caddy em produção
+├── deploy/azure/                 # bootstrap da VM, HTTPS e e-mail
 ├── docs/
 │   ├── adr/
 │   ├── api/
 │   ├── arquitetura/
 │   ├── modelo-dados/
 │   ├── telas/
-│   └── uml/
+│   ├── uml/
+│   ├── testes-validacoes.md
+│   └── manual-usuario.md
 ├── front-end/
 │   ├── src/
+│   │   ├── auth/                # sessão e cliente HTTP da API
 │   │   ├── components/          # componentes reutilizáveis
 │   │   ├── layouts/             # navegação e layout
 │   │   ├── mocks/               # dados demonstrativos
@@ -352,7 +514,7 @@ Projeto-de-Software/
 └── README.md
 ```
 
-## 9. Como Executar o Projeto
+## 10. Como Executar o Projeto
 
 Pré-requisitos: Git, Node.js **24.x** com npm e, para o back-end, Docker Desktop em execução com containers Linux. O front-end usa React 18 e Vite 6; o back-end usa Express 5, Prisma 7 e MySQL 8.4. Confira as versões locais com `git --version`, `node --version`, `npm --version` e `docker compose version`.
 
@@ -370,9 +532,11 @@ Pré-requisitos: Git, Node.js **24.x** com npm e, para o back-end, Docker Deskto
 
 3. Instale as dependências do front-end e inicie a interface:
 
-   ```bash
+   ```powershell
    cd front-end
    npm ci
+   # PowerShell; no Unix, use cp .env.example .env
+   Copy-Item .env.example .env
    npm run dev
    ```
 
@@ -382,7 +546,7 @@ Pré-requisitos: Git, Node.js **24.x** com npm e, para o back-end, Docker Deskto
 
 ### Front-end
 
-O front-end chama a API no endereço de `VITE_API_URL`, definido em `front-end/.env` a partir de `front-end/.env.example`; sem esse arquivo, usa `http://localhost:3000`. Para gerar e visualizar o build localmente, execute em `front-end/`:
+O front-end chama a API no endereço de `VITE_API_URL`, definido em `front-end/.env` a partir de `front-end/.env.example`; sem configuração explícita, usa `http://localhost:3000` no desenvolvimento e a API Azure no build de produção. Para testar o build com a API local, configure `VITE_API_URL=http://localhost:3000` **antes** de executar o build. A variável é incorporada pelo Vite no momento da compilação. Para gerar e visualizar o build localmente, execute em `front-end/`:
 
 ```bash
 npm run build
@@ -408,12 +572,13 @@ Edite `back-end/.env` antes de iniciar. O arquivo não é versionado. Em sistema
 | `PORT`                                                                           | Porta da API. Mantenha `3000`, onde o front-end procura a API.                                                                                                          |
 | `FRONTEND_ORIGINS`                                                               | Origens do front-end autorizadas a chamar a API, separadas por vírgula e sem barra no final. O exemplo libera o Vite em desenvolvimento (`5173`) e no preview (`4173`). |
 | `JWT_SECRET`                                                                     | Chave que assina o token da sessão guardado no cookie. Deve ter pelo menos 32 caracteres; troque o valor do exemplo por uma chave aleatória.                            |
-| `SMTP_HOST`, `SMTP_PORT`, `SMTP_USER`, `SMTP_PASSWORD`, `SMTP_FROM`, `SMTP_REQUIRE_TLS` | Servidor SMTP para enviar links de recuperação. O exemplo usa Mailpit local (`127.0.0.1:1025`, sem TLS); abra `http://localhost:8025` para ver os e-mails. Para entregar e-mails reais, configure um provedor SMTP, normalmente porta `587` com `SMTP_REQUIRE_TLS=true` ou porta `465` com SSL. Sem `SMTP_HOST` e `SMTP_FROM`, a recuperação responde `503`. |
+| `SMTP_HOST`, `SMTP_PORT`, `SMTP_USER`, `SMTP_PASSWORD`, `SMTP_FROM`, `SMTP_REQUIRE_TLS` | Servidor SMTP para enviar links de recuperação. O exemplo usa Mailpit local (`127.0.0.1:1025`, sem TLS); abra `http://localhost:8025` para ver os e-mails. Para entregar e-mails reais, configure um provedor SMTP, normalmente porta `587` com `SMTP_REQUIRE_TLS=true` ou porta `465` com SSL. Sem um provedor de e-mail configurado (SMTP ou Azure), a recuperação responde `503`. |
+| `AZURE_EMAIL_CONNECTION_STRING`, `AZURE_EMAIL_FROM` | Configuram o Azure Communication Email; quando ambos estão definidos, esse provedor tem prioridade sobre SMTP. Em desenvolvimento local, deixe ambos vazios para usar Mailpit. |
 | `PASSWORD_RESET_URL`                                                             | Endereço obrigatório da página de redefinição no front-end. No GitHub Pages, use `https://luanamelchioretto.github.io/Projeto-de-Software/#/redefinir-senha`; em desenvolvimento, use a rota local sem `#`. |
 | `COOKIE_SECURE`                                                                  | `false` para usar a API em `http://localhost`. Use `true` só com HTTPS: o cookie passa a ser `Secure` e `SameSite=None`.                                                |
 | `MYSQL_ROOT_PASSWORD`, `DB_PASSWORD`                                             | Senhas dos usuários `root` e `provaplus` do MySQL criado pelo `compose.yaml`, que não sobe sem elas.                                                                    |
 | `DATABASE_URL`, `SHADOW_DATABASE_URL`                                            | Conexões com o banco `provaplus` e com o `provaplus_shadow`, que o `npm run db:migrate` usa para conferir as migrações. Use nelas a senha definida em `DB_PASSWORD`.    |
-| `SEED_USER_NAME`, `SEED_USER_EMAIL`, `SEED_USER_MATRICULA`, `SEED_USER_PASSWORD` | Dados do professor que o seed cria para entrar no sistema. A senha está vazia no exemplo e deve ter pelo menos 8 caracteres, no máximo 64 bytes em UTF-8, uma letra maiúscula e um símbolo especial. |
+| `SEED_USER_NAME`, `SEED_USER_EMAIL`, `SEED_USER_MATRICULA`, `SEED_USER_PASSWORD` | Dados do professor que o seed cria para entrar no sistema. O exemplo contém uma senha de desenvolvimento, que deve ser substituída no seu `.env`. A senha deve ter pelo menos 8 caracteres, no máximo 64 bytes em UTF-8, uma letra maiúscula e um símbolo especial. |
 
 Para gerar o `JWT_SECRET`, execute `node -e "console.log(require('node:crypto').randomBytes(32).toString('hex'))"`.
 
@@ -425,21 +590,33 @@ npm run dev
 
 O comando sobe o MySQL e o Mailpit, aplica as migrações, gera o Prisma Client, executa o seed da conta local e inicia a API. Para parar os serviços sem apagar os dados do banco, execute `npm run db:stop` em `back-end/`.
 
-Em localhost, os e-mails de **Esqueci minha senha** vão para a caixa de entrada do [Mailpit](http://localhost:8025). Abra esse endereço para acessar o link de redefinição. O Mailpit não entrega mensagens à caixa de e-mail real do professor; para isso, configure um provedor SMTP no `back-end/.env`.
+Em localhost, os e-mails de **Esqueci minha senha** vão para a caixa de entrada do [Mailpit](http://localhost:8025). Abra esse endereço para acessar o link de redefinição. O Mailpit não entrega mensagens à caixa de e-mail real do professor; para isso, configure um provedor SMTP ou Azure Communication Email no `back-end/.env`.
 
-## 10. Especificação da API
+## 11. Especificação da API
 
 A tabela de endpoints está em [docs/api/especificacao.md](docs/api/especificacao.md).
 
-## 11. Equipe e Contribuições
+## 12. Testes e Validações
 
-A divisão atual de tarefas segue a organização do quadro no Trello:
+Execute `npm test` separadamente em `back-end/` e `front-end/`. No back-end, o comando também gera o Prisma Client e compila TypeScript. Para conferir o build da interface, execute `npm run build` em `front-end/`.
 
-- **CAMILA LORENZETTI**: criar a tela de Turmas e a tela de Correção de Provas; elaborar o diagrama de sequência.
-- **GUILHERME FRANCIEL MEIRING**: criar a tela de Banco de Questões, adicionar build e testes no GitHub Actions, atualizar o README e dividir as tarefas da equipe; configurar o back-end com Node.js, TypeScript, Express, MySQL e Prisma, incluindo os modelos e as migrações do banco; implementar o login, a sessão e o logout, protegendo as rotas do React e da API.
-- **LUAN FERREIRA DO AMARAL**: criar a tela de Relatórios e o conteúdo do Dashboard; elaborar o diagrama de atividades.
-- **LUANA MELCHIORETTO**: criar a tela de Login e Resultado da Correção, revisar a navegação, documentar as telas para a entrega e elaborar o diagrama de casos de uso.
-- **MATHEUS RECK SCHÄFFER**: criar as telas de Avaliações, Nova Avaliação, Detalhes da Avaliação e Provas Geradas; elaborar o diagrama de classes.
+[Guia de testes, validações e casos de borda](docs/testes-validacoes.md): inclui um roteiro reproduzível de API, respostas esperadas, resultados locais, homologação funcional informada pela equipe e verificações complementares.
+
+## 13. Manual do Usuário
+
+[Manual do Usuário](docs/manual-usuario.md): guia de cadastro/login, turmas e alunos, questões, avaliações, geração de DOCX, correção assistida e relatórios, com as capturas disponíveis e limitações da N3.
+
+## 14. Equipe e Contribuições
+
+As contribuições de código e documentação abaixo foram conferidas nos commits da branch `main`. Commits de merge não foram usados como evidência de autoria do código integrado. Guilherme informou sua participação nos testes finais dos fluxos do sistema publicado.
+
+| Integrante | Contribuições identificadas |
+| --- | --- |
+| **CAMILA LORENZETTI** | Implementou a interface e o CRUD de turmas no front-end e back-end; desenvolveu o fluxo de leitura de QR para correções em celular, a conferência e o envio das respostas e a liberação de resultados; produziu o diagrama de sequência. |
+| **GUILHERME FRANCIEL MEIRING** | Implementou a página Banco de Questões e componentes compartilhados do front-end; estruturou a API em Node.js, TypeScript, Express, Prisma e MySQL; desenvolveu login, sessões, cadastro e recuperação de contas; adicionou testes, workflows de CI/CD e configuração de implantação da API no Azure; atualizou o README e a documentação técnica; executou os testes finais dos fluxos do sistema no ambiente publicado. |
+| **LUAN FERREIRA DO AMARAL** | Implementou o CRUD de questões com persistência na API; integrou Dashboard e Relatórios com dados reais e exportação XLSX, incluindo testes dessas telas; produziu o diagrama de atividades. |
+| **LUANA MELCHIORETTO** | Integrou telas de questões, turmas, avaliações, geração e correção com a API; trabalhou na leitura de QR pela câmera e na página de resultado da correção; ajustou autenticação e rotas da interface, publicou o front-end no GitHub Pages e produziu o diagrama de casos de uso. |
+| **MATHEUS RECK SCHÄFFER** | Desenvolveu as telas e a API de avaliações, as aplicações e versões de prova, o snapshot do gabarito e a geração/download do DOCX; documentou o DER e o dicionário de dados e produziu o diagrama de classes. |
 
 ---
 
