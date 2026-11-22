@@ -1,7 +1,12 @@
 import assert from 'node:assert/strict';
 import { test } from 'node:test';
 import ExcelJS from 'exceljs';
-import { lerPlanilhaAlunos } from '../dist/server/services/turmas/importacao-alunos.service.js';
+
+process.env.DATABASE_URL = 'mysql://test:test@127.0.0.1:3306/test';
+process.env.FRONTEND_ORIGINS = 'http://localhost:5173';
+process.env.JWT_SECRET = 'test-secret-with-at-least-32-characters';
+
+const { lerPlanilhaAlunos } = await import('../dist/server/services/turmas/importacao-alunos.service.js');
 
 async function arquivo(linhas) {
   const workbook = new ExcelJS.Workbook();
